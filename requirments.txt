@@ -1,0 +1,10 @@
+tensorflow
+pandas
+networkx
+colorhash
+mxnet
+numpy
+jupyter
+seaborn
+imbalanced-learn
+hide_code

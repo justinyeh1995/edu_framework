@@ -12,5 +12,4 @@
 
 * Downstream -> 下游任務模型：MLP
 
-* GCN+RNN -> GCN+RNN (pretrain-model) + MLP (downstream model) 程式包含pre-train與downstream
-
+* GCN+RNN -> GCN+RNN (pretrain-model) + MLP (downstream model) 程式已包含pre-train與downstream

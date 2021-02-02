@@ -6,6 +6,9 @@
 ## 相關文件
 * [介紹文件](https://drive.google.com/file/d/1HxZgE_gIbRktlVRtnt9Z02_XXmwRKmJP/view?usp=sharing)
 
+## 相關算法介紹
+[node2vec](https://zhuanlan.zhihu.com/p/56542707)
+
 ## 環境設定
 * pytorch 設定
 

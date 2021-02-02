@@ -3,6 +3,9 @@
 ## HackMD 
 [進度更新連結](https://hackmd.io/@udothemath/ncku_embedding_ext)
 
+## 相關文件
+* [介紹文件](https://drive.google.com/file/d/1HxZgE_gIbRktlVRtnt9Z02_XXmwRKmJP/view?usp=sharing)
+
 ## 環境設定
 * pytorch 設定
 

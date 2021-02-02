@@ -3,6 +3,31 @@
 ## HackMD 
 [進度更新連結](https://hackmd.io/@udothemath/ncku_embedding_ext)
 
+## 環境設定
+* pytorch 設定
+
+```shell
+
+pip uninstall -y torch
+pip uninstall -y torch-scatter
+pip uninstall -y torch-sparse
+pip uninstall -y torch-cluster
+pip uninstall -y torch-spline-conv
+pip uninstall -y torch-geometric
+
+pip install torch==1.7.1+cu110 torchvision==0.8.2+cu110 torchaudio===0.7.2 -f https://download.pytorch.org/whl/torch_stable.html
+
+
+pip install --no-index torch-scatter -f https://pytorch-geometric.com/whl/torch-1.7.0+cu110.html
+pip install --no-index torch-sparse -f https://pytorch-geometric.com/whl/torch-1.7.0+cu110.html
+pip install --no-index torch-cluster -f https://pytorch-geometric.com/whl/torch-1.7.0+cu110.html
+pip install --no-index torch-spline-conv -f https://pytorch-geometric.com/whl/torch-1.7.0+cu110.html
+pip install torch-geometric
+
+```
+
+
+
 ## 資料夾描述
 * data -> sample出來的顧客交易紀錄檔與特徵檔
 

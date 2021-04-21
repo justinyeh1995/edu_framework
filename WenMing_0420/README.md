@@ -1,5 +1,8 @@
  **莊文明 RE6094036@gs.ncku.edu.tw**
 
+## 資料
+訓練資料與測試資料，[下載](https://drive.google.com/drive/folders/1DZH1UGQjaZemjGc94v1RXwNrCSWIaHgF?usp=sharing)
+
 ## 檔案說明
 1. 標頭數字，1_ : 資料前處理，2_ :預訓練模型，3_ :DownStreemTask
 2. 模型：ETRnn、XGBoost

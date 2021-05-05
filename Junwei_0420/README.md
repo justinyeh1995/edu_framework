@@ -1,4 +1,4 @@
-# ncku_customer_embedding
+# GNN model
 
 ## Pretrain Model
 - GCN+GRU

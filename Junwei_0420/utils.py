@@ -25,7 +25,7 @@ def read_sample_files(sample_cdtx_file, sample_cust_file, sample_chid_dict, shop
     for i , j in enumerate(sorted(df_cdtx[shop_col].unique())):
         idx_map[j] = i+n_users
     
-    print('Start maping encodeing...')
+    print('Start mapping encodeing...')
     df_cdtx.chid = df_cdtx.chid.map(idx_map)
     df_cdtx[shop_col] = df_cdtx[shop_col].map(idx_map)
 

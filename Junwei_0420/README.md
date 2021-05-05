@@ -11,11 +11,8 @@ Link Prediction
 
 ## Downstream Task
 
-objam - 消費金額
-count - 消費次數
-kind - 消費商家種類
-shopping - 是否消費
-interval - 消費金額區間
-
-
-## 資料夾描述
+objam - 消費金額\
+count - 消費次數\
+kind - 消費商家種類\
+shopping - 是否消費\
+interval - 消費金額區間\

@@ -1,17 +1,15 @@
 # ncku_customer_embedding
 
-## HackMD 
-[進度更新連結](https://hackmd.io/@udothemath/ncku_embedding_ext)
+## Pretrain Model
+- GCN+GRU
+- SingleGCN+GRU
+
 
 ## Pretrain Task
-
 - Link Prediction
 - Node Classification
 
-
-
 ## Downstream Task
-
 - objam  消費金額
 - count  消費次數
 - kind  消費商家種類

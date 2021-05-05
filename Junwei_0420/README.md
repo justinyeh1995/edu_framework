@@ -1,4 +1,4 @@
-# GNN model
+# GNN
 
 ## Pretrain Model
 - GCN+GRU

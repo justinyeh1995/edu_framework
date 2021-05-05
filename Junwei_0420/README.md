@@ -5,7 +5,8 @@
 
 ## Pretrain Task
 
-Link Prediction
+- Link Prediction
+- Node Classification
 
 
 
@@ -15,4 +16,4 @@ objam - 消費金額\
 count - 消費次數\
 kind - 消費商家種類\
 shopping - 是否消費\
-interval - 消費金額區間\
+interval - 消費金額區間

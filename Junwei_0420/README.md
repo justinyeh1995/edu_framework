@@ -10,10 +10,10 @@
 - Node Classification
 
 ## Downstream Task
-- objam  消費金額
-- count  消費次數
-- kind  消費商家種類
-- shopping  是否消費
-- interval  消費金額區間
+-  objsum： 消費總金額(回歸)
+-  tscnt：交易次數(回歸)
+-  spcnt：交易商店種類數量(回歸)
+-  label_0：下個月是否消費(分類)
+-  label_mul：交易總金額區間(分類)
 
 ## 未完待補...

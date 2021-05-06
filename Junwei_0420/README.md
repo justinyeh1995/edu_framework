@@ -7,7 +7,7 @@
 
 ## Pretrain Task
 - Link Prediction
-- Node Classification\
+- Node Classification
     1. label_0
     2. label_mul
 

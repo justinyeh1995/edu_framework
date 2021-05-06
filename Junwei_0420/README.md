@@ -8,7 +8,7 @@
 ## Pretrain Task
 - Link Prediction
 - Node Classification\
-    1. label_0\
+    1. label_0
     2. label_mul
 
 ## Downstream Task

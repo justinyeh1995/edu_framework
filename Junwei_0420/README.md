@@ -8,8 +8,8 @@
 ## Pretrain Task
 - Link Prediction
 - Node Classification\
- - label_0
- - label_mul
+** label_0
+** label_mul
 
 ## Downstream Task
 -  objsum： 消費總金額(回歸)

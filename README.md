@@ -39,8 +39,8 @@ pip install torch-geometric
 
 
 ## 資料夾描述
-Junwei WenMing 為早期的程式碼\
-Junwei_0420 WenMing_0420 為近期的程式碼 目前以該程式碼為主
+Junwei、WenMing 為早期的程式碼\
+Junwei_0420、WenMing_0420 為近期的程式碼 目前以該程式碼為主
 
 * [原始資料下載方式](ncku_customer_embedding/WenMing/data/raw/download_data.ipynb)
 * data -> sample出來的顧客交易紀錄檔與特徵檔

@@ -1,5 +1,17 @@
 # GNN
 
+
+## 資料
+由於檔案過大無法上傳，改以雲端硬碟放置檔案:[點我下載](https://drive.google.com/drive/folders/1Vw6jKoEhqmnmvbxh-kqh4xY-o2Ymr1d5?usp=sharing)
+請將檔案放置到 ./Junwei_0420/data/sample
+並在 ./Junwei_0420/data 底下創建新資料夾 "preprocessed"
+創建完成後，執行preprocess.py
+```shell
+
+python3 preprocess.py
+
+```
+
 ## Pretrain Model
 - GCN+GRU
 - SingleGCN+GRU
@@ -20,4 +32,4 @@
 -  label_0：下個月是否消費(分類)
 -  label_mul：交易總金額區間(分類)
 
-## 未完待補...
+

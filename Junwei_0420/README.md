@@ -12,7 +12,7 @@
     1. label_0
     2. label_mul
 
-## Downstream Task
+## Downstream Task (.ipynb)
 下游任務共有五種，分別是：
 -  objsum： 消費總金額(回歸)
 -  tscnt：交易次數(回歸)

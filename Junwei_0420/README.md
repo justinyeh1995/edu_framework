@@ -3,9 +3,12 @@
 
 ## Data
 檔案過大無法上傳，改以雲端資料夾放置檔案:[點我下載](https://drive.google.com/drive/folders/1RuglR5poPy7zi3AkXP-66fwLSBJOOnOt?usp=sharing)\
-請將雲端資料夾內所有檔案下載至 `./Junwei_0420/data/sample`\
-並在 `./Junwei_0420/data` 底下創建新資料夾 `preprocessed`\
-創建完成後，執行`preprocess.py`
+\
+請於`./Junwei_0420/data` 底下創建新資料夾`sample`與`preprocessed`\
+\
+再將雲端資料夾內所有檔案下載至 `./Junwei_0420/data/sample`\
+\
+下載完成後，執行`preprocess.py`
 ```shell
 
 python3 preprocess.py

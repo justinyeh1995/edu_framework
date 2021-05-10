@@ -30,7 +30,7 @@ python3 preprocess.py
 因執行***Downstream Task***時，得將儲存的模型權重進行載入\
 故在執行***Pretraining Task***時，需注意`weights_path`模型權重儲存的路徑與名稱。
 
-## Downstream Task (.ipynb)
+## Downstream Task
 下游任務共有五種，分別是：
 -  objsum： 消費總金額(回歸)
 -  tscnt：交易次數(回歸)

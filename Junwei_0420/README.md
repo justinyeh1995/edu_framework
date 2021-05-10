@@ -27,7 +27,7 @@ python3 preprocess.py
 以上的預訓練任務程式碼檔案名為：`Pretrain_{Pretraining Model}_{Pretraining Task}.ipynb`
 
 模型訓練完成後，必須將模型權重(model weights)進行儲存\
-因執行***Downstream Task***時，得將儲存的模型權重進行載入\
+因執行***Downstream Task***時，得將儲存的模型權重載入\
 故在執行***Pretraining Task***時，需注意`weights_path`模型權重儲存的路徑與名稱。
 
 ## Downstream Task
@@ -40,5 +40,5 @@ python3 preprocess.py
 
 以上的預訓練任務程式碼檔案名為：`Downstream_{Pretraining Model}_{Downstream Task}.ipynb`
 
-執行***Downstream Task***時，得將***Pretraining Task***儲存的模型權重進行載入\
+執行***Downstream Task***時，得將***Pretraining Task***儲存的模型權重載入\
 需注意`weights_path`模型權重載入的路徑與名稱。

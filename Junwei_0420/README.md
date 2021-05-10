@@ -14,7 +14,6 @@ python3 preprocess.py
 
 ## Pretraining Model
 - GCN_GRU
-- SingleGCN_GRU
 
 
 ## Pretraining Task

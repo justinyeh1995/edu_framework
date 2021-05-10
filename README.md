@@ -47,5 +47,4 @@ Junwei_0420、WenMing_0420 為近期的程式碼 目前以該程式碼為主
 
     由於檔案過大無法上傳，改以雲端硬碟放置檔案:[點我下載](https://drive.google.com/drive/folders/1Vw6jKoEhqmnmvbxh-kqh4xY-o2Ymr1d5?usp=sharing)
     
-***Junwei_0420內有另外的data連結，若要使用Junwei_0420內的程式碼，請依照Junwei_0420內的README指示進行。
-有
+***Junwei_0420內有另外的data連結，若要使用Junwei_0420內的程式碼，請依照Junwei_0420內的README指示進行。***

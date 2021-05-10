@@ -1,4 +1,4 @@
-# GNN
+# Graph Neural Networks
 
 
 ## Data

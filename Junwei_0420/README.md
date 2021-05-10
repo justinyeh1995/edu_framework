@@ -12,17 +12,19 @@ python3 preprocess.py
 
 ```
 
-## Pretrain Model
-- GCN+GRU
-- SingleGCN+GRU
+## Pretraining Model
+- GCN_GRU
+- SingleGCN_GRU
 
 
-## Pretrain Task (.ipynb)
+## Pretraining Task
 預訓練任務共有三種，分別是：
 - Link Prediction
 - Node Classification
     1. label_0
     2. label_mul
+
+以上的預訓練任務程式碼檔案名為：`Pretrain_{Pretraining Model}_{Pretraining Task}.ipynb`
 
 ## Downstream Task (.ipynb)
 下游任務共有五種，分別是：
@@ -32,4 +34,4 @@ python3 preprocess.py
 -  label_0：下個月是否消費(分類)
 -  label_mul：交易總金額區間(分類)
 
-
+以上的預訓練任務程式碼檔案名為：`Downstream_{Pretraining Model}_{Downstream Task}.ipynb`

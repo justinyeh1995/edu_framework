@@ -10,7 +10,7 @@ import gc
 import feather
 
 sample_path = '../../data'
-specific_path = '../data'
+specific_path = '../data/sample_50k'
 
 chid_file = os.path.join(sample_path, 'sample_chid.txt')
 cdtx_file = os.path.join(sample_path, 'sample_zip_if_cca_cdtx0001_hist.csv')
@@ -206,12 +206,14 @@ df_full_y_sum = outer_product_table_of_chids_and_months(df_cdtx)
 print(df_full_y_sum.shape)'''
 
 
-def merge_with_other_table(df_full_y_sum, df_to_be_merged, join_method = 'left'):
+def merge_with_other_table(df_full_y_sum, df_to_be_merged, join_method='left'):
     df_full_y_sum = df_full_y_sum.merge(df_to_be_merged,
                                         how=join_method,
                                         left_on=['chid', 'data_dt'],
                                         right_on=['chid', 'data_dt']).fillna(0)
     return df_full_y_sum
+
+
 '''
 df_cdtx = load_cdtx()
 print('cdtx loaded')
@@ -278,6 +280,7 @@ del df_cust_f
 gc.collect()
 '''
 
+
 def add_mean_of_previous_two_months(df_full_y_sum):
     # 本月 前1、2月 平均金額
     df_full_y_sum.insert(6, 'objam_mean_M3', 0)
@@ -290,22 +293,25 @@ def add_mean_of_previous_two_months(df_full_y_sum):
 
         df_full_y_sum.loc[mask, 'objam_mean_M3'] = temp
 
-def add_duration_since_20180101(df_cdtx):
-    df_cdtx['timestamp_1'] = (df_cdtx.csmdt - np.datetime64('2018-01-01')).values / np.timedelta64(1, 'D') # .fillna(0)
-    df_cdtx['timestamp_1'].fillna(0)
+
+def add_duration_since_20180101(df_cdtx, time_col='csmdt', result_col='timestamp_1'):
+    df_cdtx[result_col] = (df_cdtx[time_col] - np.datetime64('2018-01-01')).values / np.timedelta64(1, 'D')
+    df_cdtx[result_col].fillna(0)
+
 
 def add_duration_since_last_trans(df_cdtx):
-    df_cdtx['timestamp_0'] = (df_cdtx.csmdt - df_cdtx.csmdt.shift()).values / np.timedelta64(1,'D')
+    df_cdtx['timestamp_0'] = (df_cdtx.csmdt - df_cdtx.csmdt.shift()).values / np.timedelta64(1, 'D')
     df_cdtx['timestamp_0'] = df_cdtx['timestamp_0'].fillna(0)
     df_cdtx.sort_values(by=['chid', 'csmdt'], ignore_index=True, inplace=True)
     mask_list = []
     chid_pre = -1
     for i, chid in tqdm(enumerate(df_cdtx.chid.values)):
-        if chid != chid_pre: # 不是-1，也不是前一個chid，代表是沒有算到另一個chid的前一次時間。
+        if chid != chid_pre:  # 不是-1，也不是前一個chid，代表是沒有算到另一個chid的前一次時間。
             chid_pre = chid
             mask_list.append(i)
 
     df_cdtx.loc[mask_list, 'timestamp_0'] = 0
+
 
 '''
 df_cdtx = load_cdtx()
@@ -426,6 +432,8 @@ del df_cdtx
 gc.collect()
 print('df_cdtx_2 saved')
 '''
+
+
 def extract_cat_num_cols_and_encode_with_catid(df_original, category_cols, numeric_cols):
     df_result = df_original[category_cols + numeric_cols]
     del df_original
@@ -443,8 +451,8 @@ def extract_cat_num_cols_and_encode_with_catid(df_original, category_cols, numer
             print(col, 'type casted')
         gc.collect()
     print('all non str category col casted')
-    mapper = {col: {value: index+1 for index, value in enumerate(sorted(df_result[col].unique()))}
-          for col in category_cols[1:]}
+    mapper = {col: {value: index + 1 for index, value in enumerate(sorted(df_result[col].unique()))}
+              for col in category_cols[1:]}
     print('mapper created')
 
     for col in category_cols[1:]:
@@ -453,12 +461,12 @@ def extract_cat_num_cols_and_encode_with_catid(df_original, category_cols, numer
         print(col, 'map applied')
     return df_result, mapper
 
+
 def extract_target_columns_from_df(df_origin, y_cols):
     df_y = df_origin[y_cols].copy().reset_index(drop=True)
     del df_origin
     gc.collect()
     return df_y
-
 
 
 '''df_cdtx = load_cdtx()

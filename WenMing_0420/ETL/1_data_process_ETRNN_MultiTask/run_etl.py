@@ -2,28 +2,39 @@ from ETLComponent import *
 
 
 def data_split(df_x, df_f, df_y, window_size, test_size=2):
-    df_x = df_x.copy()
-    df_f = df_f.copy()
-    df_y = df_y.copy()
+    # window_size是往前算的交易資料數
+    # 取兩個月作為測試用
+    #
+    # 根據月份進行切割
+    # df_x = df_x.copy()
+    # df_f = df_f.copy()
+    # df_y = df_y.copy()
 
-    df_f['timestamp'] = (df_f.data_dt - np.datetime64('2018-01-01')).apply(lambda x: x.days).fillna(0)
-    df_y['timestamp'] = (df_y.data_dt - np.datetime64('2018-01-01')).apply(lambda x: x.days).fillna(0)
+    # df_f['timestamp'] = (df_f.data_dt - np.datetime64('2018-01-01')).apply(lambda x: x.days).fillna(0)
+    add_duration_since_20180101(df_f, time_col='data_dt', result_col='timestamp')
+    add_duration_since_20180101(df_y, time_col='data_dt', result_col='timestamp')
 
     x_train, x_test, f_train, f_test, y_train, y_test = [], [], [], [], [], []
 
     for i in tqdm(sorted(df_y.chid.unique())):
+        # 抓出各個顧客的資料
         data_x = df_x[df_x.chid == i].reset_index(drop=True)
         data_f = df_f[df_f.chid == i].reset_index(drop=True)
         data_y = df_y[df_y.chid == i].reset_index(drop=True)
 
+        # 抓出某一顧客的最後一月的月份
         last = data_y.shape[0] - 1
+        # 把資料的月份按照順序列出
         ts_list = sorted(data_y.timestamp.unique())
 
         for j, (ts_f, ts_y) in enumerate(zip(ts_list[:-1], ts_list[1:])):
+            # ts_f是前一月 ts_y是下一個月
             data_x_ws = data_x[data_x.timestamp_1 < ts_y][-window_size:].copy()
+            # 把和 ts_y 的差距月數作為新的時間因子
             data_x_ws.timestamp_1 = ts_y - data_x_ws.timestamp_1
+            # 轉換為 np array
             data_x_ws = data_x_ws.values
-
+            # 如果取的資料量比window_size還小，補進0
             if data_x_ws.shape[0] < window_size:
                 tmp = np.zeros((window_size, data_x.shape[1]))
                 if data_x_ws.shape[0] > 0:
@@ -32,11 +43,15 @@ def data_split(df_x, df_f, df_y, window_size, test_size=2):
 
             if j < last - test_size:
                 x_train.append(data_x_ws)
+                # 取前一個月的顧客特徵
                 f_train.append(data_f[data_f.timestamp == ts_f].values[0, :-1])
+                # 往下一個月去取資料
                 y_train.append(data_y.values[j + 1, :-1])
             elif j < last:
                 x_test.append(data_x_ws)
+                # 取前一個月的顧客特徵
                 f_test.append(data_f[data_f.timestamp == ts_f].values[0, :-1])
+                # 往下一個月去取資料
                 y_test.append(data_y.values[j + 1, :-1])
             else:
                 break
@@ -48,7 +63,7 @@ def data_split(df_x, df_f, df_y, window_size, test_size=2):
     return x_train, x_test, f_train, f_test, y_train, y_test
 
 
-print('[LOAD] df_cdtx')
+'''print('[LOAD] df_cdtx')
 df_cdtx = load_cdtx()
 gc.collect()
 
@@ -137,8 +152,9 @@ df_full_y_sum.to_hdf('df_full_y_sum_3.h5', key='df_full_y_sum_3', mode='w')
 
 print("[DELETE] df_full_y_sum")
 del df_full_y_sum
-gc.collect()
+gc.collect()'''
 
+'''
 print('[LOAD] df_cdtx')
 df_cdtx = feather.read_dataframe('df_cdtx.feather')
 gc.collect()
@@ -180,6 +196,10 @@ gc.collect()
 print('[SAVE] df_input')
 feather.write_dataframe(df_input, 'df_input.feather')
 
+print('[DELETE] df_input')
+del df_input
+gc.collect()'''
+
 # extract and organize columns from df_cust_f and save them into df_feat_input
 print('[LOAD] df_cust_f ')
 df_cust_f = feather.read_dataframe('df_cust_f.feather')
@@ -191,6 +211,7 @@ df_feat_input, feat_mapper = extract_cat_num_cols_and_encode_with_catid(
     ['slam', 'first_mob', 'constant_change', 'sum_l2_ind', 'sum_u2_ind', 'constant_l2_ind', 'constant_u4_ind',
      'growth_rate', 'monotone_down', 'monotone_up']
 )
+df_feat_input['data_dt'] = df_cust_f.data_dt.astype(np.datetime64)
 
 print('[DELTE] df_cust_f')
 del df_cust_f
@@ -198,6 +219,10 @@ gc.collect()
 
 print('[SAVE] df_feat_input ')
 feather.write_dataframe(df_feat_input, 'df_feat_input.feather')
+
+print('[DELETE] df_feat_input')
+del df_feat_input
+gc.collect()
 
 # extract target columns from df_full_y_sum and save them into df_y
 print('[LOAD] df_full_y_sum_3')
@@ -213,14 +238,32 @@ gc.collect()
 print('[SAVE] df_y')
 feather.write_dataframe(df_y, 'df_y.feather')
 
+print('[DELETE] df_y')
+del df_y
+gc.collect()
 
 # Data Split:
 
-x_train, x_test, f_train, f_test, y_train, y_test = data_split(df_input, df_feat_input, df_y,
-                                                               window_size=120, test_size=2)
+print('[LOAD] df_input, df_feat_input, df_y')
+df_input = feather.read_dataframe('df_input.feather')
+
+df_feat_input = feather.read_dataframe('df_feat_input.feather')
+
+df_y = feather.read_dataframe('df_y.feather')
+
+
+print('[SPLIT] df_input, df_feat_input, df_y')
+x_train, x_test, f_train, f_test, y_train, y_test = data_split(
+    df_input,
+    df_feat_input,
+    df_y,
+    window_size=120,
+    test_size=2
+)
 
 
 # add new target:
+print('[ADD] objam_mean_M3_diff to df_y as well as y_{train/test}')
 y_columns = list(df_y)
 y_columns[-1] = 'objam_mean_M3_diff'
 
@@ -229,6 +272,7 @@ y_test[:, -1] = y_test[:, 2] - y_test[:, -1]
 
 print(y_columns)
 
+print('[SAVE] x_train, x_test, f_train, f_test, y_train, y_test')
 
 np.save(os.path.join(specific_path, 'RNN', 'x_train'), x_train)
 np.save(os.path.join(specific_path, 'RNN', 'x_test'), x_test)
@@ -237,10 +281,12 @@ np.save(os.path.join(specific_path, 'RNN', 'f_test'), f_test)
 np.save(os.path.join(specific_path, 'RNN', 'y_train'), y_train)
 np.save(os.path.join(specific_path, 'RNN', 'y_test'), y_test)
 
+print('[SAVE] feature_map, cust_feature_map')
 
 np.save(os.path.join(specific_path, 'RNN', 'feature_map'), mapper)
 np.save(os.path.join(specific_path, 'RNN', 'cust_feature_map'), feat_mapper)
 
+print('[SAVE] columns')
 columns = {
     'x_columns': list(df_input),
     'f_columns': list(df_feat_input),

@@ -4,4 +4,4 @@
 *.csv 
 *.feather
 *.json
-
+*.pyc

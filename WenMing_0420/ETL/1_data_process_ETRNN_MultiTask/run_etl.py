@@ -1,69 +1,17 @@
+#-*- coding: utf-8 -*-
+
+# 1. create a ETLBase object to be inherent
+# it should have the following parts:
+#  1. The ETL function of this ETL object
+#  2. Function checking whether the pre-request condition holds (e.g., the dependent file has been saved)
+#  3. Dependencies: a list of functions that should be execute before the current ETL function is execute
+# 2. create a ETL runner:
+#    - it start from
+
 from ETLComponent import *
 
 
-def data_split(df_x, df_f, df_y, window_size, test_size=2):
-    # window_size是往前算的交易資料數
-    # 取兩個月作為測試用
-    #
-    # 根據月份進行切割
-    # df_x = df_x.copy()
-    # df_f = df_f.copy()
-    # df_y = df_y.copy()
-
-    # df_f['timestamp'] = (df_f.data_dt - np.datetime64('2018-01-01')).apply(lambda x: x.days).fillna(0)
-    add_duration_since_20180101(df_f, time_col='data_dt', result_col='timestamp')
-    add_duration_since_20180101(df_y, time_col='data_dt', result_col='timestamp')
-
-    x_train, x_test, f_train, f_test, y_train, y_test = [], [], [], [], [], []
-
-    for i in tqdm(sorted(df_y.chid.unique())):
-        # 抓出各個顧客的資料
-        data_x = df_x[df_x.chid == i].reset_index(drop=True)
-        data_f = df_f[df_f.chid == i].reset_index(drop=True)
-        data_y = df_y[df_y.chid == i].reset_index(drop=True)
-
-        # 抓出某一顧客的最後一月的月份
-        last = data_y.shape[0] - 1
-        # 把資料的月份按照順序列出
-        ts_list = sorted(data_y.timestamp.unique())
-
-        for j, (ts_f, ts_y) in enumerate(zip(ts_list[:-1], ts_list[1:])):
-            # ts_f是前一月 ts_y是下一個月
-            data_x_ws = data_x[data_x.timestamp_1 < ts_y][-window_size:].copy()
-            # 把和 ts_y 的差距月數作為新的時間因子
-            data_x_ws.timestamp_1 = ts_y - data_x_ws.timestamp_1
-            # 轉換為 np array
-            data_x_ws = data_x_ws.values
-            # 如果取的資料量比window_size還小，補進0
-            if data_x_ws.shape[0] < window_size:
-                tmp = np.zeros((window_size, data_x.shape[1]))
-                if data_x_ws.shape[0] > 0:
-                    tmp[-data_x_ws.shape[0]:] = data_x_ws
-                data_x_ws = tmp
-
-            if j < last - test_size:
-                x_train.append(data_x_ws)
-                # 取前一個月的顧客特徵
-                f_train.append(data_f[data_f.timestamp == ts_f].values[0, :-1])
-                # 往下一個月去取資料
-                y_train.append(data_y.values[j + 1, :-1])
-            elif j < last:
-                x_test.append(data_x_ws)
-                # 取前一個月的顧客特徵
-                f_test.append(data_f[data_f.timestamp == ts_f].values[0, :-1])
-                # 往下一個月去取資料
-                y_test.append(data_y.values[j + 1, :-1])
-            else:
-                break
-
-    x_train, x_test = np.array(x_train), np.array(x_test)
-    f_train, f_test = np.array(f_train), np.array(f_test)
-    y_train, y_test = np.array(y_train), np.array(y_test)
-
-    return x_train, x_test, f_train, f_test, y_train, y_test
-
-
-'''print('[LOAD] df_cdtx')
+print('[LOAD] df_cdtx')
 df_cdtx = load_cdtx()
 gc.collect()
 
@@ -140,6 +88,8 @@ gc.collect()
 print("[SAVE] df_full_y_sum_2")
 df_full_y_sum.to_hdf('df_full_y_sum_2.h5', key='df_full_y_sum_2', mode='w')
 
+################## TODO: continue the following ETLs ##########################
+
 print("[ADD] mean of previous two months added to df_full_y_sum")
 add_mean_of_previous_two_months(df_full_y_sum)
 gc.collect()
@@ -181,7 +131,7 @@ gc.collect()
 # extract and organize columns from df_cdtx and save them into df_input
 
 print('[CREATE] df_input')
-df_input, mapper = extract_cat_num_cols_and_encode_with_catid(
+df_input, feature_mapper = extract_cat_num_cols_and_encode_with_catid(
     df_cdtx,
     ['chid', 'bnsfg', 'iterm', 'mcc', 'scity'],  # , 'stonc_tag', 'stonc_label', 'stonm_label', 'stonc_6_label', 'stonc_10_label'
     ['bnspt', 'timestamp_0', 'timestamp_1', 'objam']
@@ -198,14 +148,14 @@ feather.write_dataframe(df_input, 'df_input.feather')
 
 print('[DELETE] df_input')
 del df_input
-gc.collect()'''
+gc.collect()
 
 # extract and organize columns from df_cust_f and save them into df_feat_input
 print('[LOAD] df_cust_f ')
 df_cust_f = feather.read_dataframe('df_cust_f.feather')
 
 print('[CREATE] df_feat_input')
-df_feat_input, feat_mapper = extract_cat_num_cols_and_encode_with_catid(
+df_feat_input, cust_feature_mapper = extract_cat_num_cols_and_encode_with_catid(
     df_cust_f,
     ['chid', 'masts', 'educd', 'trdtp', 'poscd'],
     ['slam', 'first_mob', 'constant_change', 'sum_l2_ind', 'sum_u2_ind', 'constant_l2_ind', 'constant_u4_ind',
@@ -283,8 +233,8 @@ np.save(os.path.join(specific_path, 'RNN', 'y_test'), y_test)
 
 print('[SAVE] feature_map, cust_feature_map')
 
-np.save(os.path.join(specific_path, 'RNN', 'feature_map'), mapper)
-np.save(os.path.join(specific_path, 'RNN', 'cust_feature_map'), feat_mapper)
+np.save(os.path.join(specific_path, 'RNN', 'feature_map'), feature_mapper)
+np.save(os.path.join(specific_path, 'RNN', 'cust_feature_map'), cust_feature_mapper)
 
 print('[SAVE] columns')
 columns = {

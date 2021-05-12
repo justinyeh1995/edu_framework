@@ -5,3 +5,4 @@
 *.feather
 *.json
 *.pyc
+*.npy

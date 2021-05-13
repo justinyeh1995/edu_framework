@@ -102,9 +102,8 @@ df_full_y_sum.to_hdf('df_full_y_sum_3.h5', key='df_full_y_sum_3', mode='w')
 
 print("[DELETE] df_full_y_sum")
 del df_full_y_sum
-gc.collect()'''
+gc.collect()
 
-'''
 print('[LOAD] df_cdtx')
 df_cdtx = feather.read_dataframe('df_cdtx.feather')
 gc.collect()

@@ -1,7 +1,9 @@
 #-*- coding: utf-8 -*-
-import gc
 import os
+import gc
 import feather
+import pandas as pd
+import numpy as np
 
 
 class ETLBase:
@@ -67,14 +69,14 @@ class ETLBase:
         pass
 
 
-class ETLwithFeatherResult(ETLBase):
+'''class ETLwithFeatherResult(ETLBase):
     def __init__(self, process_name, pre_request_etls, result_dir, save=True):
         super(ETLwithFeatherResult, self).__init__(
             process_name,
             pre_request_etls=pre_request_etls,
             save=save
         )
-        self.result_dir = result_dir
+        self.result_dir = result_dir  # a list of diractories
 
     def is_complete(self):
         return os.path.exists(self.result_dir)
@@ -85,9 +87,9 @@ class ETLwithFeatherResult(ETLBase):
     def save_result(self, results):
         feather.write_dataframe(results[0], self.result_dir)
         print(f' as {self.result_dir}')
+'''
 
-
-class ETLwithH5Result(ETLBase):
+'''class ETLwithH5Result(ETLBase):
     def __init__(self, process_name, pre_request_etls, result_dir, save=True):
         super(ETLwithH5Result, self).__init__(
             process_name,
@@ -105,16 +107,57 @@ class ETLwithH5Result(ETLBase):
     def save_result(self, results):
         # feather.write_dataframe(results[0], self.result_dir)
         results[0].to_hdf(self.result_dir, key=self.result_dir.split('.')[0], mode='w')
-        print(f' as {self.result_dir}')
+        print(f' as {self.result_dir}')'''
+
+
+class ETLwithDifferentResults(ETLBase):
+    def __init__(self, process_name, pre_request_etls, result_dir, save=True):
+        super(ETLwithDifferentResults, self).__init__(
+            process_name,
+            pre_request_etls=pre_request_etls,
+            save=save
+        )
+        if type(result_dir) == list:
+            self.result_dirs = result_dir
+        else:
+            self.result_dirs = [result_dir]
+
+    def is_complete(self):
+        for file_dir in self.result_dirs:
+            if not os.path.exists(file_dir):
+                return False
+        return True
+
+    def load_result(self):
+        results = []
+        for file_dir in self.result_dirs:
+            if '.h5' in file_dir:
+                results.append(pd.read_hdf(file_dir, key=file_dir.split('.h5')[0], mode='r'))
+            elif '.feather' in file_dir:
+                results.append(feather.read_dataframe(file_dir))
+            elif '.npy' in file_dir:
+                # np.save(file_dir.split('.npy')[0], feature_mapper)
+                results.append(np.load(file_dir, allow_pickle=True))
+            else:
+                pass
+        return results
+
+    def save_result(self, results):
+        for i, file_dir in enumerate(self.result_dirs):
+            # feather.write_dataframe(results[0], self.result_dir)
+            if '.h5' in file_dir:
+                results[i].to_hdf(file_dir, key=file_dir.split('.')[0], mode='w')
+            elif '.feather' in file_dir:
+                feather.write_dataframe(results[i], file_dir)
+            elif '.npy' in file_dir:
+                np.save(file_dir.split('.npy')[0], results[i])
+            print(f' as {file_dir}')
 
 
 class ETLPro:
     def __new__(cls, process_name, pre_request_etls, result_dir=None, **kwargs):
         if result_dir:
-            if '.h5' in result_dir:
-                super_class = ETLwithH5Result
-            elif '.feather' in result_dir:
-                super_class = ETLwithFeatherResult
+            super_class = ETLwithDifferentResults
         else:
             super_class = ETLBase
         cls = type(cls.__name__ + '+' + super_class.__name__, (cls, super_class), {})
@@ -125,6 +168,22 @@ class ETLPro:
             super(ETLPro, self).__init__(process_name, pre_request_etls, result_dir, save=True)
         else:
             super(ETLPro, self).__init__(process_name, pre_request_etls=pre_request_etls, save=False)
+
+
+class SelectResult(ETLPro):
+    '''
+    This ETL process selects particular results from previous ETLs.
+    By default, it extract the first result.
+    '''
+
+    def __init__(self, process_name, pre_request_etls, selected_indices=[0]):
+        super(SelectResult, self).__init__(process_name, pre_request_etls, result_dir=None)
+        self.selected_indices = selected_indices
+
+    def process(self, inputs):
+        assert len(self.selected_indices) < len(inputs)
+        return [inputs[i] for i in self.selected_indices]
+# for ETL with multiple output
 
 
 '''

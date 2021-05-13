@@ -1,13 +1,10 @@
 #-*- coding: utf-8 -*-
 import os
-import json
 import numpy as np
 import pandas as pd
 from time import time
-from tqdm import tqdm, trange
-from sklearn.preprocessing import MinMaxScaler
+from tqdm import tqdm
 import gc
-import feather
 
 from ETLBase import ETLPro, SelectResult
 
@@ -343,8 +340,6 @@ class XFYColumnBuilder(ETLPro):
         }
         return [columns]
 
-
-
 df_cdtx = Load_cdtx(
     'load_cdtx',
     [])
@@ -540,4 +535,5 @@ columns.run()
 # - [ ] allow subset selection from previous ETL process
 # - [ ] allow the input to be a dictionary and the output to be a dictionary, too
 # - [ ] make the ETL Process object allows two step construction like nn.module. 1. first initialized with configuration . 2. Be called to assign inputs and obtain outputs later
-
+# - [ ] incorporate google drive download as the first step of ETL
+# - [ ] allows zero input ETL if the ETL does not have previous ETL

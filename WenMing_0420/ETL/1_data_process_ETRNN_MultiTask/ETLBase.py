@@ -69,47 +69,6 @@ class ETLBase:
         pass
 
 
-'''class ETLwithFeatherResult(ETLBase):
-    def __init__(self, process_name, pre_request_etls, result_dir, save=True):
-        super(ETLwithFeatherResult, self).__init__(
-            process_name,
-            pre_request_etls=pre_request_etls,
-            save=save
-        )
-        self.result_dir = result_dir  # a list of diractories
-
-    def is_complete(self):
-        return os.path.exists(self.result_dir)
-
-    def load_result(self):
-        return [feather.read_dataframe(self.result_dir)]
-
-    def save_result(self, results):
-        feather.write_dataframe(results[0], self.result_dir)
-        print(f' as {self.result_dir}')
-'''
-
-'''class ETLwithH5Result(ETLBase):
-    def __init__(self, process_name, pre_request_etls, result_dir, save=True):
-        super(ETLwithH5Result, self).__init__(
-            process_name,
-            pre_request_etls=pre_request_etls,
-            save=save
-        )
-        self.result_dir = result_dir
-
-    def is_complete(self):
-        return os.path.exists(self.result_dir)
-
-    def load_result(self):
-        return [pd.read_hdf(self.result_dir, key=self.result_dir.split('.'), mode='r')]
-
-    def save_result(self, results):
-        # feather.write_dataframe(results[0], self.result_dir)
-        results[0].to_hdf(self.result_dir, key=self.result_dir.split('.')[0], mode='w')
-        print(f' as {self.result_dir}')'''
-
-
 class ETLwithDifferentResults(ETLBase):
     def __init__(self, process_name, pre_request_etls, result_dir, save=True):
         super(ETLwithDifferentResults, self).__init__(
@@ -185,6 +144,46 @@ class SelectResult(ETLPro):
         return [inputs[i] for i in self.selected_indices]
 # for ETL with multiple output
 
+
+'''class ETLwithFeatherResult(ETLBase):
+    def __init__(self, process_name, pre_request_etls, result_dir, save=True):
+        super(ETLwithFeatherResult, self).__init__(
+            process_name,
+            pre_request_etls=pre_request_etls,
+            save=save
+        )
+        self.result_dir = result_dir  # a list of diractories
+
+    def is_complete(self):
+        return os.path.exists(self.result_dir)
+
+    def load_result(self):
+        return [feather.read_dataframe(self.result_dir)]
+
+    def save_result(self, results):
+        feather.write_dataframe(results[0], self.result_dir)
+        print(f' as {self.result_dir}')
+'''
+
+'''class ETLwithH5Result(ETLBase):
+    def __init__(self, process_name, pre_request_etls, result_dir, save=True):
+        super(ETLwithH5Result, self).__init__(
+            process_name,
+            pre_request_etls=pre_request_etls,
+            save=save
+        )
+        self.result_dir = result_dir
+
+    def is_complete(self):
+        return os.path.exists(self.result_dir)
+
+    def load_result(self):
+        return [pd.read_hdf(self.result_dir, key=self.result_dir.split('.'), mode='r')]
+
+    def save_result(self, results):
+        # feather.write_dataframe(results[0], self.result_dir)
+        results[0].to_hdf(self.result_dir, key=self.result_dir.split('.')[0], mode='w')
+        print(f' as {self.result_dir}')'''
 
 '''
 class ETLPro(ETLSelectiveInherent):

@@ -14,7 +14,7 @@ class ET_Rnn(torch.nn.Module):
         self.use_chid = use_chid
         self.device = device
         self.bi = bi
-
+        print(sparse_dims)
         self.embedding_list = nn.ModuleList([nn.Embedding(fd, ed, padding_idx=0) for fd, ed in sparse_dims])
 
         if use_chid:

@@ -6,10 +6,13 @@ from time import time
 from tqdm import tqdm
 import gc
 
-from ETLBase import ETLPro, SelectResult
+from ETL.ETLBase import ETLPro, SelectResult
 
-sample_path = '../../data'
-specific_path = '../data/sample_50k'
+sample_path = '../data'
+specific_path = './data/sample_50k'
+
+tmp_path = './ETL/tmp'
+result_path = './data/sample_50k/RNN'
 
 chid_file = os.path.join(sample_path, 'sample_chid.txt')
 chid_dict_file = os.path.join(sample_path, 'sample_idx_map.npy')
@@ -111,7 +114,7 @@ class CalculateMonthlyTargetValues(ETLPro):
     def process(self, inputs):
         shrinked_df_cdtx = inputs[0]
 
-        for col in set(shrinked_df_cdtx.columns) - set(['chid', 'month']):
+        for col in set(shrinked_df_cdtx.columns) - set(['chid', 'month', 'objam']):
             del shrinked_df_cdtx[col]
             gc.collect()
 
@@ -316,8 +319,6 @@ class DataSplit(ETLPro):
         return [x_train, x_test, f_train, f_test, y_train, y_test]
 
 
-
-
 class AddNewTarget_objam_mean_M3_diff(ETLPro):
     def process(self, inputs):
         df_y = inputs[0]
@@ -330,6 +331,7 @@ class AddNewTarget_objam_mean_M3_diff(ETLPro):
         y_test[:, -1] = y_test[:, 2] - y_test[:, -1]
         return [y_train, y_test, y_columns]
 
+
 class XFYColumnBuilder(ETLPro):
     def process(self, inputs):
         df_input, df_feat_input, y_columns = inputs
@@ -339,6 +341,7 @@ class XFYColumnBuilder(ETLPro):
             'y_columns': y_columns,
         }
         return [columns]
+
 
 df_cdtx = Load_cdtx(
     'load_cdtx',
@@ -350,13 +353,13 @@ df_cdtx = ConvertUidToNid(
 df_cdtx = AddMonthTo_cdtx(
     'add_month_to_cdtx',
     [df_cdtx],
-    result_dir='df_cdtx.feather'
+    result_dir=os.path.join(tmp_path, 'df_cdtx.feather')
 )
 # add_month_to_cdtx.run()
 df_full_y_sum = OuterProductTableOfChidsMonth(
     'outer_product_table_of_chids_and_months',
     [df_cdtx],
-    result_dir='df_full_y_sum.feather'
+    result_dir=os.path.join(tmp_path, 'df_full_y_sum.feather')
 )
 
 df_cdtx_monthly_objam = CalculateMonthlyTargetValues(
@@ -368,7 +371,7 @@ df_cdtx_monthly_objam = CalculateMonthlyTargetValues(
 df_full_y_sum = MergeWithOtherTable(
     'merge_df_full_y_sum_with_df_cdtx',
     [df_full_y_sum, df_cdtx_monthly_objam],
-    result_dir='df_full_y_sum_1.feather',
+    result_dir=os.path.join(tmp_path, 'df_full_y_sum_1.feather'),
     join_method='left'
 )
 # df_full_y_sum.run()
@@ -377,13 +380,13 @@ df_cust_f = Load_cust_f('load_cust_f', [])
 df_cust_f = ConvertUidToNid(
     'convert_uid_to_nid_on_cust_f',
     [df_cust_f],
-    result_dir='df_cust_f.feather'
+    result_dir=os.path.join(tmp_path, 'df_cust_f.feather')
 )
 
 df_full_y_sum = MergeWithOtherTable(
     'merge_df_full_y_sum_with_df_cust_f',
     [df_full_y_sum, df_cust_f],
-    result_dir='df_full_y_sum_2.h5',
+    result_dir=os.path.join(tmp_path, 'df_full_y_sum_2.h5'),
     join_method='inner'
 )
 # df_full_y_sum.run()
@@ -394,7 +397,7 @@ df_full_y_sum = AddMeanOfPrevTwoMonths('add_mean_of_previous_two_months', [df_fu
 df_full_y_sum = ConvertTimeCol_into_np_datetime64(
     'convert_data_dt_into_np_datetime64_on_df_full_y_sum',
     [df_full_y_sum],
-    result_dir='df_full_y_sum_3.h5',
+    result_dir=os.path.join(tmp_path, 'df_full_y_sum_3.h5'),
     time_column='data_dt'
 )
 
@@ -416,7 +419,7 @@ df_cdtx = AddDurationSince20180101(
 df_cdtx = AddDurationSinceLastTrans(
     'add_duration_since_last_trans',
     [df_cdtx],
-    result_dir='df_cdtx_2.feather'
+    result_dir=os.path.join(tmp_path, 'df_cdtx_2.feather')
 )
 # df_cdtx.run()
 
@@ -425,14 +428,19 @@ df_input_feature_map = ExtractCatNumColsAndEncodeWithCatID(
     [df_cdtx],
     category_cols=['chid', 'bnsfg', 'iterm', 'mcc', 'scity'],
     numeric_cols=['bnspt', 'timestamp_0', 'timestamp_1', 'objam'],
-    result_dir=['df_input.feather', 'feature_map.npy']
+    result_dir=[
+        os.path.join(tmp_path, 'df_input.feather'),
+        os.path.join(tmp_path, 'feature_map.npy')
+    ]
 )
+
+
 # df_input.run()
 
 df_input = SelectResult(
     'select_df_input_from_df_input_feature_map',
     [df_input_feature_map],
-    selected_indices = [0])
+    selected_indices=[0])
 
 
 df_feat_input_cust_feature_map = ExtractCatNumColsAndEncodeWithCatID(
@@ -442,19 +450,23 @@ df_feat_input_cust_feature_map = ExtractCatNumColsAndEncodeWithCatID(
     numeric_cols=['slam', 'first_mob', 'constant_change', 'sum_l2_ind',
                   'sum_u2_ind', 'constant_l2_ind', 'constant_u4_ind',
                   'growth_rate', 'monotone_down', 'monotone_up', 'data_dt'],
-    result_dir=['df_feat_input.feather', 'cust_feature_map.npy']
+    result_dir=[
+        os.path.join(tmp_path, 'df_feat_input.feather'),
+        os.path.join(tmp_path, 'cust_feature_map.npy')
+    ]
 )
+
 
 df_feat_input = SelectResult(
     'select_df_feat_input_from_df_feat_input_cust_feature_map',
     [df_feat_input_cust_feature_map],
-    selected_indices = [0])
+    selected_indices=[0])
 
 df_feat_input = ConvertTimeCol_into_np_datetime64(
     'convert_data_dt_into_np_datetime64_on_df_feat_input',
     [df_feat_input],
     time_column='data_dt',
-    result_dir='df_feat_input_2.feather'
+    result_dir=os.path.join(tmp_path, 'df_feat_input_2.feather')
 )
 
 df_feat_input = AddDurationSince20180101(
@@ -469,7 +481,7 @@ df_y = ExtractTargetCols(
     'extract_target_columns_from_df',
     [df_full_y_sum],
     target_cols=['chid', 'data_dt', 'objam_sum', 'objam_mean', 'trans_count', 'objam_mean_M3'],  # 'shop_count'
-    result_dir='df_y.feather'
+    result_dir=os.path.join(tmp_path, 'df_y.feather')
 )
 # df_y.run()
 df_y = AddDurationSince20180101(
@@ -483,12 +495,12 @@ x_train_x_test_f_train_f_test_y_train_y_test = DataSplit(
     'data_split',
     [df_input, df_feat_input, df_y],
     result_dir=[
-        'x_train.npy',
-        'x_test.npy',
-        'f_train.npy',
-        'f_test.npy',
-        'y_train_tmp.npy',
-        'y_test_tmp.npy'
+        os.path.join(tmp_path, 'x_train.npy'),
+        os.path.join(tmp_path, 'x_test.npy'),
+        os.path.join(tmp_path, 'f_train.npy'),
+        os.path.join(tmp_path, 'f_test.npy'),
+        os.path.join(tmp_path, 'y_train_tmp.npy'),
+        os.path.join(tmp_path, 'y_test_tmp.npy')
     ],
     window_size=120,
     test_size=2
@@ -497,16 +509,16 @@ x_train_x_test_f_train_f_test_y_train_y_test = DataSplit(
 y_train_y_test = SelectResult(
     'extract_y_train_y_test',
     [x_train_x_test_f_train_f_test_y_train_y_test],
-    selected_indices = [4, 5])
+    selected_indices=[4, 5])
 
 
 y_train_y_test_y_columns = AddNewTarget_objam_mean_M3_diff(
     'add_objam_mean_M3_diff_as_new_target',
     [df_y, y_train_y_test],
     result_dir=[
-        'y_train.npy',
-        'y_test.npy',
-        'y_columns.npy'
+        os.path.join(tmp_path, 'y_train.npy'),
+        os.path.join(tmp_path, 'y_test.npy'),
+        os.path.join(tmp_path, 'y_columns.npy')
     ]
 )
 
@@ -514,26 +526,93 @@ y_train_y_test_y_columns = AddNewTarget_objam_mean_M3_diff(
 y_columns = SelectResult(
     'extract_y_columns_from_y_train_test_columns',
     [y_train_y_test_y_columns],
-    selected_indices = [2])
+    selected_indices=[2])
+
+
+x_train = SelectResult(
+    'select_x_train',
+    [x_train_x_test_f_train_f_test_y_train_y_test],
+    selected_indices=[0],
+    result_dir=os.path.join(result_path, 'x_train.npy')
+)
+
+x_test = SelectResult(
+    'select_x_test',
+    [x_train_x_test_f_train_f_test_y_train_y_test],
+    selected_indices=[1],
+    result_dir=os.path.join(result_path, 'x_test.npy')
+)
+
+f_train = SelectResult(
+    'select_f_train',
+    [x_train_x_test_f_train_f_test_y_train_y_test],
+    selected_indices=[2],
+    result_dir=os.path.join(result_path, 'f_train.npy')
+)
+
+f_test = SelectResult(
+    'select_f_test',
+    [x_train_x_test_f_train_f_test_y_train_y_test],
+    selected_indices=[3],
+    result_dir=os.path.join(result_path, 'f_test.npy')
+)
+
+y_train = SelectResult(
+    'select_y_train',
+    [y_train_y_test_y_columns],
+    selected_indices=[0],
+    result_dir=os.path.join(result_path, 'y_train.npy')
+)
+
+y_test = SelectResult(
+    'select_y_test',
+    [y_train_y_test_y_columns],
+    selected_indices=[1],
+    result_dir=os.path.join(result_path, 'y_test.npy')
+)
 
 columns = XFYColumnBuilder('create_x_f_y_columns',
                            [df_input, df_feat_input, y_columns],
-                           result_dir='columns.npy'
+                           result_dir=os.path.join(result_path, 'columns.npy')
                            )
 
+feature_map = SelectResult(
+    'select_feature_map',
+    [df_input_feature_map],
+    selected_indices=[1],
+    result_dir=os.path.join(result_path, 'feature_map.npy')
+)
 
-x_train_x_test_f_train_f_test_y_train_y_test.run()
+cust_feature_map = SelectResult(
+    'select_cust_feature_map',
+    [df_feat_input_cust_feature_map],
+    selected_indices=[1],
+    result_dir=os.path.join(result_path, 'cust_feature_map.npy')
+)
 
-y_train_y_test_y_columns.run()
+if __name__ == "__main__":
+    X_Train = x_train.run()
+    F_Train = f_train.run()
+    Y_Train = y_train.run()
+    X_Test = x_test.run()
+    F_Test = f_test.run()
+    Y_Test = y_test.run()
+    Cols = columns.run()
+    print(X_Train, Y_Train, F_Train)
+    print(X_Test, Y_Test, F_Test)
+    print(Cols)
 
-columns.run()
-# TODO:
-# - [V] change temp object name to obj rather than the function name
-# - [V] make the ETLBase allow save when a result directory is assigned
-# - [V] allow saving of multiple files (ETL might have multiple results)
-# - [ ] allow single input and single output (not list)
-# - [ ] allow subset selection from previous ETL process
-# - [ ] allow the input to be a dictionary and the output to be a dictionary, too
-# - [ ] make the ETL Process object allows two step construction like nn.module. 1. first initialized with configuration . 2. Be called to assign inputs and obtain outputs later
-# - [ ] incorporate google drive download as the first step of ETL
-# - [ ] allows zero input ETL if the ETL does not have previous ETL
+    # TODO:
+    # - [V] change temp object name to obj rather than the function name
+    # - [V] make the ETLBase allow save when a result directory is assigned
+    # - [V] allow saving of multiple files (ETL might have multiple results)
+    # - [ ] allow single input and single output (not list)
+    # - [ ] allow subset selection from previous ETL process
+    # - [ ] allow the input to be a dictionary and the output to be a dictionary, too
+    # - [ ] make the ETL Process object allows two step construction like nn.module. 1. first initialized with configuration . 2. Be called to assign inputs and obtain outputs later
+    # - [ ] incorporate google drive download as the first step of ETL
+    # - [ ] allows zero input ETL if the ETL does not have previous ETL
+    # - [ ] implement __item__ selected so that the ETL can be splitted by output !
+
+
+

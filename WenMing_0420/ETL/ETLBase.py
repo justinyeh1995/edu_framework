@@ -20,11 +20,11 @@ class ETLBase:
         inputs = []
         for pre_etl in self.pre_request_etls:
             if pre_etl.is_complete():
-                print(f'[LOAD] {pre_etl.process_name} result')
+                print(f'[LOAD] result of "{pre_etl.process_name}"')
                 inputs.extend(pre_etl.load_result())
 
             else:
-                print(f'[RUN] {pre_etl.process_name} process')
+                print(f'[RUN] process of "{pre_etl.process_name}"')
                 inputs.extend(pre_etl.run())
 
         results = self.process(inputs)
@@ -32,7 +32,7 @@ class ETLBase:
         del inputs
         gc.collect()
         if self.save:
-            print(f'[SAVE] {self.process_name} result')
+            print(f'[SAVE] result of "{self.process_name}"')
             self.save_result(results)
         return results
 
@@ -91,12 +91,17 @@ class ETLwithDifferentResults(ETLBase):
         results = []
         for file_dir in self.result_dirs:
             if '.h5' in file_dir:
-                results.append(pd.read_hdf(file_dir, key=file_dir.split('.h5')[0], mode='r'))
+                results.append(pd.read_hdf(file_dir, key=file_dir.split('.h5')[0].split('/')[-1], mode='r'))
             elif '.feather' in file_dir:
                 results.append(feather.read_dataframe(file_dir))
             elif '.npy' in file_dir:
                 # np.save(file_dir.split('.npy')[0], feature_mapper)
-                results.append(np.load(file_dir, allow_pickle=True))
+                np_result = np.load(file_dir, allow_pickle=True)
+                try:
+                    np_result = np_result.item()
+                except:
+                    pass
+                results.append(np_result)
             else:
                 pass
         return results
@@ -105,7 +110,7 @@ class ETLwithDifferentResults(ETLBase):
         for i, file_dir in enumerate(self.result_dirs):
             # feather.write_dataframe(results[0], self.result_dir)
             if '.h5' in file_dir:
-                results[i].to_hdf(file_dir, key=file_dir.split('.')[0], mode='w')
+                results[i].to_hdf(file_dir, key=file_dir.split('.')[0].split('/')[-1], mode='w')
             elif '.feather' in file_dir:
                 feather.write_dataframe(results[i], file_dir)
             elif '.npy' in file_dir:
@@ -135,8 +140,8 @@ class SelectResult(ETLPro):
     By default, it extract the first result.
     '''
 
-    def __init__(self, process_name, pre_request_etls, selected_indices=[0]):
-        super(SelectResult, self).__init__(process_name, pre_request_etls, result_dir=None)
+    def __init__(self, process_name, pre_request_etls, selected_indices=[0], result_dir=None):
+        super(SelectResult, self).__init__(process_name, pre_request_etls, result_dir=result_dir)
         self.selected_indices = selected_indices
 
     def process(self, inputs):

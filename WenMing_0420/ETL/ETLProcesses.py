@@ -6,13 +6,16 @@ from time import time
 from tqdm import tqdm
 import gc
 
-from ETL.ETLBase import ETLPro, SelectResult
+# from ETL.ETLBase import ETLPro, SelectResult
+from ETLBase import ETLPro, SelectResult
 
-sample_path = '../data'
-specific_path = './data/sample_50k'
+# sample_path = '../data'
+sample_path = '../../data'
 
-tmp_path = './ETL/tmp'
-result_path = './data/sample_50k/RNN'
+# tmp_path = './ETL/tmp'
+tmp_path = '../ETL/tmp'
+# result_path = './data/sample_50k/RNN'
+result_path = '../data/sample_50k/RNN'
 
 chid_file = os.path.join(sample_path, 'sample_chid.txt')
 chid_dict_file = os.path.join(sample_path, 'sample_idx_map.npy')
@@ -36,6 +39,7 @@ class Load_cdtx(ETLPro):
         df_cdtx.sort_values(by=['csmdt', 'chid'], inplace=True, ignore_index=True)
         # df_cdtx.objam = df_cdtx.objam.astype(np.int64)
         print('loading time:', time() - t0)
+        # checking
         chid_dict = load_chid_dict()
         assert len(set(df_cdtx.chid) - set(chid_dict.keys())) == 0 \
             and len(set(chid_dict.keys()) - set(df_cdtx.chid)) == 0
@@ -613,6 +617,3 @@ if __name__ == "__main__":
     # - [ ] incorporate google drive download as the first step of ETL
     # - [ ] allows zero input ETL if the ETL does not have previous ETL
     # - [ ] implement __item__ selected so that the ETL can be splitted by output !
-
-
-

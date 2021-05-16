@@ -268,10 +268,10 @@ train_dataset = BuildTensorDataset('build torch TensorDataset', [processed_train
 test_dataset = BuildTensorDataset('build torch TensorDataset', [processed_test_data])
 
 if __name__ == "__main__":
-    batch_size = 32
+    batch_size = 4
 
     train_loader = DataLoader(dataset=train_dataset.run()[0], shuffle=True, batch_size=batch_size, num_workers=1)
-    test_loader = DataLoader(dataset=test_dataset.run()[0], shuffle=True, batch_size=batch_size, num_workers=1)
+    test_loader = DataLoader(dataset=test_dataset.run()[0], shuffle=False, batch_size=batch_size, num_workers=1)
 
     print('DataLoader Built')
 

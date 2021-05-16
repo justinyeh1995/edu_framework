@@ -12,6 +12,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score, recall_score, prec
 
 '''
 
+
 class Trainer:
     def __init__(self, model, optimizer, device='cpu'):
         self.model = model.to(device)
@@ -34,7 +35,7 @@ class Trainer:
             # print('Epoch:{}'.format(ep+1))
 
             self.model.train()
-            for batch in train_loader:
+            for batch in tqdm(train_loader, leave=False):
                 self.optimizer.zero_grad()
 
                 x_dense, x_sparse, objmean, tscnt, label_0 = [b.to(self.device) for b in batch]  # , spcnt

@@ -7,13 +7,17 @@ from time import time
 from sklearn.preprocessing import MinMaxScaler
 
 
-from models.Model import MultiTaskModel
-from PLImplementation.Trainer import Trainer
+# from models.Model import MultiTaskModel
+# from PLImplementation.Trainer import Trainer
+
 from ETL import ETLProcesses
 from ETL.ETLBase import ETLPro, SelectResult
 
 import torch
 from torch.utils.data import DataLoader, TensorDataset
+
+import pytorch_lightning as pl
+from MultiTasksLightningModel import MultiTasksLightningModel
 
 
 class ProcessX(ETLPro):
@@ -275,22 +279,24 @@ if __name__ == "__main__":
 
     print('DataLoader Built')
 
-    device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+    # device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
     out_dims = [1, 1, 1]  # , 2
 
-    model = MultiTaskModel(dense_dims.run()[0], sparse_dims.run()[0], hidden_dims=64, out_dims=out_dims, n_layers=2,
-                           use_chid=USE_CHID, cell='GRU', bi=False, dropout=0.1, device=device)
-    print('Model Built')
-    optimizer = torch.optim.AdamW(model.parameters(), lr=2e-3)
+    model_trainer = MultiTasksLightningModel(dense_dims.run()[0], sparse_dims.run()[0], hidden_dims=64, out_dims=out_dims, n_layers=2,
+                                             use_chid=USE_CHID, cell='GRU', bi=False, dropout=0.1)
 
-    trainer = Trainer(model, optimizer, device)
+    print('Model Built')
+    # optimizer = torch.optim.AdamW(model.parameters(), lr=2e-3)
+    trainer = pl.Trainer()
+    # trainer = Trainer(model, optimizer, device)
     print('Trainer Built')
 
-    t0 = time()
-    history = trainer.fit(train_loader, test_loader, epoch=1, early_stop=20)
-    t1 = time()
+    # t0 = time()
+    # history = trainer.fit(train_loader, test_loader, epoch=1, early_stop=20)
+    # t1 = time()
+    trainer.fit(model_trainer, train_loader, test_loader)
 
-    print('cost: {:.2f}'.format(t1 - t0))
+    # print('cost: {:.2f}'.format(t1 - t0))
 
 # processed_x_data.run()
 '''

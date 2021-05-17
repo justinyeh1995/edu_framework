@@ -6,3 +6,5 @@
 *.json
 *.pyc
 *.npy
+*.yaml
+*.0

@@ -11,20 +11,21 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, median_abso
 from sklearn.metrics import confusion_matrix, accuracy_score, recall_score, precision_score, f1_score
 
 '''
-# TODO: how to save model? 
-# - pytorch_lightening有pre-train routine 
+# TODO: how to save model?
+# - pytorch_lightening有pre-train routine
 #　
+
 
 class Trainer:
     def __init__(self, model, optimizer, device='cpu'):
-        self.model = model.to(device) 
-        # TODO: define here but move to forward 
+        self.model = model.to(device)
+        # TODO: define here but move to forward
         self.criterion_reg = nn.MSELoss()
         self.criterion_clf = nn.CrossEntropyLoss()
         self.optimizer = optimizer
         # TODO: move to configure_optimizers
         self.device = device
-        # TODO: remove 
+        # TODO: remove
 
     def fit(self, train_loader, test_loader=None, epoch=1, early_stop=-1, scaler=None):
         history = {
@@ -40,16 +41,16 @@ class Trainer:
             # print('Epoch:{}'.format(ep+1))
 
             self.model.train()
-            # TODO: remove 
+            # TODO: remove
             for batch in tqdm(train_loader, leave=False):
                 self.optimizer.zero_grad()
-                # TODO: remove 
+                # TODO: remove
                 x_dense, x_sparse, objmean, tscnt, label_0 = [b.to(self.device) for b in batch]  # , spcnt
-                # TODO: remove 
+                # TODO: remove
                 outputs = self.model(x_dense, x_sparse)
-                # TODO: define in forward  
+                # TODO: define in forward
                 loss = self.criterion_reg(outputs[0], objmean)
-                # TODO: define in training_step 
+                # TODO: define in training_step
                 if ep >= 20:
                     loss += self.criterion_reg(outputs[1], tscnt)
                     # TODO: define in training_step
@@ -58,12 +59,12 @@ class Trainer:
                 if ep >= 40:
                     loss += self.criterion_clf(outputs[3], label_0)
                     # TODO: define in training_step
-                # TODO: find EPOCH parameter in pl.lightening or calculate epoch here 
+                # TODO: find EPOCH parameter in pl.lightening or calculate epoch here
 
                 loss.backward()
-                # TODO: remove 
+                # TODO: remove
                 self.optimizer.step()
-                # TODO: remove 
+                # TODO: remove
             train_result, _, _ = self.evaluate(train_loader)
             history['train'].append(train_result)
             if test_loader:
@@ -112,7 +113,7 @@ class Trainer:
                 total_loss += batch_loss
                 loss_list[i] += batch_loss
         objmean_scaler = MinMaxScaler((0, 1))
-        true_list[0] = objmean_scaler.(np.concatenate(true_list[0], axis=0).reshape(-1, 1))
+        true_list[0] = objmean_scaler.inverse_tinverse_transformransform(np.concatenate(true_list[0], axis=0).reshape(-1, 1))
         pred_list[0] = objmean_scaler.inverse_tinverse_transformransform(np.concatenate(pred_list[0], axis=0).reshape(-1, 1))
         true_list[0] = np.expm1(true_list[0].flatten())
         pred_list[0] = np.expm1(pred_list[0].flatten())

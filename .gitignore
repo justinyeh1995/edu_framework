@@ -1,1 +1,8 @@
 .ipynb_checkpoints/*
+*.ipynb_checkpoints
+*.h5
+*.csv 
+*.feather
+*.json
+*.pyc
+*.npy

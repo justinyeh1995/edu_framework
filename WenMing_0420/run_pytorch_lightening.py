@@ -7,7 +7,7 @@ from time import time
 from sklearn.preprocessing import MinMaxScaler
 
 
-# from models.Model import MultiTaskModel
+from models.Model import MultiTaskModel
 # from PLImplementation.Trainer import Trainer
 
 from ETL import ETLProcesses
@@ -17,7 +17,8 @@ import torch
 from torch.utils.data import DataLoader, TensorDataset
 
 import pytorch_lightning as pl
-from MultiTasksLightningModel import MultiTasksLightningModel
+from pytorch_lightning.loggers import TensorBoardLogger
+# from MultiTasksLightningModel import MultiTasksLightningModel
 
 
 class ProcessX(ETLPro):
@@ -165,7 +166,7 @@ class BuildTensorDataset(ETLPro):
             torch.LongTensor(x_sparse),
             torch.FloatTensor(y_objmean),
             torch.FloatTensor(y_tscnt),
-            torch.LongTensor(y_label_0.flatten())
+            torch.FloatTensor(y_label_0)  # .flatten()
         )
         return [dataset]
 
@@ -272,29 +273,39 @@ train_dataset = BuildTensorDataset('build torch TensorDataset', [processed_train
 test_dataset = BuildTensorDataset('build torch TensorDataset', [processed_test_data])
 
 if __name__ == "__main__":
-    batch_size = 4
+    batch_size = 64
+    train_dataset = train_dataset.run()[0]
+    test_dataset = test_dataset.run()[0]
+    train_loader = DataLoader(dataset=train_dataset, shuffle=True, batch_size=batch_size, num_workers=4)
+    test_loader = DataLoader(dataset=test_dataset, shuffle=False, batch_size=batch_size, num_workers=4)
 
-    train_loader = DataLoader(dataset=train_dataset.run()[0], shuffle=True, batch_size=batch_size, num_workers=1)
-    test_loader = DataLoader(dataset=test_dataset.run()[0], shuffle=False, batch_size=batch_size, num_workers=1)
-
-    print('DataLoader Built')
+    print('DataLoader Built', train_loader)
 
     # device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
-    out_dims = [1, 1, 1]  # , 2
 
-    model_trainer = MultiTasksLightningModel(dense_dims.run()[0], sparse_dims.run()[0], hidden_dims=64, out_dims=out_dims, n_layers=2,
-                                             use_chid=USE_CHID, cell='GRU', bi=False, dropout=0.1)
+    model = MultiTaskModel(dense_dims.run()[0], sparse_dims.run()[0], hidden_dims=64, out_dims=[1, 1, 1], n_layers=2, use_chid=USE_CHID, cell='GRU', bi=False, dropout=0.1)
 
     print('Model Built')
     # optimizer = torch.optim.AdamW(model.parameters(), lr=2e-3)
-    trainer = pl.Trainer()
+    # trainer = pl.Trainer(auto_lr_find=True)
     # trainer = Trainer(model, optimizer, device)
+    logger = TensorBoardLogger('tb_logs', 'run_pytorch_lightening')
+    # model.inputs
+    single_batch = next(iter(test_loader))
+    logger.experiment.add_graph(model, [single_batch[0], single_batch[1]])
+    trainer = pl.Trainer(logger=logger)
+    lr_finder = trainer.tuner.lr_find(model, train_dataloader=train_loader)
+    # print(lr_finder.results)
+    new_lr = lr_finder.suggestion()
+    print('suggested lr:', new_lr)
+    model.hparams.lr = new_lr
+
     print('Trainer Built')
 
     # t0 = time()
     # history = trainer.fit(train_loader, test_loader, epoch=1, early_stop=20)
     # t1 = time()
-    trainer.fit(model_trainer, train_loader, test_loader)
+    trainer.fit(model, train_loader, test_loader)
 
     # print('cost: {:.2f}'.format(t1 - t0))
 

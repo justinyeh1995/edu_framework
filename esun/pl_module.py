@@ -1,31 +1,80 @@
 #!/usr/bin/env python
 # coding: utf-8
+import os
+import sys
+# import contextlib
 
 import torch
 from torch import nn
 from torch.autograd import Variable
 import torch.nn.functional as F
+from torch.utils.data import DataLoader
+
 import pytorch_lightning as pl
 
+
 import dataset_builder 
+'''
+def blockPrinting(func):
+    def func_wrapper(*args, **kwargs):
+        with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
+            value = func(*args, **kwargs)
+        return value
+    return func_wrapper
+'''
+
+def blockPrinting(func):
+    def func_wrapper(*args, **kwargs):
+        # block all printing to the console
+        sys.stdout = open(os.devnull, 'w')
+        # call the method in question
+        value = func(*args, **kwargs)
+        # enable all printing to the console
+        sys.stdout = sys.__stdout__
+        # pass the return value of the method back
+        return value
+
+    return func_wrapper
 
 class MultiTaskModule(pl.LightningModule):
-    def __init__(self, hidden_dims, out_dims=[1], n_layers=1, use_chid=True, cell='GRU', bi=False, dropout=0, batch_size = 64, lr=2e-3):
+    
+    @blockPrinting
+    def __init__(self, hidden_dims, n_layers, cell='GRU', bi=False, dropout=0, batch_size = 64, lr=2e-3):
+        assert hidden_dims >= 1 
+        assert n_layers >= 1 
+        assert cell == 'GRU' or cell == 'LSTM' 
+        assert dropout >= 0 and dropout <= 1 
+        
         
         dense_dims = dataset_builder.dense_dims.run()[0]
         sparse_dims = dataset_builder.sparse_dims.run()[0]
         
         # TODO: infer out_dims and use_chid from the dataset 
         
-        super(MultiTaskModel, self).__init__()
+        super(MultiTaskModule, self).__init__()
+        
+        use_chid = dataset_builder.USE_CHID
         self.rnn = ET_Rnn(dense_dims, sparse_dims, hidden_dims, n_layers=n_layers, use_chid=use_chid,
                           cell=cell, bi=bi, dropout=dropout)
-
+        
+        out_dims = self._get_output_dims()
+        
         self.mlps = nn.ModuleList([MLP(self.rnn.out_dim, hidden_dims=[self.rnn.out_dim // 2], out_dim=od) for od in out_dims])
-        self.batch_size
+        
+        self.batch_size = batch_size
         self.lr = lr
-        self.batch_cnt = 0
+        
+        self._batch_cnt = 0
+        
+    @blockPrinting
+    def _get_output_dims(self):
+        num_y_data = len(dataset_builder.processed_y_data.run())
+        num_y_data = num_y_data//2
+        return [y_data.shape[1] for y_data in dataset_builder.processed_y_data.run()[-num_y_data:]]
 
+    def _log_model_architecture(self, batch):
+        self.logger.experiment.add_graph(self, [batch[0], batch[1]])
+        
     def forward(self, x_dense, x_sparse):
         logits = self.rnn(x_dense, x_sparse)
         outs = [mlp(logits)for mlp in self.mlps]
@@ -33,7 +82,6 @@ class MultiTaskModule(pl.LightningModule):
     
 
     def training_step(self, batch, batch_idx):
-        self.batch_cnt += 1
         
         losses_and_metrics = self._calculate_multitask_loss_and_metrics(batch)
         
@@ -45,8 +93,12 @@ class MultiTaskModule(pl.LightningModule):
         loss += losses_and_metrics['label_0_loss']
         
         for value_name, value in losses_and_metrics.items():
-            self.logger.experiment.add_scalar(f'Train/{value_name}', value, self.batch_cnt)
-        self.logger.experiment.add_scalar("Train/total_loss", loss, self.batch_cnt)
+            self.logger.experiment.add_scalar(f'Train/{value_name}', value, self._batch_cnt)
+        self.logger.experiment.add_scalar("Train/total_loss", loss, self._batch_cnt)
+        
+        if self._batch_cnt == 0 and self.current_epoch == 0: 
+            self._log_model_architecture(batch)
+        self._batch_cnt += 1
         
         return {'loss': loss, 'log': losses_and_metrics}
     
@@ -88,14 +140,16 @@ class MultiTaskModule(pl.LightningModule):
             'label_0_loss': label_0_loss, 
             'label_0_accuracy': label_0_accuracy
         }
+    
     def _get_accuracy(self, y_hat, y):
         correct = ((y_hat > 0.5).float() == y).float().sum()
         accuracy = correct / y.shape[0]
         return accuracy
     
+    @blockPrinting
     def prepare_data(self):
-        self.train_dataset = dataset_builder.train_dataset().run()[0]
-        self.test_dataset = dataset_builder.test_dataset().run()[0]
+        self.train_dataset = dataset_builder.train_dataset.run()[0]
+        self.test_dataset = dataset_builder.test_dataset.run()[0]
         
     def train_dataloader(self):
         return DataLoader(dataset=self.train_dataset, shuffle=True, batch_size=self.batch_size, num_workers=4)
@@ -104,7 +158,7 @@ class MultiTaskModule(pl.LightningModule):
         return DataLoader(dataset=self.train_dataset, shuffle=False, batch_size=self.batch_size, num_workers=4)
     
     def configure_optimizers(self):
-        return torch.optim.AdamW(self.parameters(), lr=self.lr)
+        return torch.optim.Adam(self.parameters(), lr=self.lr)
 
     
 class ET_Rnn(torch.nn.Module):

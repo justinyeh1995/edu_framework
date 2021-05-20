@@ -7,60 +7,102 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import pytorch_lightning as pl
 
-class MultiTaskModel(pl.LightningModule):
-    def __init__(self, dense_dims, sparse_dims, hidden_dims, out_dims=[1], n_layers=1, use_chid=True, cell='GRU', bi=False, dropout=0, lr=2e-3):
-        self.dense_dims = dense_dims
-        self.sparse_dims = sparse_dims
-        self.hidden_dims = hidden_dims
-        self.out_dims = out_dims
-        self.n_layers = n_layers
-        self.user_chid = use_chid
-        self.cell = cell
-        self.bi = bi
-        self.dropout = dropout
-        self.lr = lr
+import dataset_builder 
 
+class MultiTaskModule(pl.LightningModule):
+    def __init__(self, hidden_dims, out_dims=[1], n_layers=1, use_chid=True, cell='GRU', bi=False, dropout=0, batch_size = 64, lr=2e-3):
+        
+        dense_dims = dataset_builder.dense_dims.run()[0]
+        sparse_dims = dataset_builder.sparse_dims.run()[0]
+        
+        # TODO: infer out_dims and use_chid from the dataset 
+        
         super(MultiTaskModel, self).__init__()
         self.rnn = ET_Rnn(dense_dims, sparse_dims, hidden_dims, n_layers=n_layers, use_chid=use_chid,
                           cell=cell, bi=bi, dropout=dropout)
 
         self.mlps = nn.ModuleList([MLP(self.rnn.out_dim, hidden_dims=[self.rnn.out_dim // 2], out_dim=od) for od in out_dims])
-
+        self.batch_size
+        self.lr = lr
         self.batch_cnt = 0
 
     def forward(self, x_dense, x_sparse):
         logits = self.rnn(x_dense, x_sparse)
         outs = [mlp(logits)for mlp in self.mlps]
-
         return outs
+    
 
     def training_step(self, batch, batch_idx):
         self.batch_cnt += 1
+        
+        losses_and_metrics = self._calculate_multitask_loss_and_metrics(batch)
+        
+        # TODO: define in training_step
+        loss = losses_and_metrics['objmean_loss']
+        # if self.current_epoch >= 20:
+        loss += losses_and_metrics['tscnt_loss']
+        # if self.current_epoch >= 40:
+        loss += losses_and_metrics['label_0_loss']
+        
+        for value_name, value in losses_and_metrics.items():
+            self.logger.experiment.add_scalar(f'Train/{value_name}', value, self.batch_cnt)
+        self.logger.experiment.add_scalar("Train/total_loss", loss, self.batch_cnt)
+        
+        return {'loss': loss, 'log': losses_and_metrics}
+    
+    def validation_step(self, batch, batch_idx):
+        
+        losses_and_metrics = self._calculate_multitask_loss_and_metrics(batch)
+        
+        # TODO: define in training_step
+        loss = losses_and_metrics['objmean_loss']
+        # if self.current_epoch >= 20:
+        loss += losses_and_metrics['tscnt_loss']
+        # if self.current_epoch >= 40:
+        loss += losses_and_metrics['label_0_loss']
+        
+        return {'val_loss': loss, 'val_log': losses_and_metrics}
+    
+    def validation_epoch_end(self, outputs):
+        avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
+        self.logger.experiment.add_scalar("Val/total_loss", avg_loss, self.current_epoch)
+        
+        for value_name in ['objmean_loss', 'tscnt_loss', 'label_0_loss', 'label_0_accuracy']:
+            avg_value = torch.stack([x['val_log'][value_name] for x in outputs]).mean()
+            self.logger.experiment.add_scalar(f"Val/{value_name}", avg_value, self.current_epoch)
+        
+    
+    def _calculate_multitask_loss_and_metrics(self, batch):
         x_dense, x_sparse, objmean, tscnt, label_0 = batch
         objmean_hat, tscnt_hat, label_0_value = self(x_dense, x_sparse)
-        label_0_hat = F.sigmoid(label_0_value)
-        logs = {}
+        
         objmean_loss = F.mse_loss(objmean_hat, objmean)
-        logs['objmean_train_loss'] = objmean_loss
-        self.logger.experiment.add_scalar("Loss/Train/objmean", objmean_loss, self.batch_cnt)
         tscnt_loss = F.mse_loss(tscnt_hat, tscnt)
-        logs['tscnt_train_loss'] = tscnt_loss
-        self.logger.experiment.add_scalar("Loss/Train/tscnt", tscnt_loss, self.batch_cnt)
+        label_0_hat = F.sigmoid(label_0_value)
         label_0_loss = F.binary_cross_entropy(label_0_hat, label_0)
-        logs['label_0_train_loss'] = label_0_loss
-        self.logger.experiment.add_scalar("Loss/Train/label_0", label_0_loss, self.batch_cnt)
-
-        correct = ((label_0_hat > 0.5).float() == label_0).float().sum()
-        self.logger.experiment.add_scalar("Accuracy/Train/label_0", correct / label_0.shape[0], self.batch_cnt)
-        # TODO: define in training_step
-        loss = objmean_loss
-        # if self.current_epoch >= 20:
-        loss += tscnt_loss
-        # if self.current_epoch >= 40:
-        loss += label_0_loss
-
-        return {'loss': loss, 'log': logs, 'objmean_hat': objmean_hat, 'tscnt_hat': tscnt_hat, 'label_0_hat': label_0_hat}
-
+        label_0_accuracy = self._get_accuracy(label_0_hat, label_0)
+        
+        return {
+            'objmean_loss': objmean_loss, 
+            'tscnt_loss': tscnt_loss, 
+            'label_0_loss': label_0_loss, 
+            'label_0_accuracy': label_0_accuracy
+        }
+    def _get_accuracy(self, y_hat, y):
+        correct = ((y_hat > 0.5).float() == y).float().sum()
+        accuracy = correct / y.shape[0]
+        return accuracy
+    
+    def prepare_data(self):
+        self.train_dataset = dataset_builder.train_dataset().run()[0]
+        self.test_dataset = dataset_builder.test_dataset().run()[0]
+        
+    def train_dataloader(self):
+        return DataLoader(dataset=self.train_dataset, shuffle=True, batch_size=self.batch_size, num_workers=4)
+    
+    def val_dataloader(self):
+        return DataLoader(dataset=self.train_dataset, shuffle=False, batch_size=self.batch_size, num_workers=4)
+    
     def configure_optimizers(self):
         return torch.optim.AdamW(self.parameters(), lr=self.lr)
 

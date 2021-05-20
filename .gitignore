@@ -8,3 +8,4 @@
 *.npy
 *.yaml
 *.0
+*/tb_logs/

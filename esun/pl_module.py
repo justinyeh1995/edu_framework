@@ -14,14 +14,6 @@ import pytorch_lightning as pl
 
 
 import dataset_builder 
-'''
-def blockPrinting(func):
-    def func_wrapper(*args, **kwargs):
-        with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
-            value = func(*args, **kwargs)
-        return value
-    return func_wrapper
-'''
 
 def blockPrinting(func):
     def func_wrapper(*args, **kwargs):

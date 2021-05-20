@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-from module import MultiTaskModel
+from pl_module import MultiTaskModel
 
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl

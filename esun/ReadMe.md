@@ -1,5 +1,16 @@
+# 原始程式碼
+You can check the latest sources with the command:
+```
+git clone -b esun_team git@github.com:udothemath/ncku_customer_embedding.git
+```
+
 # 安裝dependencies: 
 
+```
+sh 
+```
+
+## ToDo: add package version
 ```
 pip install google-api-python-client
 pip install oauth2client
@@ -18,7 +29,6 @@ pip install pytorch-lightning
 pip install lightning-bolts
 
 pip install tensorboard
-
 ```
 
 # 如何設定與執行? 

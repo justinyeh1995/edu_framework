@@ -96,11 +96,13 @@ class MultiTaskModule(pl.LightningModule):
     def on_train_start(self):
         self._batch_cnt = 0
         self._architecture_logged = False
+        self._best_val_loss = 1e13
+        self.log('best_val_loss', self._best_val_loss)
+        self._best_val_auroc = 0.        
+        self.log('best_val_auroc', self._best_val_auroc)
         
     def on_fit_start(self): # def on_train_start(self):
         self._batch_cnt = 0
-        self._best_val_loss = 1e13
-        self._best_val_auroc = 0.
         self.logger.log_hyperparams(
             params = {
                 "hidden_dims": self.hidden_dims,
@@ -120,7 +122,6 @@ class MultiTaskModule(pl.LightningModule):
                 "best_val_auroc": self._best_val_auroc
             }
         )
-        print(self.hparams)
 
     def training_step(self, batch, batch_idx):
         
@@ -154,7 +155,7 @@ class MultiTaskModule(pl.LightningModule):
         loss += losses_and_metrics['tscnt_loss']
         # if self.current_epoch >= 40:
         loss += losses_and_metrics['label_0_loss']
-        
+        self.log('val_loss', loss)
         return {'val_loss': loss, 'val_log': losses_and_metrics}
     
     def validation_epoch_end(self, outputs):
@@ -190,7 +191,7 @@ class MultiTaskModule(pl.LightningModule):
         
         objmean_loss = F.mse_loss(objmean_hat, objmean)
         tscnt_loss = F.mse_loss(tscnt_hat, tscnt)
-        label_0_hat = F.sigmoid(label_0_value)
+        label_0_hat = torch.sigmoid(label_0_value)
         label_0_loss = F.binary_cross_entropy(label_0_hat, label_0)
         if mode == 'train':
             label_0_accuracy = train_accuracy(label_0_hat, label_0.int())
@@ -225,7 +226,7 @@ class MultiTaskModule(pl.LightningModule):
     
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-        lr_scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=10, max_epochs=40)
+        lr_scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=5, max_epochs=40)
         return {
             "optimizer": optimizer, 
             "lr_scheduler": lr_scheduler

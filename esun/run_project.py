@@ -18,6 +18,7 @@ if __name__ == "__main__":
             'bi': False, 
             'dropout': 0.5
     }
+    
     module = MultiTaskModule(config)
     
     print('Module Built')

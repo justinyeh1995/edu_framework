@@ -25,12 +25,15 @@ class Load_chids(ETLPro):
         return [chid_array]
     
 class Sample_chids(ETLPro):
-    def __init__(self, process_name, pre_request_etls, result_dir=None, n_sample = 500):
+    def __init__(self, process_name, pre_request_etls, result_dir=None, n_sample = None):
         super(Sample_chids, self).__init__(process_name, pre_request_etls, result_dir=result_dir)
         self.n_sample = n_sample
     def process(self, inputs):
         chids = inputs[0]
-        return [random.sample(chids.tolist(), self.n_sample)]
+        if type(n_sample) == int:
+            return [random.sample(chids.tolist(), self.n_sample)]
+        else:
+            return [chids.tolist()]
 
 class Build_chid_to_nid_map(ETLPro):
     def process(self, inputs):

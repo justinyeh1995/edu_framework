@@ -30,7 +30,7 @@ class Sample_chids(ETLPro):
         self.n_sample = n_sample
     def process(self, inputs):
         chids = inputs[0]
-        if type(n_sample) == int:
+        if type(self.n_sample) == int:
             return [random.sample(chids.tolist(), self.n_sample)]
         else:
             return [chids.tolist()]

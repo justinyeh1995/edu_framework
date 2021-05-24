@@ -1,3 +1,26 @@
+# 安裝dependencies: 
+
+```
+pip install google-api-python-client
+pip install oauth2client
+
+pip install numpy 
+pip install pandas 
+pip install tqdm 
+pip install feather-format
+pip install tables
+
+pip install sklearn
+pip install torch
+
+pip install torchmetrics
+pip install pytorch-lightning
+pip install lightning-bolts
+
+pip install tensorboard
+
+```
+
 # 如何設定與執行? 
 
 1.  至../data執行**download_data_from_google_drive.ipynb**進行訓練與測試資料下載
@@ -60,7 +83,7 @@ config = {
 
 可將以下preprocess.py的路徑進行調整，`origin_path`是來源資料的路徑、`sample_path`是儲存來源資料的一個downsample的版本的路徑、`tmp_path`儲存preprocess過程中中繼檔的路徑、`result_path`儲存最終檔案的路徑。
 
-```
+```python
 origin_path = '../data'
 sample_path = 'data/sample'
 tmp_path = 'data/tmp'

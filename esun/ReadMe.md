@@ -1,13 +1,14 @@
 # 原始程式碼
+<span style="color:red"> Under Construction </span>
 You can check the latest sources with the command:
 ```
-git clone -b esun_team git@github.com:udothemath/ncku_customer_embedding.git
+git clone git@github.com:udothemath/ncku_customer_embedding.git
 ```
 
 # 安裝dependencies: 
 
 ```
-sh 
+sh install_packages.sh
 ```
 
 ## ToDo: add package version

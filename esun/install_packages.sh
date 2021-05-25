@@ -1,17 +1,17 @@
-pip install google-api-python-client
-pip install oauth2client
+pip install google-api-python-client==2.5.0
+pip install oauth2client==4.1.3
 
-pip install numpy 
-pip install pandas 
-pip install tqdm 
-pip install feather-format
-pip install tables
+pip install numpy==1.18.5
+pip install pandas==1.1.4
+pip install tqdm==4.54.1
+pip install feather-format==0.4.1
+pip install tables==3.6.1
 
-pip install sklearn
-pip install torch
+pip install sklearn==0.0
+pip install torch==1.8.1
 
-pip install torchmetrics
-pip install pytorch-lightning
-pip install lightning-bolts
+pip install torchmetrics==0.3.2
+pip install pytorch-lightning==1.3.2
+pip install lightning-bolts==0.3.3
 
-pip install tensorboard
+pip install tensorboard==2.4.0

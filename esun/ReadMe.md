@@ -22,36 +22,43 @@ sh install_packages.sh
 
 ## ToDo: add package version
 ```
-pip install google-api-python-client
-pip install oauth2client
+pip install google-api-python-client==2.5.0
+pip install oauth2client==4.1.3
 
-pip install numpy 
-pip install pandas 
-pip install tqdm 
-pip install feather-format
-pip install tables
+pip install numpy==1.18.5
+pip install pandas==1.1.4
+pip install tqdm==4.54.1
+pip install feather-format==0.4.1
+pip install tables==3.6.1
 
-pip install sklearn
-pip install torch
+pip install sklearn==0.0
+pip install torch==1.8.1
 
-pip install torchmetrics
-pip install pytorch-lightning
-pip install lightning-bolts
+pip install torchmetrics==0.3.2
+pip install pytorch-lightning==1.3.2
+pip install lightning-bolts==0.3.3
 
-pip install tensorboard
+pip install tensorboard==2.4.0
 ```
 
 # 如何設定與執行? 
 
 1.  至../data執行**download_data_from_google_drive.ipynb**進行訓練與測試資料下載
-1.  至../esun執行**preprocess.py**，將../data的資料進行downsampling和資料處理轉換，並將結果儲存於../esun/data/result。
-1.  至../esun執行**dataset_builder.py**，以將../esun/data/result的檔案進一步轉換模型需求的格式，並將結果儲存於../esun/data/result。
-1.  建立**logs/tensorboard**路徑，並於其中建立ncku_customer_embedding資料夾，以儲存實驗產生之Tensorboard Logs。
-1.  建立**checkpoint**資料夾，以儲存模型暫存檔。
-1.  打開../esun執行**run_project.py**進行編輯。
-           - 將TensorBoardLogger('/home/ai/work/logs/tensorboard',...)中的tensorboard路徑改為Step 5所創建的**logs/tensorboard路徑**。
-           - 將ModelCheckpoint(... dirpath='./checkpoint',...)中的dirpath路徑改為Step 6的**checkpoint路徑**
-1.  執行**run_project.py**以進行模型訓練。
+2.  至../esun執行**preprocess.py**，將../data的資料進行downsampling和資料處理轉換，並將結果儲存於../esun/data/result。
+3.  至../esun執行**dataset_builder.py**，以將../esun/data/result的檔案進一步轉換為模型所需之格式，並將結果儲存於../esun/data/result。
+4.  建立**logs/tensorboard**路徑，並於其中建立ncku_customer_embedding資料夾，以儲存實驗產生之Tensorboard Logs。
+5.  建立**checkpoint**資料夾，以儲存模型暫存檔。
+6.  打開../esun執行**run_project.py**進行編輯。
+    - 將TensorBoardLogger('/home/ai/work/logs/tensorboard',...)中的tensorboard路徑改為Step 5所創建的**logs/tensorboard路徑**。
+    - 將ModelCheckpoint(... dirpath='./checkpoint',...)中的dirpath路徑改為Step 6的**checkpoint路徑**
+7.  執行**run_project.py**以進行模型訓練、Debug或驗證: 
+    - 訓練: `python run_project.py -m train`
+    - Debug: 
+      - `python run_project.py -m fastdebug` (快速執行一次validation_step和train_step)
+      - `python run_project.py -m fit1batch` ([讓模型overfit一個batch](https://www.youtube.com/watch?v=nAZdK4codMk)) 
+    - 驗證: 
+      - `python run_project.py -m test` (使用測試資料進行測試) 
+
 
 
 # 如何監控訓練狀況? 

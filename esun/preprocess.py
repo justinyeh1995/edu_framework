@@ -18,6 +18,17 @@ chid_file = os.path.join(origin_path, 'sample_chid.txt')
 cdtx_file = os.path.join(origin_path, 'sample_zip_if_cca_cdtx0001_hist.csv')
 cust_f_file = os.path.join(origin_path, 'sample_zip_if_cca_cust_f.csv')
 
+def create_data_folder():
+    # paths
+    path_list = [sample_path.split('/')[0], sample_path, tmp_path, result_path]
+        
+    # Create the directory 
+    for path in path_list:
+        if not os.path.exists(path):
+            os.mkdir(path) 
+            print(f"You have created directory: {path}")
+        else:
+            print(f"Do nothing. You already have directory: {path}")
 
 class Load_chids(ETLPro):
     def process(self, inputs):
@@ -621,30 +632,17 @@ cust_feature_map = SelectResult(
     result_dir=os.path.join(result_path, 'cust_feature_map.npy')
 )
 
-def create_data_folder():      
-    # importing os module  
-    import os 
-        
-    # path 
-    path_list = ['data', 'data/sample', 'data/tmp', 'data/result']
-        
-    # Create the directory 
-    for path in path_list:
-        if not os.path.exists(path):
-            os.mkdir(path) 
-            print(f"You have created directory: {path}")
-        else:
-            print(f"Do nothing. You already have directory: {path}")
+
 
 if __name__ == "__main__":
     create_data_folder()
-    # X_Train = x_train.run()
-    # F_Train = f_train.run()
-    # Y_Train = y_train.run()
-    # X_Test = x_test.run()
-    # F_Test = f_test.run()
-    # Y_Test = y_test.run()
-    # Cols = columns.run()
+    X_Train = x_train.run()
+    F_Train = f_train.run()
+    Y_Train = y_train.run()
+    X_Test = x_test.run()
+    F_Test = f_test.run()
+    Y_Test = y_test.run()
+    Cols = columns.run()
     # print(X_Train, Y_Train, F_Train)
     # print(X_Test, Y_Test, F_Test)
     # print(Cols)

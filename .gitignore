@@ -1,5 +1,8 @@
 .ipynb_checkpoints/*
 *.ipynb_checkpoints
+./data/*
+*/__pycache__/
+__pycache__/
 *.h5
 *.csv 
 *.feather

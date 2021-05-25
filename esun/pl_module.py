@@ -8,7 +8,7 @@
 # - [ ] Making Pytorch Lightning Module Model and Data Agnostic 
 #       - [V] Identify functions related to Data Formate 
 #       - [V] Identify functions related to Model
-#       - [ ]  
+#       - [ ] 
 # - [ ] Add lr schedular warmup_epochs and max_epochs, and weight_decay as training parameters 
 # - [ ] 把 metrics calculation和logging的部分抽離至callback 
 import os
@@ -119,7 +119,7 @@ class MultiTaskModule(pl.LightningModule):
     def on_test_start(self):
         self._metric_dict['test'] = self._initialize_metric_calculators()
         
-    def on_fit_start(self): # def on_train_start(self):
+    def on_fit_start(self): 
     	# @ModelDependent
     	# @DataDependent
         self._batch_cnt = 0
@@ -152,8 +152,6 @@ class MultiTaskModule(pl.LightningModule):
         for value_name, value in losses_and_metrics.items():
             self.logger.experiment.add_scalar(f'train/{value_name}', value, self._batch_cnt)
         
-        
-            
         # Step 4: increase batch count 
         self._batch_cnt += 1
         
@@ -220,7 +218,6 @@ class MultiTaskModule(pl.LightningModule):
     def _calculate_losses_and_metrics_step_wise(self, batch, mode = 'train'):
     	# @DataDependent
         assert mode == 'train' or mode == 'val' or mode == 'test'
-        # TODO: [ ] put the following three lines into batch-wise forward 
         x_dense, x_sparse, objmean, tscnt, label_0 = batch
         objmean_hat, tscnt_hat, label_0_hat = self(x_dense, x_sparse)
         

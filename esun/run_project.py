@@ -60,7 +60,7 @@ if __name__ == "__main__":
         # Note: Why you should always overfit a single batch to debug your deep learning model
         # https://www.youtube.com/watch?v=nAZdK4codMk
         trainer = pl.Trainer(
-            # auto_scale_batch_size='power',
+            auto_scale_batch_size='power',
             auto_lr_find=True, 
             logger = logger, 
             callbacks=[checkpoint, lr_monitor], 
@@ -69,7 +69,7 @@ if __name__ == "__main__":
             overfit_batches=1
         )
         trainer.tune(module)
-        module.batch_size = 64
+        # module.batch_size = 64
         # module.lr = 2e-2
         trainer.fit(module)
     elif run_mode == 'fastdebug' or run_mode == 'train':
@@ -83,8 +83,6 @@ if __name__ == "__main__":
             fast_dev_run=(run_mode == 'fastdebug')
         )
         trainer.tune(module)
-        # module.batch_size = 64
-        # module.lr = 2e-2
         trainer.fit(module)
     elif run_mode == 'test':
         trainer = pl.Trainer(

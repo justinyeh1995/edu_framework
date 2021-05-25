@@ -6,9 +6,10 @@
 # - [V] metrics定義在lightning module的train_start/validation_start/...裡
 # - [X] showing loss in the progress bar (already shown in TensorBoard. need to re-generate files to show the correct arrangement)
 # - [ ] Making Pytorch Lightning Module Model and Data Agnostic 
-#       - [V] Identify functions related to Data Formate 
-#       - [V] Identify functions related to Model
-#       - [ ] 
+#       - [V] Identify functions related to Data Formate and label with @DataDependent
+#       - [V] Identify functions related to Model and label with @ModelDependent
+#       - [ ] Resolve @ModelDependent 
+#       - [ ] Resolve @DataDependent 
 # - [ ] Add lr schedular warmup_epochs and max_epochs, and weight_decay as training parameters 
 # - [ ] 把 metrics calculation和logging的部分抽離至callback 
 import os
@@ -87,6 +88,8 @@ class MultiTaskModule(pl.LightningModule):
         self._metric_dict['val'] = {}
         self._metric_dict['test'] = {}
         
+    
+
     @blockPrinting
     def _get_data_dependent_hparams(self, dataset_builder):
     	# @DataDependent
@@ -107,18 +110,15 @@ class MultiTaskModule(pl.LightningModule):
     
     def forward(self, *x):
         return self.model(*x) 
-    
-    def on_train_start(self):
-        self._batch_cnt = 0
-        
-        self._metric_dict['train'] = self._initialize_metric_calculators()
-        
-    def on_validation_start(self):
-        self._metric_dict['val'] = self._initialize_metric_calculators()
 
-    def on_test_start(self):
-        self._metric_dict['test'] = self._initialize_metric_calculators()
-        
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+        lr_scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=5, max_epochs=10)
+        return {
+            "optimizer": optimizer,#  
+            "lr_scheduler": lr_scheduler
+        }
+
     def on_fit_start(self): 
     	# @ModelDependent
     	# @DataDependent
@@ -142,6 +142,27 @@ class MultiTaskModule(pl.LightningModule):
                 "val_loss": float("Inf")
             }
         )
+
+    def on_train_start(self):
+        self._batch_cnt = 0
+        self._metric_dict['train'] = self._initialize_metric_calculators()
+        
+    def on_validation_start(self):
+        self._metric_dict['val'] = self._initialize_metric_calculators()
+
+    def on_test_start(self):
+        self._metric_dict['test'] = self._initialize_metric_calculators()
+
+    def _initialize_metric_calculators(self):
+    	# @DataDependent
+        return {
+            'mse_objmean': MeanSquaredError(compute_on_step=False),
+            'mae_objmean': MeanAbsoluteError(compute_on_step=False),
+            'mse_tscnt': MeanSquaredError(compute_on_step=False),
+            'mae_tscnt': MeanAbsoluteError(compute_on_step=False),
+            'acc_label_0': Accuracy(compute_on_step=False), 
+            'auc_label_0': AUROC(compute_on_step=False, pos_label=1)
+        }
 
     def training_step(self, batch, batch_idx):
         
@@ -174,16 +195,45 @@ class MultiTaskModule(pl.LightningModule):
 
         return {'val_log': losses_and_metrics}
     
+    def test_step(self, batch, batch_idx):
+        # Step 1: calculate training loss and metrics 
+        losses_and_metrics = self._calculate_losses_and_metrics_step_wise(batch, mode = 'test')
+        return {'test_loss': losses_and_metrics}
+    
+    def _calculate_losses_and_metrics_step_wise(self, batch, mode = 'train'):
+    	# @DataDependent
+        assert mode == 'train' or mode == 'val' or mode == 'test'
+        x_dense, x_sparse, objmean, tscnt, label_0 = batch
+        objmean_hat, tscnt_hat, label_0_hat = self(x_dense, x_sparse)
+        
+        objmean_loss = F.mse_loss(objmean_hat, objmean)
+        tscnt_loss = F.mse_loss(tscnt_hat, tscnt)
+        label_0_loss = F.binary_cross_entropy(label_0_hat, label_0)
+        
+        total_loss = objmean_loss + tscnt_loss + label_0_loss
+        
+        self._metric_dict[mode]['mse_objmean'](objmean_hat, objmean)
+        self._metric_dict[mode]['mae_objmean'](objmean_hat, objmean)
+        
+        self._metric_dict[mode]['mse_tscnt'](tscnt_hat, tscnt)
+        self._metric_dict[mode]['mae_tscnt'](tscnt_hat, tscnt)
+        
+        self._metric_dict[mode]['acc_label_0'](label_0_hat, label_0.int())
+        self._metric_dict[mode]['auc_label_0'](label_0_hat, label_0.int())
+        
+        return {
+            'total_loss': total_loss, 
+            'objmean_loss': objmean_loss, 
+            'tscnt_loss': tscnt_loss, 
+            'label_0_loss': label_0_loss
+        }
+
     def validation_epoch_end(self, outputs):
         if self.current_epoch > 0:
             # Step 1: calculate average loss and metrics
             avg_total_loss = self._calculate_losses_and_metrics_on_end(outputs, 'val')
                 
-    def test_step(self, batch, batch_idx):
-        # Step 1: calculate training loss and metrics 
-        losses_and_metrics = self._calculate_losses_and_metrics_step_wise(batch, mode = 'test')
-        return {'test_loss': losses_and_metrics}
-        
+    
     def test_epoch_end(self, outputs):
         self._calculate_losses_and_metrics_on_end(outputs, 'test', verbose = True)
         
@@ -214,46 +264,6 @@ class MultiTaskModule(pl.LightningModule):
             
         return avg_total_loss
         
-
-    def _calculate_losses_and_metrics_step_wise(self, batch, mode = 'train'):
-    	# @DataDependent
-        assert mode == 'train' or mode == 'val' or mode == 'test'
-        x_dense, x_sparse, objmean, tscnt, label_0 = batch
-        objmean_hat, tscnt_hat, label_0_hat = self(x_dense, x_sparse)
-        
-        objmean_loss = F.mse_loss(objmean_hat, objmean)
-        tscnt_loss = F.mse_loss(tscnt_hat, tscnt)
-        label_0_loss = F.binary_cross_entropy(label_0_hat, label_0)
-        
-        total_loss = objmean_loss + tscnt_loss + label_0_loss
-        
-        self._metric_dict[mode]['mse_objmean'](objmean_hat, objmean)
-        self._metric_dict[mode]['mae_objmean'](objmean_hat, objmean)
-        
-        self._metric_dict[mode]['mse_tscnt'](tscnt_hat, tscnt)
-        self._metric_dict[mode]['mae_tscnt'](tscnt_hat, tscnt)
-        
-        self._metric_dict[mode]['acc_label_0'](label_0_hat, label_0.int())
-        self._metric_dict[mode]['auc_label_0'](label_0_hat, label_0.int())
-        
-        return {
-            'total_loss': total_loss, 
-            'objmean_loss': objmean_loss, 
-            'tscnt_loss': tscnt_loss, 
-            'label_0_loss': label_0_loss
-        }
-        
-    def _initialize_metric_calculators(self):
-    	# @DataDependent
-        return {
-            'mse_objmean': MeanSquaredError(compute_on_step=False),
-            'mae_objmean': MeanAbsoluteError(compute_on_step=False),
-            'mse_tscnt': MeanSquaredError(compute_on_step=False),
-            'mae_tscnt': MeanAbsoluteError(compute_on_step=False),
-            'acc_label_0': Accuracy(compute_on_step=False), 
-            'auc_label_0': AUROC(compute_on_step=False, pos_label=1)
-        }
-    
     @blockPrinting
     def prepare_data(self):
         self.train_dataset = dataset_builder.train_dataset.run()[0]
@@ -268,12 +278,6 @@ class MultiTaskModule(pl.LightningModule):
     def test_dataloader(self):
         return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=4, pin_memory=True)
     
-    def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-        lr_scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=5, max_epochs=10)
-        return {
-            "optimizer": optimizer,#  
-            "lr_scheduler": lr_scheduler
-        }
+    
 
   

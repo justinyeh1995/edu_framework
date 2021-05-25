@@ -6,8 +6,9 @@
 # - [V] metrics定義在lightning module的train_start/validation_start/...裡
 # - [X] showing loss in the progress bar (already shown in TensorBoard. need to re-generate files to show the correct arrangement)
 # - [ ] Making Pytorch Lightning Module Model and Data Agnostic 
-#       - [ ] Identify functions related to Data Formate 
-#       - [ ] Identify functions related to Model 
+#       - [V] Identify functions related to Data Formate 
+#       - [V] Identify functions related to Model
+#       - [ ]  
 # - [ ] Add lr schedular warmup_epochs and max_epochs, and weight_decay as training parameters 
 # - [ ] 把 metrics calculation和logging的部分抽離至callback 
 import os
@@ -79,7 +80,6 @@ class MultiTaskModule(pl.LightningModule):
         	)
         
         self._batch_cnt = 0
-        self._architecture_logged = False
         
         self._metric_dict = {}
         self._metric_dict['train'] = {}
@@ -105,8 +105,6 @@ class MultiTaskModule(pl.LightningModule):
     
     def on_train_start(self):
         self._batch_cnt = 0
-        self._architecture_logged = False
-        
         
         self._metric_dict['train'] = self._initialize_metric_calculators()
         
@@ -148,11 +146,7 @@ class MultiTaskModule(pl.LightningModule):
         for value_name, value in losses_and_metrics.items():
             self.logger.experiment.add_scalar(f'train/{value_name}', value, self._batch_cnt)
         
-        # Step 3: log neural architecture # TODO: [ ] move to sanity validation step 
-        if not self._architecture_logged: 
-            self.logger.experiment.add_graph(self, [batch[0], batch[1]])
-            print("Model Architecture Logged")
-            self._architecture_logged = True
+        
             
         # Step 4: increase batch count 
         self._batch_cnt += 1
@@ -166,8 +160,15 @@ class MultiTaskModule(pl.LightningModule):
         # Step 1: calculate training loss and metrics 
         losses_and_metrics = self._calculate_losses_and_metrics_step_wise(batch, mode = 'val')
         
+
         # Step 2: log total loss         
         self.log('val_loss', losses_and_metrics['total_loss'])
+
+        # Step 3: log neural architecture # TODO: [V] move to sanity validation step 
+        if self.current_epoch == 0: 
+            self.logger.experiment.add_graph(self, [batch[0], batch[1]])
+            print("Model Architecture Logged")
+
         return {'val_log': losses_and_metrics}
     
     def validation_epoch_end(self, outputs):
@@ -268,7 +269,7 @@ class MultiTaskModule(pl.LightningModule):
     
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-        lr_scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=5, max_epochs=1000)
+        lr_scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=5, max_epochs=10)
         return {
             "optimizer": optimizer,#  
             "lr_scheduler": lr_scheduler

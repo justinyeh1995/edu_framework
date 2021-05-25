@@ -65,7 +65,7 @@ if __name__ == "__main__":
             logger = logger, 
             callbacks=[checkpoint, lr_monitor], 
             deterministic=True,
-            num_sanity_val_steps=1,
+            num_sanity_val_steps=1, 
             overfit_batches=1
         )
         trainer.tune(module)
@@ -112,3 +112,11 @@ if __name__ == "__main__":
 # - [ ] In pl_module, need to have a strategy for splitting training into train and 'val', other than using 'test' for 'val'. 
 # - [X] XXX: come up with some thing to do cross-validation. Ref: https://towardsdatascience.com/5x-faster-scikit-learn-parameter-tuning-in-5-lines-of-code-be6bdd21833c. (p.s., Cross validation is often not used for evaluating deep learning models because of the greater computational expense) 
 # - [ ] Many speed up tips: https://pytorch-lightning.readthedocs.io/en/stable/benchmarking/performance.html
+
+
+# Notes: 
+
+# # num_sanity_val_steps should be set so that 
+# 1. model architecture can be plot in the beginning. 
+# 2. validation step can be tested before training start. 
+# 

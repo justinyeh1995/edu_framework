@@ -1,21 +1,30 @@
 #!/usr/bin/env python
 # coding: utf-8
+# TODO: 
+# - [V] no need to have best_metric_value replacement (already handled by the lightning early_stopping and checkpoint callbacks)
+# - [V] 把 model 和 lightning module分開 
+# - [V] metrics定義在lightning module的train_start/validation_start/...裡
+# - [X] showing loss in the progress bar (already shown in TensorBoard. need to re-generate files to show the correct arrangement)
+# - [ ] Making Pytorch Lightning Module Model and Data Agnostic 
+#       - [ ] Identify functions related to Data Formate 
+#       - [ ] Identify functions related to Model 
+# - [ ] Add lr schedular warmup_epochs and max_epochs, and weight_decay as training parameters 
+# - [ ] 把 metrics calculation和logging的部分抽離至callback 
 import os
 import sys
 
 import torch
 from torch import nn
-from torch.autograd import Variable
 import torch.nn.functional as F
-from torchmetrics import Accuracy
-from torchmetrics import AUROC
+from torchmetrics import MeanSquaredError, MeanAbsoluteError, Accuracy, AUROC
 
 from torch.utils.data import DataLoader
 
 import pytorch_lightning as pl
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 
-import dataset_builder 
+import dataset_builder
+from model import MultiTaskModel
 
 def blockPrinting(func):
     def func_wrapper(*args, **kwargs):
@@ -30,57 +39,59 @@ def blockPrinting(func):
 
     return func_wrapper
 
-train_accuracy = Accuracy()
-valid_accuracy  = Accuracy(compute_on_step=False)
-train_auroc = AUROC(pos_label=1)
-valid_auroc  = AUROC(compute_on_step=False, pos_label=1)
+
 
 class MultiTaskModule(pl.LightningModule):
     
     @blockPrinting
-    def __init__(self, config, batch_size = 64, lr=2e-3):
+    def __init__(self, config, batch_size = 64, lr=2e-4):
         
         super(MultiTaskModule, self).__init__()
         
+        # Step 1: 載入模型參數
         self.hidden_dims = config['hidden_dims']
         self.n_layers = config['n_layers']
         self.cell = config['cell']
         self.bi = config['bi']
-        self.dropout = config['dropout']
         
-        self.use_chid, self.dense_dims, self.sparse_dims, self.out_dims = self._get_data_dependent_hparams(
+        # Step 2: 載入data-dependent參數
+        self.dense_dims, self.sparse_dims, self.use_chid, self.out_dims = self._get_data_dependent_hparams(
             dataset_builder
         )
         
-        self.rnn = ET_Rnn(
-            self.dense_dims, 
-            self.sparse_dims, 
-            self.hidden_dims, 
-            n_layers=self.n_layers, 
-            use_chid=self.use_chid,
-            cell=self.cell, 
-            bi=self.bi, 
-            dropout=self.dropout
-        )
-        
-        self.mlps = nn.ModuleList([
-            MLP(
-                self.rnn.out_dim, 
-                hidden_dims=[self.rnn.out_dim // 2], 
-                out_dim=od
-            ) for od in self.out_dims
-        ])
-        
+        # Step 3: 載入訓練參數
+        self.dropout = config['dropout']
         self.batch_size = batch_size
         self.lr = lr
-
+ 
+        # Step 4: 建立模型
+        self.model = MultiTaskModel(
+	        	self.hidden_dims, 
+	        	self.n_layers, 
+	        	self.cell, 
+	        	self.bi, 
+	        	self.dense_dims, 
+	        	self.sparse_dims, 
+	        	self.use_chid, 
+	        	self.out_dims, 
+	        	dropout = self.dropout
+        	)
+        
+        self._batch_cnt = 0
+        self._architecture_logged = False
+        
+        self._metric_dict = {}
+        self._metric_dict['train'] = {}
+        self._metric_dict['val'] = {}
+        self._metric_dict['test'] = {}
+        
     @blockPrinting
     def _get_data_dependent_hparams(self, dataset_builder):
         use_chid = dataset_builder.USE_CHID
         dense_dims = dataset_builder.dense_dims.run()[0]
         sparse_dims = dataset_builder.sparse_dims.run()[0]
         out_dims = self._get_output_dims(dataset_builder)
-        return use_chid, dense_dims, sparse_dims, out_dims 
+        return dense_dims, sparse_dims, use_chid, out_dims 
     
     def _get_output_dims(self, dataset_builder):
         num_y_data = len(dataset_builder.processed_y_data.run())
@@ -88,18 +99,21 @@ class MultiTaskModule(pl.LightningModule):
         return [y_data.shape[1] for y_data in dataset_builder.processed_y_data.run()[-num_y_data:]]
 
     
-    def forward(self, x_dense, x_sparse):
-        logits = self.rnn(x_dense, x_sparse)
-        outs = [mlp(logits)for mlp in self.mlps]
-        return outs
+    def forward(self, *x):
+        return self.model(*x) 
     
     def on_train_start(self):
         self._batch_cnt = 0
         self._architecture_logged = False
-        self._best_val_loss = 1e13
-        self.log('best_val_loss', self._best_val_loss)
-        self._best_val_auroc = 0.        
-        self.log('best_val_auroc', self._best_val_auroc)
+        
+        
+        self._metric_dict['train'] = self._initialize_metric_calculators()
+        
+    def on_validation_start(self):
+        self._metric_dict['val'] = self._initialize_metric_calculators()
+
+    def on_test_start(self):
+        self._metric_dict['test'] = self._initialize_metric_calculators()
         
     def on_fit_start(self): # def on_train_start(self):
         self._batch_cnt = 0
@@ -118,100 +132,120 @@ class MultiTaskModule(pl.LightningModule):
                 "batch_size": self.batch_size
             }, 
             metrics = {
-                "best_val_loss": self._best_val_loss,
-                "best_val_auroc": self._best_val_auroc
+                "val_loss": float("Inf")
             }
         )
 
     def training_step(self, batch, batch_idx):
         
-        losses_and_metrics = self._calculate_multitask_loss_and_metrics(batch, mode = 'train')
-        
-        loss = losses_and_metrics['objmean_loss']
-        # if self.current_epoch >= 20:
-        loss += losses_and_metrics['tscnt_loss']
-        # if self.current_epoch >= 40:
-        loss += losses_and_metrics['label_0_loss']
-        
+        # Step 1: calculate training loss and metrics 
+        losses_and_metrics = self._calculate_losses_and_metrics_step_wise(batch, mode = 'train')
+        total_loss = losses_and_metrics['total_loss']
+        # Step 2: log values 
         for value_name, value in losses_and_metrics.items():
-            self.logger.experiment.add_scalar(f'Train/{value_name}', value, self._batch_cnt)
-        self.logger.experiment.add_scalar("Train/total_loss", loss, self._batch_cnt)
+            self.logger.experiment.add_scalar(f'train/{value_name}', value, self._batch_cnt)
         
+        # Step 3: log neural architecture # TODO: [ ] move to sanity validation step 
         if not self._architecture_logged: 
             self.logger.experiment.add_graph(self, [batch[0], batch[1]])
             print("Model Architecture Logged")
             self._architecture_logged = True
-            self._fit_start = False
             
+        # Step 4: increase batch count 
         self._batch_cnt += 1
-        return {'loss': loss, 'log': losses_and_metrics}
+        
+        return {
+            'loss': total_loss,
+            'train_log': losses_and_metrics
+        }
     
     def validation_step(self, batch, batch_idx):
+        # Step 1: calculate training loss and metrics 
+        losses_and_metrics = self._calculate_losses_and_metrics_step_wise(batch, mode = 'val')
         
-        losses_and_metrics = self._calculate_multitask_loss_and_metrics(batch, mode = 'valid')
-        
-        loss = losses_and_metrics['objmean_loss']
-        # if self.current_epoch >= 20:
-        loss += losses_and_metrics['tscnt_loss']
-        # if self.current_epoch >= 40:
-        loss += losses_and_metrics['label_0_loss']
-        self.log('val_loss', loss)
-        return {'val_loss': loss, 'val_log': losses_and_metrics}
+        # Step 2: log total loss         
+        self.log('val_loss', losses_and_metrics['total_loss'])
+        return {'val_log': losses_and_metrics}
     
     def validation_epoch_end(self, outputs):
         if self.current_epoch > 0:
-            avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
-            
-            if avg_loss < self._best_val_loss:
-                self._best_val_loss = avg_loss 
-                self.log('best_val_loss', self._best_val_loss)
+            # Step 1: calculate average loss and metrics
+            avg_total_loss = self._calculate_losses_and_metrics_on_end(outputs, 'val')
                 
-            self.logger.experiment.add_scalar("Val/total_loss", avg_loss, self.current_epoch)
+    def test_step(self, batch, batch_idx):
+        # Step 1: calculate training loss and metrics 
+        losses_and_metrics = self._calculate_losses_and_metrics_step_wise(batch, mode = 'test')
+        return {'test_loss': losses_and_metrics}
+        
+    def test_epoch_end(self, outputs):
+        self._calculate_losses_and_metrics_on_end(outputs, 'test', verbose = True)
+        
+    def _calculate_losses_and_metrics_on_end(self, outputs, mode, verbose = False):
+        assert mode == 'train' or mode == 'val' or mode == 'test' 
+        avg_losses = {}
+        for loss_name in outputs[0][f'{mode}_log'].keys():
+            avg = torch.stack([x[f'{mode}_log'][loss_name] for x in outputs]).mean()
+            avg_losses[loss_name] = avg
+            if verbose:
+                print(f'{loss_name}: {round(avg,3)}')
 
-            for value_name in ['objmean_loss', 'tscnt_loss', 'label_0_loss']:
-                avg_value = torch.stack([x['val_log'][value_name] for x in outputs]).mean()
-                self.logger.experiment.add_scalar(f"Val/{value_name}", avg_value, self.current_epoch)
-                
-            acc_value = valid_accuracy.compute()
-            self.logger.experiment.add_scalar(f"Val/Acc", acc_value, self.current_epoch)
+        avg_total_loss = avg_losses['total_loss']
+
+        metric_values = {}
+        for metric_name in self._metric_dict[mode].keys():
+            metric_values[metric_name] = self._metric_dict[mode][metric_name].compute()
+            if verbose:
+                print(f'{metric_name}: {round(metric_values[metric_name],3)}')
+        
+        if mode == 'train' or mode == 'val':
+            # Step 2: log values 
+            for loss_name in avg_losses.keys():
+                self.logger.experiment.add_scalar(f"{mode}/{loss_name}", avg_losses[loss_name], self.current_epoch)
+
+            for metric_name in metric_values.keys():
+                self.logger.experiment.add_scalar(f"{mode}/{metric_name}", metric_values[metric_name], self.current_epoch)
             
-            auroc_value = valid_auroc.compute()
-            if auroc_value > self._best_val_auroc:
-                self._best_val_auroc = auroc_value
-                self.log('best_val_auroc', self._best_val_auroc)
-            self.logger.experiment.add_scalar(f"Val/AUROC", auroc_value, self.current_epoch)
-            # self.logger.finalize('Running')
-            
-            
+        return avg_total_loss
+        
     
-    def _calculate_multitask_loss_and_metrics(self, batch, mode = 'train'):
-        assert mode == 'train' or mode == 'valid'
+    def _calculate_losses_and_metrics_step_wise(self, batch, mode = 'train'):
+        assert mode == 'train' or mode == 'val' or mode == 'test'
+        # TODO: [ ] put the following three lines into batch-wise forward 
         x_dense, x_sparse, objmean, tscnt, label_0 = batch
         objmean_hat, tscnt_hat, label_0_value = self(x_dense, x_sparse)
+        label_0_hat = torch.sigmoid(label_0_value)
         
         objmean_loss = F.mse_loss(objmean_hat, objmean)
         tscnt_loss = F.mse_loss(tscnt_hat, tscnt)
-        label_0_hat = torch.sigmoid(label_0_value)
         label_0_loss = F.binary_cross_entropy(label_0_hat, label_0)
-        if mode == 'train':
-            label_0_accuracy = train_accuracy(label_0_hat, label_0.int())
-            # label_0_auroc = self.train_auroc(label_0_hat, label_0.int())
-            return {
-                'objmean_loss': objmean_loss, 
-                'tscnt_loss': tscnt_loss, 
-                'label_0_loss': label_0_loss, 
-                'label_0_accuracy': label_0_accuracy
-                # 'label_0_auroc': label_0_auroc
-            }
-        else:
-            valid_accuracy(label_0_hat, label_0.int())
-            valid_auroc(label_0_hat, label_0.int())
-            return {
-                'objmean_loss': objmean_loss, 
-                'tscnt_loss': tscnt_loss, 
-                'label_0_loss': label_0_loss
-            }
         
+        total_loss = objmean_loss + tscnt_loss + label_0_loss
+        
+        self._metric_dict[mode]['mse_objmean'](objmean_hat, objmean)
+        self._metric_dict[mode]['mae_objmean'](objmean_hat, objmean)
+        
+        self._metric_dict[mode]['mse_tscnt'](tscnt_hat, tscnt)
+        self._metric_dict[mode]['mae_tscnt'](tscnt_hat, tscnt)
+        
+        self._metric_dict[mode]['acc_label_0'](label_0_hat, label_0.int())
+        self._metric_dict[mode]['auc_label_0'](label_0_hat, label_0.int())
+        
+        return {
+            'total_loss': total_loss, 
+            'objmean_loss': objmean_loss, 
+            'tscnt_loss': tscnt_loss, 
+            'label_0_loss': label_0_loss
+        }
+        
+    def _initialize_metric_calculators(self):
+        return {
+            'mse_objmean': MeanSquaredError(compute_on_step=False),
+            'mae_objmean': MeanAbsoluteError(compute_on_step=False),
+            'mse_tscnt': MeanSquaredError(compute_on_step=False),
+            'mae_tscnt': MeanAbsoluteError(compute_on_step=False),
+            'acc_label_0': Accuracy(compute_on_step=False), 
+            'auc_label_0': AUROC(compute_on_step=False, pos_label=1)
+        }
     
     @blockPrinting
     def prepare_data(self):
@@ -222,91 +256,17 @@ class MultiTaskModule(pl.LightningModule):
         return DataLoader(dataset=self.train_dataset, shuffle=True, batch_size=self.batch_size, num_workers=4)
     
     def val_dataloader(self):
-        return DataLoader(dataset=self.train_dataset, shuffle=False, batch_size=self.batch_size, num_workers=4)
+        return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=4, pin_memory=True)
+    
+    def test_dataloader(self):
+        return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=4, pin_memory=True)
     
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-        lr_scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=5, max_epochs=40)
+        lr_scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=5, max_epochs=1000)
         return {
-            "optimizer": optimizer, 
+            "optimizer": optimizer,#  
             "lr_scheduler": lr_scheduler
         }
 
-    
-class ET_Rnn(torch.nn.Module):
-    def __init__(self, dense_dims, sparse_dims, hidden_dims, n_layers=1, use_chid=True, cell='GRU', bi=False, dropout=0):
-        super(ET_Rnn, self).__init__()
-        self.hidden_dims = hidden_dims
-        self.n_layers = n_layers
-        self.cell = cell
-        self.use_chid = use_chid
-        self.bi = bi
-        self.embedding_list = nn.ModuleList([nn.Embedding(fd, ed, padding_idx=0) for fd, ed in sparse_dims])
-
-        if use_chid:
-            rnn_in_dim = dense_dims + sum([ed for fd, ed in sparse_dims[1:]])
-            self.out_dim = hidden_dims * (bi + 1) + sparse_dims[0][1]  # chid embed dim
-            self.user_layer = nn.Linear(sparse_dims[0][1], sparse_dims[0][1])
-
-        else:
-            rnn_in_dim = dense_dims + sum([ed for fd, ed in sparse_dims[:]])
-            self.out_dim = hidden_dims * (bi + 1)
-
-        if self.cell == 'LSTM':
-            self.rnn = nn.LSTM(rnn_in_dim, hidden_dims, n_layers, batch_first=True, bidirectional=bi, dropout=dropout)
-        elif self.cell == 'GRU':
-            self.rnn = nn.GRU(rnn_in_dim, hidden_dims, n_layers, batch_first=True, bidirectional=bi, dropout=dropout)
-
-        self.init_embedding()
-
-    def init_embedding(self):
-        for embed in self.embedding_list:
-            embed.reset_parameters()
-
-    def init_hidden(self, x):
-        if self.cell == 'LSTM':
-            hidden = Variable(torch.zeros(self.n_layers * (self.bi + 1), x.size(0), self.hidden_dims))
-            context = Variable(torch.zeros(self.n_layers * (self.bi + 1), x.size(0), self.hidden_dims))
-            ret = (hidden, context)
-        elif self.cell == 'GRU':
-            hidden = Variable(torch.zeros(self.n_layers * (self.bi + 1), x.size(0), self.hidden_dims))
-            ret = hidden
-
-        return ret
-
-    def forward(self, x_dense, x_sparse):
-        if self.use_chid:
-            x = torch.cat([x_dense] + [embed(x_sparse[:, :, i + 1]) for i, embed in enumerate(self.embedding_list[1:])], dim=-1)
-        else:
-            x = torch.cat([x_dense] + [embed(x_sparse[:, :, i]) for i, embed in enumerate(self.embedding_list[:])], dim=-1)
-
-        self.hidden = self.init_hidden(x)
-        logits, self.hidden = self.rnn(x, self.hidden)
-        # TODO: why rnn takes two input? what is the purpose of self.hidden ?
-        if self.use_chid:
-            user_embed = self.user_layer(self.embedding_list[0](x_sparse[:, 0, 0]))
-            last_logits = torch.cat([logits[:, -1], user_embed], dim=-1)
-        else:
-            last_logits = logits[:, -1]
-
-        return last_logits
-
-class MLP(nn.Module):
-    def __init__(self, input_dims, hidden_dims=[1], out_dim=1):
-        super(MLP, self).__init__()
-        hidden_dims = [input_dims] + hidden_dims
-
-        self.layers = nn.Sequential(*[
-            nn.Sequential(
-                nn.Linear(idim, odim),
-                nn.ReLU()
-            ) for idim, odim in zip(hidden_dims[:-1], hidden_dims[1:])
-        ])
-
-        self.out_layer = nn.Linear(hidden_dims[-1], out_dim)
-
-    def forward(self, x):
-        out = self.layers(x)
-        out = self.out_layer(out)
-
-        return out
+  

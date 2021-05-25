@@ -1,23 +1,23 @@
 # 安裝dependencies: 
 
 ```
-pip install google-api-python-client
-pip install oauth2client
+pip install google-api-python-client --user
+pip install oauth2client --user
 
-pip install numpy 
-pip install pandas 
-pip install tqdm 
-pip install feather-format
-pip install tables
+pip install numpy  --user
+pip install pandas  --user
+pip install tqdm  --user
+pip install feather-format --user
+pip install tables --user
 
-pip install sklearn
-pip install torch
+pip install sklearn --user
+pip install torch --user
 
-pip install torchmetrics
-pip install pytorch-lightning
-pip install lightning-bolts
+pip install torchmetrics --user
+pip install pytorch-lightning --user
+pip install lightning-bolts --user
 
-pip install tensorboard
+pip install tensorboard --user
 
 ```
 

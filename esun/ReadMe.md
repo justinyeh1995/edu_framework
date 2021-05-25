@@ -5,7 +5,7 @@
 
 # 原始程式碼
 ```diff
-! Under Construction
+! Under Construction !
 ```
 
 You can check the latest sources with the command:

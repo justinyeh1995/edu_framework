@@ -45,26 +45,27 @@ class MultiTaskModule(pl.LightningModule):
     
     @blockPrinting
     def __init__(self, config, batch_size = 64, lr=2e-4):
-        
+    	# @DataDependent 
+        # @ModelDependent 
         super(MultiTaskModule, self).__init__()
         
-        # Step 1: 載入模型參數
+        # Step 1: 載入模型參數 # @ModelDependent
         self.hidden_dims = config['hidden_dims']
         self.n_layers = config['n_layers']
         self.cell = config['cell']
         self.bi = config['bi']
         
-        # Step 2: 載入data-dependent參數
+        # Step 2: 載入data-dependent參數 # @DataDependent
         self.dense_dims, self.sparse_dims, self.use_chid, self.out_dims = self._get_data_dependent_hparams(
             dataset_builder
         )
         
-        # Step 3: 載入訓練參數
-        self.dropout = config['dropout']
+        # Step 3: 載入訓練參數 
+        self.dropout = config['dropout'] # @ModelDependent
         self.batch_size = batch_size
         self.lr = lr
  
-        # Step 4: 建立模型
+        # Step 4: 建立模型 # @ModelDependent
         self.model = MultiTaskModel(
 	        	self.hidden_dims, 
 	        	self.n_layers, 
@@ -87,17 +88,17 @@ class MultiTaskModule(pl.LightningModule):
         
     @blockPrinting
     def _get_data_dependent_hparams(self, dataset_builder):
+    	# @DataDependent
         use_chid = dataset_builder.USE_CHID
         dense_dims = dataset_builder.dense_dims.run()[0]
         sparse_dims = dataset_builder.sparse_dims.run()[0]
-        out_dims = self._get_output_dims(dataset_builder)
-        return dense_dims, sparse_dims, use_chid, out_dims 
-    
-    def _get_output_dims(self, dataset_builder):
+
         num_y_data = len(dataset_builder.processed_y_data.run())
         num_y_data = num_y_data//2
-        return [y_data.shape[1] for y_data in dataset_builder.processed_y_data.run()[-num_y_data:]]
 
+        out_dims = [y_data.shape[1] for y_data in dataset_builder.processed_y_data.run()[-num_y_data:]]
+        return dense_dims, sparse_dims, use_chid, out_dims 
+    
     
     def forward(self, *x):
         return self.model(*x) 
@@ -116,6 +117,8 @@ class MultiTaskModule(pl.LightningModule):
         self._metric_dict['test'] = self._initialize_metric_calculators()
         
     def on_fit_start(self): # def on_train_start(self):
+    	# @ModelDependent
+    	# @DataDependent
         self._batch_cnt = 0
         self.logger.log_hyperparams(
             params = {
@@ -209,6 +212,7 @@ class MultiTaskModule(pl.LightningModule):
         
     
     def _calculate_losses_and_metrics_step_wise(self, batch, mode = 'train'):
+    	# @DataDependent
         assert mode == 'train' or mode == 'val' or mode == 'test'
         # TODO: [ ] put the following three lines into batch-wise forward 
         x_dense, x_sparse, objmean, tscnt, label_0 = batch
@@ -238,6 +242,7 @@ class MultiTaskModule(pl.LightningModule):
         }
         
     def _initialize_metric_calculators(self):
+    	# @DataDependent
         return {
             'mse_objmean': MeanSquaredError(compute_on_step=False),
             'mae_objmean': MeanAbsoluteError(compute_on_step=False),

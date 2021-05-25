@@ -5,7 +5,7 @@ from torch import nn
 from torch.autograd import Variable
 
 class MultiTaskModel(torch.nn.Module):
-    def __init__(self, hidden_dims, n_layers, cell, bi, dense_dims, sparse_dims, use_chid, out_dims, dropout=0.5):
+    def __init__(self, hidden_dims, n_layers, cell, bi, dense_dims, sparse_dims, use_chid, out_dims, class_outputs, dropout=0.5):
         super(MultiTaskModel, self).__init__()
         self.rnn = ET_Rnn(
             dense_dims, 
@@ -25,10 +25,18 @@ class MultiTaskModel(torch.nn.Module):
                 out_dim=od
             ) for od in out_dims
         ])
+
+        self.class_outputs = class_outputs
+
     def forward(self, *x):
         x_dense, x_sparse = x 
         logits = self.rnn(x_dense, x_sparse)
-        outs = [mlp(logits) for mlp in self.mlps]
+        outs = []
+        for mlp, is_class in zip(self.mlps, self.class_outputs):
+            out = mlp(logits)
+            if is_class:
+                out = torch.sigmoid(out)
+            outs.append(out)
         return outs
 
 class ET_Rnn(torch.nn.Module):

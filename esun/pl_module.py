@@ -57,7 +57,7 @@ class MultiTaskModule(pl.LightningModule):
         self.bi = config['bi']
         
         # Step 2: 載入data-dependent參數 # @DataDependent
-        self.dense_dims, self.sparse_dims, self.use_chid, self.out_dims = self._get_data_dependent_hparams(
+        self.dense_dims, self.sparse_dims, self.use_chid, self.out_dims, self.class_outputs = self._get_data_dependent_hparams(
             dataset_builder
         )
         
@@ -76,6 +76,7 @@ class MultiTaskModule(pl.LightningModule):
 	        	self.sparse_dims, 
 	        	self.use_chid, 
 	        	self.out_dims, 
+	        	self.class_outputs, 
 	        	dropout = self.dropout
         	)
         
@@ -96,8 +97,12 @@ class MultiTaskModule(pl.LightningModule):
         num_y_data = len(dataset_builder.processed_y_data.run())
         num_y_data = num_y_data//2
 
-        out_dims = [y_data.shape[1] for y_data in dataset_builder.processed_y_data.run()[-num_y_data:]]
-        return dense_dims, sparse_dims, use_chid, out_dims 
+        ground_truths = dataset_builder.processed_y_data.run()[-num_y_data:]
+        out_dims = [y_data.shape[1] for y_data in ground_truths]
+
+        class_outputs = [type(y_data[0].item())!=float for y_data in ground_truths]
+
+        return dense_dims, sparse_dims, use_chid, out_dims, class_outputs
     
     
     def forward(self, *x):
@@ -129,6 +134,7 @@ class MultiTaskModule(pl.LightningModule):
                 "num_dense_feat": int(self.dense_dims), 
                 "num_sparse_feat": len(self.sparse_dims),
                 "num_tasks": len(self.out_dims),
+                "num_class_outputs": sum(self.class_outputs), 
                 "lr": self.lr, 
                 "batch_size": self.batch_size
             }, 
@@ -160,11 +166,10 @@ class MultiTaskModule(pl.LightningModule):
         # Step 1: calculate training loss and metrics 
         losses_and_metrics = self._calculate_losses_and_metrics_step_wise(batch, mode = 'val')
         
-
         # Step 2: log total loss         
         self.log('val_loss', losses_and_metrics['total_loss'])
 
-        # Step 3: log neural architecture # TODO: [V] move to sanity validation step 
+        # Step 3: log neural architecture 
         if self.current_epoch == 0: 
             self.logger.experiment.add_graph(self, [batch[0], batch[1]])
             print("Model Architecture Logged")
@@ -211,14 +216,13 @@ class MultiTaskModule(pl.LightningModule):
             
         return avg_total_loss
         
-    
+
     def _calculate_losses_and_metrics_step_wise(self, batch, mode = 'train'):
     	# @DataDependent
         assert mode == 'train' or mode == 'val' or mode == 'test'
         # TODO: [ ] put the following three lines into batch-wise forward 
         x_dense, x_sparse, objmean, tscnt, label_0 = batch
-        objmean_hat, tscnt_hat, label_0_value = self(x_dense, x_sparse)
-        label_0_hat = torch.sigmoid(label_0_value)
+        objmean_hat, tscnt_hat, label_0_hat = self(x_dense, x_sparse)
         
         objmean_loss = F.mse_loss(objmean_hat, objmean)
         tscnt_loss = F.mse_loss(tscnt_hat, tscnt)

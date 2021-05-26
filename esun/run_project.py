@@ -2,37 +2,20 @@
 # coding: utf-8
 import sys, getopt
 
-from pl_module import MultiTaskModule
-
 import pytorch_lightning as pl
 from pytorch_lightning.utilities.seed import seed_everything
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
 
+from pl_module import MultiTaskModule, MultiTaskDataModule
+
 seed_everything(1, workers=True)
 
-'''
-# [ ] model parameters: 
-# - [V] data-independent parts:
-"hidden_dims": self.hidden_dims,
-"n_layers": self.n_layers, 
-"cell": self.cell,
-"bi": int(self.bi), 
-# - data-dependent parts:  
-"use_chid" : int(self.use_chid), 
-"num_dense_feat": int(self.dense_dims), 
-"num_sparse_feat": len(self.sparse_dims),
-"num_tasks": len(self.out_dims),
-"num_class_outputs": sum(self.class_outputs), 
-# - dropout  
-"dropout": self.dropout, 
-# training parameters 
-"batch_size": self.batch_size,
-"lr": self.lr, 
-"warmup_epochs": self.warmup_epochs,
-"annealing_cycle_epochs": self.annealing_cycle_epochs
+datamodule = MultiTaskDataModule()
+datamodule.prepare_data()
 
-'''
+print('MultiTaskDataModule Built')
+
 config = {
     "model_parameters": {
         "data_independent":{
@@ -41,6 +24,7 @@ config = {
             'cell': 'LSTM', 
             'bi': False
         },
+        "data_dependent": datamodule.model_parameters
     },
     "training_parameters":{
         "dropout": 0.5, 
@@ -50,7 +34,9 @@ config = {
 }
 
 module = MultiTaskModule(config)
-print('Module Built')
+
+print('MultiTaskModule Built')
+
 logger = TensorBoardLogger('/home/ai/work/logs/tensorboard', 
                            'ncku_customer_embedding', 
                            default_hp_metric=False, 
@@ -91,7 +77,7 @@ if __name__ == "__main__":
         # Note: Why you should always overfit a single batch to debug your deep learning model
         # https://www.youtube.com/watch?v=nAZdK4codMk
         trainer = pl.Trainer(
-            auto_scale_batch_size='power',
+            # auto_scale_batch_size='power',
             auto_lr_find=True, 
             logger = logger, 
             callbacks=[checkpoint, lr_monitor], 
@@ -99,10 +85,10 @@ if __name__ == "__main__":
             num_sanity_val_steps=1, 
             overfit_batches=1
         )
-        trainer.tune(module)
-        # module.batch_size = 64
+        trainer.tune(module, datamodule = datamodule)
+        module.batch_size = 64
         # module.lr = 2e-2
-        trainer.fit(module)
+        trainer.fit(module, datamodule = datamodule)
     elif run_mode == 'fastdebug' or run_mode == 'train':
         trainer = pl.Trainer(
             auto_scale_batch_size='power',
@@ -113,15 +99,15 @@ if __name__ == "__main__":
             num_sanity_val_steps=1, # Debug 
             fast_dev_run=(run_mode == 'fastdebug')
         )
-        trainer.tune(module)
-        trainer.fit(module)
+        trainer.tune(module, datamodule = datamodule)
+        trainer.fit(module, datamodule = datamodule)
     elif run_mode == 'test':
         trainer = pl.Trainer(
             logger = logger, 
             callbacks=[checkpoint], 
             deterministic=True
         )
-        trainer.test(module)
+        trainer.test(module, datamodule = datamodule)
     
 # TODO: 
 # - [V] 要用torch metric 才會快: https://torchmetrics.readthedocs.io/en/latest/?_ga=2.184197729.610530333.1621525374-364715702.1621241882

@@ -15,7 +15,9 @@ config = {
         'n_layers': 2, 
         'cell': 'LSTM', 
         'bi': False, 
-        'dropout': 0.5
+        'dropout': 0.5, 
+        'warmup_epochs': 5, 
+        'annealing_cycle_epochs': 40
 }
 
 module = MultiTaskModule(config)

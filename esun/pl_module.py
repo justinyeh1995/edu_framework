@@ -66,6 +66,8 @@ class MultiTaskModule(pl.LightningModule):
         self.dropout = config['dropout'] # @ModelDependent
         self.batch_size = batch_size
         self.lr = lr
+        self.warmup_epochs = config['warmup_epochs'] 
+        self.annealing_cycle_epochs = config['annealing_cycle_epochs'] 
  
         # Step 4: 建立模型 # @ModelDependent
         self.model = MultiTaskModel(
@@ -112,10 +114,14 @@ class MultiTaskModule(pl.LightningModule):
         return self.model(*x) 
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-        lr_scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=5, max_epochs=10)
+        optimizer = torch.optim.Adam(self.parameters(), 
+        	lr=self.lr)
+        lr_scheduler = LinearWarmupCosineAnnealingLR(optimizer, 
+        	warmup_epochs=self.warmup_epochs, 
+        	max_epochs=self.annealing_cycle_epochs
+        	)
         return {
-            "optimizer": optimizer,#  
+            "optimizer": optimizer, 
             "lr_scheduler": lr_scheduler
         }
 
@@ -135,8 +141,10 @@ class MultiTaskModule(pl.LightningModule):
                 "num_sparse_feat": len(self.sparse_dims),
                 "num_tasks": len(self.out_dims),
                 "num_class_outputs": sum(self.class_outputs), 
+                "batch_size": self.batch_size,
                 "lr": self.lr, 
-                "batch_size": self.batch_size
+                "warmup_epochs": self.warmup_epochs,
+                "annealing_cycle_epochs": self.annealing_cycle_epochs
             }, 
             metrics = {
                 "val_loss": float("Inf")

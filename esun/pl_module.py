@@ -85,10 +85,10 @@ class MultiTaskDataModule(pl.LightningDataModule):
         return DataLoader(dataset=self.train_dataset, shuffle=True, batch_size=self.batch_size, num_workers=4)
     
     def val_dataloader(self):
-        return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=1, pin_memory=False)
+        return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=4, pin_memory=True)
     
     def test_dataloader(self):
-        return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=1, pin_memory=False)
+        return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=4, pin_memory=True)
 
 class MultiTaskModule(pl.LightningModule):
     
@@ -108,12 +108,8 @@ class MultiTaskModule(pl.LightningModule):
             }
 
         # Step 3: 載入訓練參數 
-        self.config['training_parameters']['lr'] = lr
         self.training_parameters = self.config['training_parameters'] 
-
-        self.lr = self.training_parameters['lr']
-        self.warmup_epochs = self.training_parameters['warmup_epochs']
-        self.annealing_cycle_epochs = self.training_parameters['annealing_cycle_epochs']
+        self.lr = lr 
 
         # Step 4: 建立模型 
         self.model = MultiTaskModel(
@@ -121,22 +117,28 @@ class MultiTaskModule(pl.LightningModule):
                 dropout = self.config['training_parameters']['dropout']
             )
         
+        # Step 5: 彙整private variables 
         self._batch_cnt = 0
         
         self._metric_dict = {}
         self._metric_dict['train'] = {}
         self._metric_dict['val'] = {}
         self._metric_dict['test'] = {}
+
+        
+        self._warmup_epochs = self.training_parameters['warmup_epochs']
+        self._annealing_cycle_epochs = self.training_parameters['annealing_cycle_epochs']
+
         
     def forward(self, *x):
         return self.model(*x) 
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), 
-            lr=self.training_parameters['lr'])
+            lr=self.lr)
         lr_scheduler = LinearWarmupCosineAnnealingLR(optimizer, 
-            warmup_epochs=self.warmup_epochs, 
-            max_epochs=self.annealing_cycle_epochs 
+            warmup_epochs=self._warmup_epochs, 
+            max_epochs=self._annealing_cycle_epochs 
             )
         return {
             "optimizer": optimizer, 
@@ -153,6 +155,7 @@ class MultiTaskModule(pl.LightningModule):
                 **self.model_parameters
             }
         params['batch_size'] = self.trainer.datamodule.batch_size 
+        params['lr'] = self.lr 
         self.logger.log_hyperparams(
             params = params, 
             metrics = {

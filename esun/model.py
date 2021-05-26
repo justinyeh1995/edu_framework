@@ -5,8 +5,21 @@ from torch import nn
 from torch.autograd import Variable
 
 class MultiTaskModel(torch.nn.Module):
-    def __init__(self, hidden_dims, n_layers, cell, bi, dense_dims, sparse_dims, use_chid, out_dims, class_outputs, dropout=0.5):
+    def __init__(self, model_parameters, dropout=0.5):
         super(MultiTaskModel, self).__init__()
+
+        # Load parameters: 
+        hidden_dims = model_parameters['hidden_dims']
+        n_layers = model_parameters['n_layers'] 
+        cell = model_parameters['cell'] 
+        bi = model_parameters['bi'] 
+        dense_dims = model_parameters['dense_dims'] 
+        sparse_dims = model_parameters['sparse_dims'] 
+        use_chid = model_parameters['use_chid'] 
+        out_dims = model_parameters['out_dims'] 
+        class_outputs = model_parameters['class_outputs']
+
+        # Build model blocks: 
         self.rnn = ET_Rnn(
             dense_dims, 
             sparse_dims, 
@@ -26,6 +39,7 @@ class MultiTaskModel(torch.nn.Module):
             ) for od in out_dims
         ])
 
+        # Parameters used in forward 
         self.class_outputs = class_outputs
 
     def forward(self, *x):

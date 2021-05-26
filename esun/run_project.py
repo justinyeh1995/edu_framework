@@ -10,14 +10,43 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
 
 seed_everything(1, workers=True)
+
+'''
+# [ ] model parameters: 
+# - [V] data-independent parts:
+"hidden_dims": self.hidden_dims,
+"n_layers": self.n_layers, 
+"cell": self.cell,
+"bi": int(self.bi), 
+# - data-dependent parts:  
+"use_chid" : int(self.use_chid), 
+"num_dense_feat": int(self.dense_dims), 
+"num_sparse_feat": len(self.sparse_dims),
+"num_tasks": len(self.out_dims),
+"num_class_outputs": sum(self.class_outputs), 
+# - dropout  
+"dropout": self.dropout, 
+# training parameters 
+"batch_size": self.batch_size,
+"lr": self.lr, 
+"warmup_epochs": self.warmup_epochs,
+"annealing_cycle_epochs": self.annealing_cycle_epochs
+
+'''
 config = {
-        'hidden_dims': 64, 
-        'n_layers': 2, 
-        'cell': 'LSTM', 
-        'bi': False, 
-        'dropout': 0.5, 
-        'warmup_epochs': 5, 
-        'annealing_cycle_epochs': 40
+    "model_parameters": {
+        "data_independent":{
+            'hidden_dims': 64, 
+            'n_layers': 2, 
+            'cell': 'LSTM', 
+            'bi': False
+        },
+    },
+    "training_parameters":{
+        "dropout": 0.5, 
+        "warmup_epochs": 5, 
+        "annealing_cycle_epochs": 40
+    }
 }
 
 module = MultiTaskModule(config)

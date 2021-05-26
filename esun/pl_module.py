@@ -8,7 +8,7 @@
 # - [ ] Making Pytorch Lightning Module Model and Data Agnostic 
 #       - [V] Identify functions related to Data Formate and label with @DataDependent
 #       - [V] Identify functions related to Model and label with @ModelDependent
-#       - [ ] Resolve @ModelDependent 
+#       - [V] Resolve @ModelDependent 
 #       - [ ] Resolve @DataDependent 
 # - [ ] Add lr schedular warmup_epochs and max_epochs, and weight_decay as training parameters 
 # - [ ] 把 metrics calculation和logging的部分抽離至callback 
@@ -48,38 +48,40 @@ class MultiTaskModule(pl.LightningModule):
     @blockPrinting
     def __init__(self, config, batch_size = 64, lr=2e-4):
     	# @DataDependent 
-        # @ModelDependent 
+        # [Resolved] @ModelDependent 
         super(MultiTaskModule, self).__init__()
         
-        # Step 1: 載入模型參數 # @ModelDependent
-        self.hidden_dims = config['hidden_dims']
-        self.n_layers = config['n_layers']
-        self.cell = config['cell']
-        self.bi = config['bi']
+        # Step 1: 載入模型參數與訓練參數 
+        self.config = config
         
         # Step 2: 載入data-dependent參數 # @DataDependent
-        self.dense_dims, self.sparse_dims, self.use_chid, self.out_dims, self.class_outputs = self._get_data_dependent_hparams(
+        dense_dims, sparse_dims, use_chid, out_dims, class_outputs = self._get_data_dependent_hparams(
             dataset_builder
         )
+
+        self.config['model_parameters']['data_dependent'] = {
+        	'dense_dims':dense_dims,
+        	'sparse_dims': sparse_dims,
+        	'use_chid': use_chid,
+        	'out_dims': out_dims,
+        	'class_outputs': class_outputs 
+        }
         
+        self.model_parameters = {
+        	**self.config['model_parameters']['data_independent'], 
+        	**self.config['model_parameters']['data_dependent']
+        	}
+
         # Step 3: 載入訓練參數 
-        self.dropout = config['dropout'] # @ModelDependent
+        self.dropout = self.config['training_parameters']['dropout']
+        self.training_parameters = self.config['training_parameters']        
         self.batch_size = batch_size
         self.lr = lr
-        self.warmup_epochs = config['warmup_epochs'] 
-        self.annealing_cycle_epochs = config['annealing_cycle_epochs'] 
- 
-        # Step 4: 建立模型 # @ModelDependent
+        self.warmup_epochs = self.training_parameters['warmup_epochs']
+        self.annealing_cycle_epochs = self.training_parameters['annealing_cycle_epochs']
+        # Step 4: 建立模型 
         self.model = MultiTaskModel(
-	        	self.hidden_dims, 
-	        	self.n_layers, 
-	        	self.cell, 
-	        	self.bi, 
-	        	self.dense_dims, 
-	        	self.sparse_dims, 
-	        	self.use_chid, 
-	        	self.out_dims, 
-	        	self.class_outputs, 
+	        	self.model_parameters,
 	        	dropout = self.dropout
         	)
         
@@ -118,7 +120,7 @@ class MultiTaskModule(pl.LightningModule):
         	lr=self.lr)
         lr_scheduler = LinearWarmupCosineAnnealingLR(optimizer, 
         	warmup_epochs=self.warmup_epochs, 
-        	max_epochs=self.annealing_cycle_epochs
+        	max_epochs=self.annealing_cycle_epochs 
         	)
         return {
             "optimizer": optimizer, 
@@ -126,25 +128,14 @@ class MultiTaskModule(pl.LightningModule):
         }
 
     def on_fit_start(self): 
-    	# @ModelDependent
-    	# @DataDependent
+    	# [Resolved] @ModelDependent -> model parameters definition + what to log in TensorBoard  
+    	# [Resolved] @DataDependent -> some parameters are data-dependent 
+    	#  + training parameters definition
         self._batch_cnt = 0
         self.logger.log_hyperparams(
             params = {
-                "hidden_dims": self.hidden_dims,
-                "n_layers": self.n_layers, 
-                "cell": self.cell,
-                "bi": int(self.bi), 
-                "dropout": self.dropout, 
-                "use_chid" : int(self.use_chid), 
-                "num_dense_feat": int(self.dense_dims), 
-                "num_sparse_feat": len(self.sparse_dims),
-                "num_tasks": len(self.out_dims),
-                "num_class_outputs": sum(self.class_outputs), 
-                "batch_size": self.batch_size,
-                "lr": self.lr, 
-                "warmup_epochs": self.warmup_epochs,
-                "annealing_cycle_epochs": self.annealing_cycle_epochs
+            	**self.training_parameters, 
+            	**self.model_parameters
             }, 
             metrics = {
                 "val_loss": float("Inf")
@@ -162,7 +153,7 @@ class MultiTaskModule(pl.LightningModule):
         self._metric_dict['test'] = self._initialize_metric_calculators()
 
     def _initialize_metric_calculators(self):
-    	# @DataDependent
+    	# @DataDependent -> metric definition 
         return {
             'mse_objmean': MeanSquaredError(compute_on_step=False),
             'mae_objmean': MeanAbsoluteError(compute_on_step=False),
@@ -209,7 +200,7 @@ class MultiTaskModule(pl.LightningModule):
         return {'test_loss': losses_and_metrics}
     
     def _calculate_losses_and_metrics_step_wise(self, batch, mode = 'train'):
-    	# @DataDependent
+    	# @DataDependent -> input and output definition + metric definition 
         assert mode == 'train' or mode == 'val' or mode == 'test'
         x_dense, x_sparse, objmean, tscnt, label_0 = batch
         objmean_hat, tscnt_hat, label_0_hat = self(x_dense, x_sparse)

@@ -80,6 +80,19 @@ class ETLwithDifferentResults(ETLBase):
             self.result_dirs = result_dir
         else:
             self.result_dirs = [result_dir]
+        self._create_data_folder(self.result_dirs)
+
+    def _create_data_folder(self, result_dirs):
+        # create folders on initialization
+        for result_path in result_dirs:
+            if ".." in result_path:
+                break # Note: do not create folder outside current directory
+            folder_path = ""
+            for folder_name in result_path.split('/')[:-1]:
+                folder_path += f"{folder_name}/"
+                if not os.path.exists(folder_path):
+                    os.mkdir(folder_path)
+                    print(f"You have created directory: {folder_path}")
 
     def is_complete(self):
         for file_dir in self.result_dirs:

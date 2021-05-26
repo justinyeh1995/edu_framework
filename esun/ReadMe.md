@@ -3,6 +3,10 @@
 2. Add install_packages.sh file
 3. Add download link in notebook
 4. Add create_data_folder in preprocess.py
+5. Refactorize pl_module.py / run_project.py 
+6. Add package versions to install_packages.sh and ReadMe.md 
+7. Edit readme: 設定與執行
+8. Move create_data_folder into the initialization of the ETL object. 
 
 # 原始程式碼
 ```diff
@@ -43,22 +47,34 @@ pip install tensorboard==2.4.0
 
 # 如何設定與執行? 
 
-1.  至../data執行**download_data_from_google_drive.ipynb**進行訓練與測試資料下載
-2.  至../esun執行**preprocess.py**，將../data的資料進行downsampling和資料處理轉換，並將結果儲存於../esun/data/result。
-3.  至../esun執行**dataset_builder.py**，以將../esun/data/result的檔案進一步轉換為模型所需之格式，並將結果儲存於../esun/data/result。
-4.  建立**logs/tensorboard**路徑，並於其中建立ncku_customer_embedding資料夾，以儲存實驗產生之Tensorboard Logs。
-5.  建立**checkpoint**資料夾，以儲存模型暫存檔。
-6.  打開../esun執行**run_project.py**進行編輯。
-    - 將TensorBoardLogger('/home/ai/work/logs/tensorboard',...)中的tensorboard路徑改為Step 5所創建的**logs/tensorboard路徑**。
-    - 將ModelCheckpoint(... dirpath='./checkpoint',...)中的dirpath路徑改為Step 6的**checkpoint路徑**
-7.  執行**run_project.py**以進行模型訓練、Debug或驗證: 
-    - 訓練: `python run_project.py -m train`
-    - Debug: 
-      - `python run_project.py -m fastdebug` (快速執行一次validation_step和train_step)
-      - `python run_project.py -m fit1batch` ([讓模型overfit一個batch](https://www.youtube.com/watch?v=nAZdK4codMk)) 
-    - 驗證: 
-      - `python run_project.py -m test` (使用測試資料進行測試) 
+## 1. Download Dataset from Google Drive 
+* 至../data執行**download_data_from_google_drive.ipynb**進行訓練與測試資料下載
 
+## 2. Preprocessing and Build TensorDataset 
+
+* 先至../esun底下
+* 分段執行
+  * `python preprocess.py`: 將../data的資料進行downsampling和資料處理轉換，並將結果儲存於../esun/data/result。
+  * `python dataset_builder.py`: 將preprocess.py的結果進一步轉換為模型所需之格式(i.e., TensorDataset)。
+* 直接執行
+  * `python dataset_builder.py`
+
+## 3. 建立logging與checkpoint路徑
+
+1.  建立**logs/tensorboard**路徑，並於其中建立ncku_customer_embedding資料夾，以儲存實驗產生之Tensorboard Logs。
+2.  建立**checkpoint**資料夾，以儲存模型暫存檔。
+3.  打開../esun執行**run_project.py**進行編輯。
+    - 將TensorBoardLogger('/home/ai/work/logs/tensorboard',...)中的tensorboard路徑改為Step 1所創建的**logs/tensorboard路徑**。
+    - 將ModelCheckpoint(... dirpath='./checkpoint',...)中的dirpath路徑改為Step 2的**checkpoint路徑**
+
+## 4. 執行模型訓練、Debug或驗證
+
+* 訓練: `python run_project.py -m train`
+* Debug: 
+  - `python run_project.py -m fastdebug` (快速執行一次validation_step和train_step)
+  - `python run_project.py -m fit1batch` ([讓模型overfit一個batch](https://www.youtube.com/watch?v=nAZdK4codMk)) 
+* 驗證: 
+  - `python run_project.py -m test` (使用測試資料進行測試) 
 
 
 # 如何監控訓練狀況? 

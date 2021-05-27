@@ -13,90 +13,47 @@
 # - [ ] Add lr schedular warmup_epochs and max_epochs, and weight_decay as training parameters 
 # - [ ] 把 metrics calculation和logging的部分抽離至callback 
 # - Note: pin_memory = True only when GPU is available, or it may slowdown dramatically. 
-
-import os
-import sys
 import gc 
 import copy 
+import abc 
 
 import torch
-from torch import nn
-import torch.nn.functional as F
-from torchmetrics import MeanSquaredError, MeanAbsoluteError, Accuracy, AUROC
-
 from torch.utils.data import DataLoader
 
 import pytorch_lightning as pl
+
+from torchmetrics import MeanSquaredError, MeanAbsoluteError, Accuracy, AUROC
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
-
-import dataset_builder
-from model import MultiTaskModel
-
-def blockPrinting(func):
-    def func_wrapper(*args, **kwargs):
-        # block all printing to the console
-        sys.stdout = open(os.devnull, 'w')
-        # call the method in question
-        value = func(*args, **kwargs)
-        # enable all printing to the console
-        sys.stdout = sys.__stdout__
-        # pass the return value of the method back
-        return value
-
-    return func_wrapper
 
 
 class MultiTaskDataModule(pl.LightningDataModule):
-    # TODO: 
-    # [ ] change prepare_data to download only script 
-    # [ ] change setup to ETL script 
-    # [ ] implement data_dependent parameters getter as follows: dm.num_classes, dm.width, dm.vocab
-    # [ ] allow batch_size to be saved as parameter 
-    def __init__(self, batch_size = 64):
+    def __init__(self, batch_size = 64, num_workers = 4, pin_memory = False):
         super(MultiTaskDataModule, self).__init__()
-        self.batch_size = batch_size
-
-    @blockPrinting
+        self.batch_size = batch_size        
+        self.num_workers = num_workers
+        self.pin_memory = pin_memory
+    
+    @abc.abstractmethod
     def prepare_data(self):
+        '''
+        e.g., 
+        import dataset_builder
         self.train_dataset = dataset_builder.train_dataset.run()[0]
         self.test_dataset = dataset_builder.test_dataset.run()[0]
         self.model_parameters = self._get_data_dependent_model_parameters()
-
-    @blockPrinting
-    def _get_data_dependent_model_parameters(self):
-        # @DataDependent
-        use_chid = dataset_builder.USE_CHID
-        dense_dims = dataset_builder.dense_dims.run()[0]
-        sparse_dims = dataset_builder.sparse_dims.run()[0]
-
-        num_y_data = len(dataset_builder.processed_y_data.run())
-        num_y_data = num_y_data//2
-
-        ground_truths = dataset_builder.processed_y_data.run()[-num_y_data:]
-        out_dims = [y_data.shape[1] for y_data in ground_truths]
-
-        class_outputs = [type(y_data[0].item())!=float for y_data in ground_truths]
-
-        return {
-            'dense_dims': dense_dims, 
-            'sparse_dims': sparse_dims,
-            'use_chid': use_chid, 
-            'out_dims': out_dims,
-            'class_outputs': class_outputs 
-        }
+        '''
+        pass 
 
     def train_dataloader(self):
-        return DataLoader(dataset=self.train_dataset, shuffle=True, batch_size=self.batch_size, num_workers=4)
+        return DataLoader(dataset=self.train_dataset, shuffle=True, batch_size=self.batch_size, num_workers=self.num_workers)
     
     def val_dataloader(self):
-        return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=4, pin_memory=False)
+        return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=self.pin_memory)
     
     def test_dataloader(self):
-        return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=4, pin_memory=False)
+        return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=self.pin_memory)
 
 class MultiTaskModule(pl.LightningModule):
-    
-    @blockPrinting
     def __init__(self, config, lr=2e-4):
         # @DataDependent 
         # [Resolved] @ModelDependent 
@@ -115,41 +72,81 @@ class MultiTaskModule(pl.LightningModule):
         self.training_parameters = self.config['training_parameters'] 
         self.lr = lr 
 
-        # Step 4: 建立模型 
-        self.model = MultiTaskModel(
-                self.model_parameters,
-                dropout = self.config['training_parameters']['dropout']
+        # Step 4: 建立模型
+        self.model = self.config_model(
+            self.model_parameters, 
+            self.config['training_parameters']['dropout']
             )
-        
 
-        # @DataDependent -> Task Dependent         
-        self.loss_funcs = [F.mse_loss, F.mse_loss, F.binary_cross_entropy]
-        self.task_names = ['objmean', 'tscnt', 'label_0']
-        self.task_metric_names = {
+        # Step 5: 進行多任務設定 
+        self.loss_funcs = self.config_loss_funcs()
+        self.task_names = self.config_task_names()
+        self.task_metric_names = self.config_task_metrics()
+        self.metric_calculators = self.config_metric_calculators()
+
+        # Step 6: 彙整private variables 
+        self._batch_cnt = 0
+        
+        self._metric_dict = {}
+        self._metric_dict['val'] = self._initialize_metric_calculators(self.task_metric_names)
+
+        self._warmup_epochs = self.training_parameters['warmup_epochs']
+        self._annealing_cycle_epochs = self.training_parameters['annealing_cycle_epochs']
+
+        self._architecture_logged = False
+
+    @abc.abstractmethod
+    def config_model(self, model_parameters, dropout):
+        return MultiTaskModel(
+                model_parameters,
+                dropout = dropout
+            )
+
+    @abc.abstractmethod
+    def config_loss_funcs(self):
+        pass 
+        # e.g., 
+        # return [F.mse_loss, F.mse_loss, F.binary_cross_entropy]
+
+    @abc.abstractmethod
+    def config_task_names(self):
+        # e.g., 
+        # return ['objmean', 'tscnt', 'label_0']
+        pass 
+
+    @abc.abstractmethod
+    def config_task_metrics(self):
+        '''
+        e.g.,
+        return {
             'objmean': ['mse', 'mae'], 
             'tscnt': ['mse', 'mae'], 
             'label_0': ['acc', 'auc']
         }
-        self.metric_calculators = {
+        '''
+        pass
+
+    def config_metric_calculators(self):
+        # This function can be override optionally 
+        return {
             'mse': lambda: MeanSquaredError(compute_on_step=False), 
             'mae': lambda: MeanAbsoluteError(compute_on_step=False), 
             'acc': lambda: Accuracy(compute_on_step=False),
             'auc': lambda: AUROC(compute_on_step=False, pos_label=1)
         }
 
-        # Step 5: 彙整private variables 
-        self._batch_cnt = 0
-        
-        self._metric_dict = {}
-        self._metric_dict['val'] = self._initialize_metric_calculators(self.task_metric_names)
-        
-        self._warmup_epochs = self.training_parameters['warmup_epochs']
-        self._annealing_cycle_epochs = self.training_parameters['annealing_cycle_epochs']
-
-        self._architecture_logged = False 
-
+    @abc.abstractmethod
+    def batch_forward(self, batch): 
+        '''
+        # TODO: should be override >>
+        x_dense, x_sparse, objmean, tscnt, label_0 = batch
+        outputs = self(x_dense, x_sparse)
+        ground_truths = objmean, tscnt, label_0
+        return outputs, ground_truths
+        '''
+        pass 
+    
     def _initialize_metric_calculators(self, task_metric_names):
-        # [Resolved] @DataDependent -> metric definition 
         metric_computer_dict = copy.copy(task_metric_names) 
         for task_name in self.task_names:
             metric_computer_list = [(
@@ -159,8 +156,7 @@ class MultiTaskModule(pl.LightningModule):
             ]
             metric_computer_dict[task_name] = dict(metric_computer_list) 
         return metric_computer_dict
-
-        
+    
     def forward(self, *x):
         return self.model(*x) 
 
@@ -177,9 +173,6 @@ class MultiTaskModule(pl.LightningModule):
         }
 
     def on_fit_start(self): 
-        # [Resolved] @ModelDependent -> model parameters definition + what to log in TensorBoard  
-        # [Resolved] @DataDependent -> some parameters are data-dependent 
-        # [Resolved] + training parameters definition
         self._batch_cnt = 0
         params = {
                 **self.training_parameters, 
@@ -202,7 +195,7 @@ class MultiTaskModule(pl.LightningModule):
     
     def training_step(self, batch, batch_idx):
         # Step 1: calculate training loss and metrics 
-        outputs, ground_truths = self._forward_batch_wise(batch)
+        outputs, ground_truths = self.batch_forward(batch)
         losses = self._calculate_losses(outputs, ground_truths)
         total_loss = losses['total_loss']
         # Step 2: log values
@@ -217,7 +210,7 @@ class MultiTaskModule(pl.LightningModule):
     
     def validation_step(self, batch, batch_idx):
         # Step 1: calculate validation loss and metrics 
-        outputs, ground_truths = self._forward_batch_wise(batch)
+        outputs, ground_truths = self.batch_forward(batch)
         losses = self._calculate_losses(outputs, ground_truths)
         self._calculate_metrics(outputs, ground_truths, mode = 'val')
         # Step 2: log neural architecture 
@@ -229,19 +222,12 @@ class MultiTaskModule(pl.LightningModule):
     
     def test_step(self, batch, batch_idx):
         # calculate training loss and metrics 
-        outputs, ground_truths = self._forward_batch_wise(batch)
+        outputs, ground_truths = self.batch_forward(batch)
         losses = self._calculate_losses(outputs, ground_truths)
         self._calculate_metrics(outputs, ground_truths, mode = 'test')
         return {'test_log': losses}
     
-    def _forward_batch_wise(self, batch): # TODO: rename as step 
-        # TODO: should be override >>
-        # @DataDependent -> input and output definition
-        x_dense, x_sparse, objmean, tscnt, label_0 = batch
-        outputs = self(x_dense, x_sparse)
-        ground_truths = objmean, tscnt, label_0
-        return outputs, ground_truths
-        # << 
+    
     def _calculate_losses(self, outputs, ground_truths):
         losses = dict([(
                 task_name, 
@@ -256,8 +242,7 @@ class MultiTaskModule(pl.LightningModule):
         losses['total_loss'] = total_loss  
         return losses
 
-    def _calculate_metrics(self, outputs, ground_truths, mode = 'train'):
-        # [Resolved] @DataDependent -> input and output definition + metric definition 
+    def _calculate_metrics(self, outputs, ground_truths, mode = 'train'): 
         assert mode in self._metric_dict.keys()
         for task_name, out, gnd in zip(self.task_names, outputs, ground_truths): 
             for metric_name in self.task_metric_names[task_name]:

@@ -7,11 +7,11 @@ from pytorch_lightning.utilities.seed import seed_everything
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
 
-from pl_module import MultiTaskModule, MultiTaskDataModule
+from experiment_module import Ex1MultiTaskModule, Ex1MultiTaskDataModule
 
 seed_everything(1, workers=True)
 
-datamodule = MultiTaskDataModule()
+datamodule = Ex1MultiTaskDataModule(num_workers = 4, pin_memory = False)
 datamodule.prepare_data()
 
 print('MultiTaskDataModule Built')
@@ -33,7 +33,7 @@ config = {
     }
 }
 
-module = MultiTaskModule(config)
+module = Ex1MultiTaskModule(config)
 
 print('MultiTaskModule Built')
 
@@ -118,6 +118,11 @@ if __name__ == "__main__":
 #       - [V] ModelCheckpoint: https://pytorch-lightning.readthedocs.io/en/stable/extensions/generated/pytorch_lightning.callbacks.ModelCheckpoint.html#pytorch_lightning.callbacks.ModelCheckpoint
 #       - [V] Make sure we can load checkpoint for testing 
 # - [V] 實作lightning DataModule以進一步把Data的部分和pl_module解偶: https://pytorch-lightning.readthedocs.io/en/latest/extensions/datamodules.html#why-do-i-need-a-datamodule
+# - [ ] Identify Model/Data/Training Dependent Parts, label them, and decouple them. 
+#       - [ ] @ModelDependent 
+#       - [ ] @DataDependent 
+#       - [ ] @TrainingDependent 
+# - [ ] Move all 'path' to an .ini file 
 # - [ ] Incorporate with ray[tune]. Ref: https://docs.ray.io/en/master/tune/tutorials/tune-pytorch-lightning.html
 # - [ ] In pl_module, need to have a strategy for splitting training into train and 'val', other than using 'test' for 'val'. 
 # - [X] XXX: come up with some thing to do cross-validation. Ref: https://towardsdatascience.com/5x-faster-scikit-learn-parameter-tuning-in-5-lines-of-code-be6bdd21833c. (p.s., Cross validation is often not used for evaluating deep learning models because of the greater computational expense) 

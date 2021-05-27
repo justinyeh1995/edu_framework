@@ -18,17 +18,6 @@ chid_file = os.path.join(origin_path, 'sample_chid.txt')
 cdtx_file = os.path.join(origin_path, 'sample_zip_if_cca_cdtx0001_hist.csv')
 cust_f_file = os.path.join(origin_path, 'sample_zip_if_cca_cust_f.csv')
 
-'''def create_data_folder():
-    # paths
-    path_list = [sample_path.split('/')[0], sample_path, tmp_path, result_path]
-        
-    # Create the directory 
-    for path in path_list:
-        if not os.path.exists(path):
-            os.mkdir(path) 
-            print(f"You have created directory: {path}")
-        else:
-            print(f"Do nothing. You already have directory: {path}")'''
 
 class Load_chids(ETLPro):
     def process(self, inputs):

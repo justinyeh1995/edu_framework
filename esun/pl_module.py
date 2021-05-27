@@ -5,14 +5,13 @@
 # - [V] 把 model 和 lightning module分開 
 # - [V] metrics定義在lightning module的train_start/validation_start/...裡
 # - [X] showing loss in the progress bar (already shown in TensorBoard. need to re-generate files to show the correct arrangement)
-# - [ ] Making Pytorch Lightning Module Model and Data Agnostic 
+# - [V] Making Pytorch Lightning Module Model and Data Agnostic 
 #       - [V] Identify functions related to Data Formate and label with @DataDependent
 #       - [V] Identify functions related to Model and label with @ModelDependent
 #       - [V] Resolve @ModelDependent 
-#       - [ ] Resolve @DataDependent 
-# - [ ] Add lr schedular warmup_epochs and max_epochs, and weight_decay as training parameters 
-# - [ ] 把 metrics calculation和logging的部分抽離至callback 
-# - Note: pin_memory = True only when GPU is available, or it may slowdown dramatically. 
+#       - [V] Resolve @DataDependent 
+# - [V] Add lr schedular warmup_epochs and max_epochs, and weight_decay as training parameters 
+# - [X] 把 metrics calculation和logging的部分抽離至callback 
 import gc 
 import copy 
 import abc 
@@ -212,7 +211,9 @@ class BaseMultiTaskModule(pl.LightningModule):
         outputs, ground_truths = self.batch_forward(batch)
         losses = self._calculate_losses(outputs, ground_truths)
         self._calculate_metrics(outputs, ground_truths, mode = 'val')
-        # Step 2: log neural architecture 
+        # Step 2: log validation loss for early stopping 
+        self.log('val_loss', losses['total_loss'])
+        # Step 3: log neural architecture 
         if not self._architecture_logged: 
             self.logger.experiment.add_graph(self, [batch[0], batch[1]])
             print("Model Architecture Logged")
@@ -253,7 +254,6 @@ class BaseMultiTaskModule(pl.LightningModule):
         if self.current_epoch > 0:
             # avg_total_loss = self._calculate_losses_and_metrics_on_end(outputs, 'val')
             avg_losses = self._calculate_losses_on_end(outputs, 'val')
-            self.log('val_loss', avg_losses['total_loss'])
             metric_values = self._calculate_metrics_on_end('val')
             self._log_losses_and_metrics_on_end(avg_losses, metric_values, 'val')
         gc.collect()

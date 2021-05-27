@@ -7,14 +7,16 @@ from pytorch_lightning.utilities.seed import seed_everything
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
 
-# Give experiment_module a name 
-from experiment_module import ExperimentConfig# config, experiment_name, best_model_checkpoint
+# TODO: [ ] Give experiment_module a name 
+from experiment_module import ExperimentConfig
 from experiment_module import ExperimentalMultiTaskModule, ExperimentalMultiTaskDataModule
 
 
 seed_everything(1, workers=True)
 
 datamodule = ExperimentalMultiTaskDataModule(num_workers = 4, pin_memory = False)
+# - Note: pin_memory = True only when GPU is available, or the program may slowdown dramatically. 
+
 datamodule.prepare_data()
 
 print('MultiTaskDataModule Built')
@@ -23,7 +25,6 @@ module = ExperimentalMultiTaskModule(ExperimentConfig.experiment_parameters)
 
 print('MultiTaskModule Built')
 
-# @ExperimentDependent -> Path 
 logger = TensorBoardLogger('/home/ai/work/logs/tensorboard', 
                            ExperimentConfig.name, 
                            default_hp_metric=False, 
@@ -73,6 +74,10 @@ if __name__ == "__main__":
             num_sanity_val_steps=1, 
             overfit_batches=1
         )
+        # Notes: 
+        # num_sanity_val_steps should be set so that 
+        # 1. model architecture can be plot in the beginning. 
+        # 2. validation step can be tested before training start. 
         trainer.tune(module, datamodule = datamodule)
         datamodule.batch_size = 64
         # module.lr = 2e-2
@@ -117,9 +122,5 @@ if __name__ == "__main__":
 # - [ ] Many speed up tips: https://pytorch-lightning.readthedocs.io/en/stable/benchmarking/performance.html
 
 
-# Notes: 
 
-# # num_sanity_val_steps should be set so that 
-# 1. model architecture can be plot in the beginning. 
-# 2. validation step can be tested before training start. 
 # 

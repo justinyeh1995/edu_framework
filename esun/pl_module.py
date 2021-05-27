@@ -12,8 +12,12 @@
 #       - [ ] Resolve @DataDependent 
 # - [ ] Add lr schedular warmup_epochs and max_epochs, and weight_decay as training parameters 
 # - [ ] 把 metrics calculation和logging的部分抽離至callback 
+# - Note: pin_memory = True only when GPU is available, or it may slowdown dramatically. 
+
 import os
 import sys
+import gc 
+import copy 
 
 import torch
 from torch import nn
@@ -85,16 +89,16 @@ class MultiTaskDataModule(pl.LightningDataModule):
         return DataLoader(dataset=self.train_dataset, shuffle=True, batch_size=self.batch_size, num_workers=4)
     
     def val_dataloader(self):
-        return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=4, pin_memory=True)
+        return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=4, pin_memory=False)
     
     def test_dataloader(self):
-        return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=4, pin_memory=True)
+        return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=4, pin_memory=False)
 
 class MultiTaskModule(pl.LightningModule):
     
     @blockPrinting
     def __init__(self, config, lr=2e-4):
-        # [Resolved] @DataDependent 
+        # @DataDependent 
         # [Resolved] @ModelDependent 
         super(MultiTaskModule, self).__init__()
         
@@ -117,17 +121,44 @@ class MultiTaskModule(pl.LightningModule):
                 dropout = self.config['training_parameters']['dropout']
             )
         
+
+        # @DataDependent -> Task Dependent         
+        self.loss_funcs = [F.mse_loss, F.mse_loss, F.binary_cross_entropy]
+        self.task_names = ['objmean', 'tscnt', 'label_0']
+        self.task_metric_names = {
+            'objmean': ['mse', 'mae'], 
+            'tscnt': ['mse', 'mae'], 
+            'label_0': ['acc', 'auc']
+        }
+        self.metric_calculators = {
+            'mse': lambda: MeanSquaredError(compute_on_step=False), 
+            'mae': lambda: MeanAbsoluteError(compute_on_step=False), 
+            'acc': lambda: Accuracy(compute_on_step=False),
+            'auc': lambda: AUROC(compute_on_step=False, pos_label=1)
+        }
+
         # Step 5: 彙整private variables 
         self._batch_cnt = 0
         
         self._metric_dict = {}
-        self._metric_dict['train'] = {}
-        self._metric_dict['val'] = {}
-        self._metric_dict['test'] = {}
-
+        self._metric_dict['val'] = self._initialize_metric_calculators(self.task_metric_names)
         
         self._warmup_epochs = self.training_parameters['warmup_epochs']
         self._annealing_cycle_epochs = self.training_parameters['annealing_cycle_epochs']
+
+        self._architecture_logged = False 
+
+    def _initialize_metric_calculators(self, task_metric_names):
+        # [Resolved] @DataDependent -> metric definition 
+        metric_computer_dict = copy.copy(task_metric_names) 
+        for task_name in self.task_names:
+            metric_computer_list = [(
+                metric_name, 
+                self.metric_calculators[metric_name]()
+                ) for metric_name in metric_computer_dict[task_name]
+            ]
+            metric_computer_dict[task_name] = dict(metric_computer_list) 
+        return metric_computer_dict
 
         
     def forward(self, *x):
@@ -165,133 +196,149 @@ class MultiTaskModule(pl.LightningModule):
 
     def on_train_start(self):
         self._batch_cnt = 0
-        self._metric_dict['train'] = self._initialize_metric_calculators()
-        
-    def on_validation_start(self):
-        self._metric_dict['val'] = self._initialize_metric_calculators()
-
+    
     def on_test_start(self):
-        self._metric_dict['test'] = self._initialize_metric_calculators()
-
-    def _initialize_metric_calculators(self):
-        # @DataDependent -> metric definition 
-        return {
-            'mse_objmean': MeanSquaredError(compute_on_step=False),
-            'mae_objmean': MeanAbsoluteError(compute_on_step=False),
-            'mse_tscnt': MeanSquaredError(compute_on_step=False),
-            'mae_tscnt': MeanAbsoluteError(compute_on_step=False),
-            'acc_label_0': Accuracy(compute_on_step=False), 
-            'auc_label_0': AUROC(compute_on_step=False, pos_label=1)
-        }
-
+        self._metric_dict['test'] = self._initialize_metric_calculators(self.task_metric_names) 
+    
     def training_step(self, batch, batch_idx):
-        
         # Step 1: calculate training loss and metrics 
-        losses_and_metrics = self._calculate_losses_and_metrics_step_wise(batch, mode = 'train')
-        total_loss = losses_and_metrics['total_loss']
-        # Step 2: log values 
-        for value_name, value in losses_and_metrics.items():
+        outputs, ground_truths = self._forward_batch_wise(batch)
+        losses = self._calculate_losses(outputs, ground_truths)
+        total_loss = losses['total_loss']
+        # Step 2: log values
+        for value_name, value in losses.items():
             self.logger.experiment.add_scalar(f'train/{value_name}', value, self._batch_cnt)
-        
         # Step 3: increase batch count 
         self._batch_cnt += 1
-        
         return {
             'loss': total_loss,
-            'train_log': losses_and_metrics
+            'train_log': losses
         }
     
     def validation_step(self, batch, batch_idx):
-        # Step 1: calculate training loss and metrics 
-        losses_and_metrics = self._calculate_losses_and_metrics_step_wise(batch, mode = 'val')
-        
-        # Step 2: log total loss         
-        self.log('val_loss', losses_and_metrics['total_loss'])
-
-        # Step 3: log neural architecture 
-        if self.current_epoch == 0: 
+        # Step 1: calculate validation loss and metrics 
+        outputs, ground_truths = self._forward_batch_wise(batch)
+        losses = self._calculate_losses(outputs, ground_truths)
+        self._calculate_metrics(outputs, ground_truths, mode = 'val')
+        # Step 2: log neural architecture 
+        if not self._architecture_logged: 
             self.logger.experiment.add_graph(self, [batch[0], batch[1]])
             print("Model Architecture Logged")
-
-        return {'val_log': losses_and_metrics}
+            self._architecture_logged = True 
+        return {'val_log': losses}
     
     def test_step(self, batch, batch_idx):
-        # Step 1: calculate training loss and metrics 
-        losses_and_metrics = self._calculate_losses_and_metrics_step_wise(batch, mode = 'test')
-        return {'test_loss': losses_and_metrics}
+        # calculate training loss and metrics 
+        outputs, ground_truths = self._forward_batch_wise(batch)
+        losses = self._calculate_losses(outputs, ground_truths)
+        self._calculate_metrics(outputs, ground_truths, mode = 'test')
+        return {'test_log': losses}
     
-    def _calculate_losses_and_metrics_step_wise(self, batch, mode = 'train'):
-        # @DataDependent -> input and output definition + metric definition 
-        assert mode == 'train' or mode == 'val' or mode == 'test'
+    def _forward_batch_wise(self, batch): # TODO: rename as step 
+        # TODO: should be override >>
+        # @DataDependent -> input and output definition
         x_dense, x_sparse, objmean, tscnt, label_0 = batch
-        objmean_hat, tscnt_hat, label_0_hat = self(x_dense, x_sparse)
-        
-        objmean_loss = F.mse_loss(objmean_hat, objmean)
-        tscnt_loss = F.mse_loss(tscnt_hat, tscnt)
-        label_0_loss = F.binary_cross_entropy(label_0_hat, label_0)
-        
-        total_loss = objmean_loss + tscnt_loss + label_0_loss
-        
-        self._metric_dict[mode]['mse_objmean'](objmean_hat, objmean)
-        self._metric_dict[mode]['mae_objmean'](objmean_hat, objmean)
-        
-        self._metric_dict[mode]['mse_tscnt'](tscnt_hat, tscnt)
-        self._metric_dict[mode]['mae_tscnt'](tscnt_hat, tscnt)
-        
-        self._metric_dict[mode]['acc_label_0'](label_0_hat, label_0.int())
-        self._metric_dict[mode]['auc_label_0'](label_0_hat, label_0.int())
-        
-        return {
-            'total_loss': total_loss, 
-            'objmean_loss': objmean_loss, 
-            'tscnt_loss': tscnt_loss, 
-            'label_0_loss': label_0_loss
-        }
+        outputs = self(x_dense, x_sparse)
+        ground_truths = objmean, tscnt, label_0
+        return outputs, ground_truths
+        # << 
+    def _calculate_losses(self, outputs, ground_truths):
+        losses = dict([(
+                task_name, 
+                loss_fun(out, gnd)
+            ) for task_name, loss_fun, out, gnd in zip(
+                self.task_names, 
+                self.loss_funcs, 
+                outputs, 
+                ground_truths
+            )])
+        total_loss = sum(losses.values())
+        losses['total_loss'] = total_loss  
+        return losses
+
+    def _calculate_metrics(self, outputs, ground_truths, mode = 'train'):
+        # [Resolved] @DataDependent -> input and output definition + metric definition 
+        assert mode in self._metric_dict.keys()
+        for task_name, out, gnd in zip(self.task_names, outputs, ground_truths): 
+            for metric_name in self.task_metric_names[task_name]:
+                if metric_name == 'acc' or metric_name == 'auc':
+                    gnd = gnd.int() 
+                self._metric_dict[mode][task_name][metric_name](out, gnd)
 
     def validation_epoch_end(self, outputs):
         if self.current_epoch > 0:
-            # Step 1: calculate average loss and metrics
-            avg_total_loss = self._calculate_losses_and_metrics_on_end(outputs, 'val')
-                
+            # avg_total_loss = self._calculate_losses_and_metrics_on_end(outputs, 'val')
+            avg_losses = self._calculate_losses_on_end(outputs, 'val')
+            self.log('val_loss', avg_losses['total_loss'])
+            metric_values = self._calculate_metrics_on_end('val')
+            self._log_losses_and_metrics_on_end(avg_losses, metric_values, 'val')
+        gc.collect()
     
     def test_epoch_end(self, outputs):
-        self._calculate_losses_and_metrics_on_end(outputs, 'test', verbose = True)
-        
-    def _calculate_losses_and_metrics_on_end(self, outputs, mode, verbose = False):
-        assert mode == 'train' or mode == 'val' or mode == 'test' 
+        # self._calculate_losses_and_metrics_on_end(outputs, 'test', verbose = True)
+        avg_losses = self._calculate_losses_on_end(outputs, 'test', verbose = True)
+        metric_values = self._calculate_metrics_on_end('test', verbose = True)
+        gc.collect()
+
+    def _calculate_losses_on_end(self, outputs, mode, verbose = False):
+        '''
+        - input: 
+            - outputs: a list of dictionaries each of which stored at the end of {train/val/test}_step.
+            - mode: train, val, or test. 
+            - verbose: whether to print the calculated result. 
+        - output: 
+            - avg_losses: a dictionary containing the average loss of each output the average total loss. 
+        '''
+        assert mode == 'train' or mode == 'val' or mode == 'test'
         avg_losses = {}
         for loss_name in outputs[0][f'{mode}_log'].keys():
             avg = torch.stack([x[f'{mode}_log'][loss_name] for x in outputs]).mean()
             avg_losses[loss_name] = avg
             if verbose:
-                print(f'{loss_name}: {round(avg,3)}')
+                print(f'{loss_name}: {round(avg.item(),3)}')
+        return avg_losses
 
-        avg_total_loss = avg_losses['total_loss']
-
+    def _calculate_metrics_on_end(self, mode, verbose = False): 
+        '''
+        - input: 
+            - mode: train, val, or test. 
+            - verbose: whether to print the calculated result. 
+        - output: 
+            - metric_values: a dictionary containing the overall metric values, for each output, as defined in 'self._metrc_dict'.
+        '''
+        assert mode == 'train' or mode == 'val' or mode == 'test'
         metric_values = {}
-        for metric_name in self._metric_dict[mode].keys():
-            metric_values[metric_name] = self._metric_dict[mode][metric_name].compute()
-            if verbose:
-                print(f'{metric_name}: {round(metric_values[metric_name],3)}')
-        
-        if mode == 'train' or mode == 'val':
-            # Step 2: log values 
-            for loss_name in avg_losses.keys():
-                self.logger.experiment.add_scalar(
-                    f"{mode}/{loss_name}", 
-                    avg_losses[loss_name], 
-                    self.current_epoch
-                    )
+        for task_name in self._metric_dict[mode].keys():
+            for metric_name in self._metric_dict[mode][task_name].keys():
+                # TODO: add loop 
+                metric_value = self._metric_dict[mode][task_name][metric_name].compute()
+                metric_values[f'{task_name}_{metric_name}'] = metric_value
+                if verbose:
+                    print(f'{task_name}_{metric_name}: {round(metric_value.item(),3)}')
+        return metric_values 
 
-            for metric_name in metric_values.keys():
-                self.logger.experiment.add_scalar(
-                    f"{mode}/{metric_name}", 
-                    metric_values[metric_name], 
-                    self.current_epoch
-                    )
-            
-        return avg_total_loss
-        
+    def _log_losses_and_metrics_on_end(self, avg_losses, metric_values, mode):
+        '''
+        - input: 
+            - avg_losses: a dictionary containing the average loss of each output the average total loss. 
+            - metric_values: a dictionary containing the overall metric values, for each output, as defined in 'self._metrc_dict'.
+        '''
+        assert mode == 'train' or mode == 'val' or mode == 'test'
+        for loss_name in avg_losses.keys():
+            self.logger.experiment.add_scalar(
+                f"{mode}/{loss_name}", 
+                avg_losses[loss_name], 
+                self.current_epoch
+                )
+
+        for metric_name in metric_values.keys():
+            self.logger.experiment.add_scalar(
+                f"{mode}/{metric_name}", 
+                metric_values[metric_name], 
+                self.current_epoch
+                )
+
+
     
         
 

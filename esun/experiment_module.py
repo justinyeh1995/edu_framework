@@ -1,29 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
-import os, sys
-
+from utils import blockPrinting 
 from pl_module import BaseMultiTaskModule, BaseMultiTaskDataModule
 import torch.nn.functional as F
 
 import dataset_builder
 from model import MultiTaskModel
 
-# [ ] Move to util 
-def blockPrinting(func):
-    def func_wrapper(*args, **kwargs):
-        # block all printing to the console
-        sys.stdout = open(os.devnull, 'w')
-        # call the method in question
-        value = func(*args, **kwargs)
-        # enable all printing to the console
-        sys.stdout = sys.__stdout__
-        # pass the return value of the method back
-        return value
-
-    return func_wrapper
 
 @blockPrinting
-def get_data_dependent_model_parameters():
+def _get_data_dependent_model_parameters():
     # @DataDependent
     use_chid = dataset_builder.USE_CHID
     dense_dims = dataset_builder.dense_dims.run()[0]
@@ -44,6 +30,7 @@ def get_data_dependent_model_parameters():
         'out_dims': out_dims,
         'class_outputs': class_outputs 
     }
+
 class ExperimentConfig:
     # @ExperimentDependent 
     best_model_checkpoint = 'epoch07-loss0.00.ckpt'
@@ -58,7 +45,7 @@ class ExperimentConfig:
                 'cell': 'LSTM', 
                 'bi': False
             },
-            "data_dependent": get_data_dependent_model_parameters()
+            "data_dependent": _get_data_dependent_model_parameters()
         },
         "training_parameters":{
             "dropout": 0.5, 

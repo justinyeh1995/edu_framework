@@ -7,45 +7,32 @@ from pytorch_lightning.utilities.seed import seed_everything
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
 
-from experiment_module import Ex1MultiTaskModule, Ex1MultiTaskDataModule
+# Give experiment_module a name 
+from experiment_module import ExperimentConfig# config, experiment_name, best_model_checkpoint
+from experiment_module import ExperimentalMultiTaskModule, ExperimentalMultiTaskDataModule
+
 
 seed_everything(1, workers=True)
 
-datamodule = Ex1MultiTaskDataModule(num_workers = 4, pin_memory = False)
+datamodule = ExperimentalMultiTaskDataModule(num_workers = 4, pin_memory = False)
 datamodule.prepare_data()
 
 print('MultiTaskDataModule Built')
 
-config = {
-    "model_parameters": {
-        "data_independent":{
-            'hidden_dims': 64, 
-            'n_layers': 2, 
-            'cell': 'LSTM', 
-            'bi': False
-        },
-        "data_dependent": datamodule.model_parameters
-    },
-    "training_parameters":{
-        "dropout": 0.5, 
-        "warmup_epochs": 5, 
-        "annealing_cycle_epochs": 40
-    }
-}
-
-module = Ex1MultiTaskModule(config)
+module = ExperimentalMultiTaskModule(ExperimentConfig.experiment_parameters)
 
 print('MultiTaskModule Built')
 
+# @ExperimentDependent -> Path 
 logger = TensorBoardLogger('/home/ai/work/logs/tensorboard', 
-                           'ncku_customer_embedding', 
+                           ExperimentConfig.name, 
                            default_hp_metric=False, 
                            log_graph=True)
 
 checkpoint = ModelCheckpoint(
     monitor='val_loss',
     mode='min',
-    dirpath='./checkpoint',
+    dirpath=f'./checkpoint/{ExperimentConfig.name}',
     filename='epoch{epoch:02d}-loss{best_val_loss:.2f}',
     save_last=True,
     auto_insert_metric_name=False,
@@ -53,8 +40,10 @@ checkpoint = ModelCheckpoint(
     verbose=True
 )
 
-lr_monitor = LearningRateMonitor(logging_interval='epoch', log_momentum = True)
 early_stopping = EarlyStopping('val_loss', mode='min', verbose=True)
+
+lr_monitor = LearningRateMonitor(logging_interval='epoch', log_momentum = True)
+
 
 if __name__ == "__main__":
     # Load run_mode Argument 
@@ -101,7 +90,7 @@ if __name__ == "__main__":
         trainer.tune(module, datamodule = datamodule)
         trainer.fit(module, datamodule = datamodule)
     elif run_mode == 'test':
-        module = MultiTaskModule.load_from_checkpoint('checkpoint/epoch07-loss0.00.ckpt', config = config)
+        module = MultiTaskModule.load_from_checkpoint(f'checkpoint/{ExperimentConfig.name}/{ExperimentConfig.best_model_checkpoint}', parameters = ExperimentConfig.experiment_parameters)
         pl.Trainer().test(module, datamodule = datamodule)
         
 # TODO: 
@@ -118,10 +107,9 @@ if __name__ == "__main__":
 #       - [V] ModelCheckpoint: https://pytorch-lightning.readthedocs.io/en/stable/extensions/generated/pytorch_lightning.callbacks.ModelCheckpoint.html#pytorch_lightning.callbacks.ModelCheckpoint
 #       - [V] Make sure we can load checkpoint for testing 
 # - [V] 實作lightning DataModule以進一步把Data的部分和pl_module解偶: https://pytorch-lightning.readthedocs.io/en/latest/extensions/datamodules.html#why-do-i-need-a-datamodule
-# - [ ] Identify Model/Data/Training Dependent Parts, label them, and decouple them. 
-#       - [ ] @ModelDependent 
-#       - [ ] @DataDependent 
-#       - [ ] @TrainingDependent 
+# - [V] Identify @ExperimentDependent parts in run_project.py and move them to experiment_module.py. 
+# - [ ] Allow using arbitrary score for checkpoint and early stop (need to self.log in pl_module.py)
+# - [ ] Organize Folder Structure (share + common)
 # - [ ] Move all 'path' to an .ini file 
 # - [ ] Incorporate with ray[tune]. Ref: https://docs.ray.io/en/master/tune/tutorials/tune-pytorch-lightning.html
 # - [ ] In pl_module, need to have a strategy for splitting training into train and 'val', other than using 'test' for 'val'. 

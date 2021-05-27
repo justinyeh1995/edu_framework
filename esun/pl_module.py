@@ -26,9 +26,9 @@ from torchmetrics import MeanSquaredError, MeanAbsoluteError, Accuracy, AUROC
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 
 
-class MultiTaskDataModule(pl.LightningDataModule):
+class BaseMultiTaskDataModule(pl.LightningDataModule):
     def __init__(self, batch_size = 64, num_workers = 4, pin_memory = False):
-        super(MultiTaskDataModule, self).__init__()
+        super(BaseMultiTaskDataModule, self).__init__()
         self.batch_size = batch_size        
         self.num_workers = num_workers
         self.pin_memory = pin_memory
@@ -40,7 +40,6 @@ class MultiTaskDataModule(pl.LightningDataModule):
         import dataset_builder
         self.train_dataset = dataset_builder.train_dataset.run()[0]
         self.test_dataset = dataset_builder.test_dataset.run()[0]
-        self.model_parameters = self._get_data_dependent_model_parameters()
         '''
         pass 
 
@@ -53,29 +52,29 @@ class MultiTaskDataModule(pl.LightningDataModule):
     def test_dataloader(self):
         return DataLoader(dataset=self.test_dataset, shuffle=False, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=self.pin_memory)
 
-class MultiTaskModule(pl.LightningModule):
-    def __init__(self, config, lr=2e-4):
+class BaseMultiTaskModule(pl.LightningModule):
+    def __init__(self, experiment_parameters, lr=2e-4):
         # @DataDependent 
         # [Resolved] @ModelDependent 
-        super(MultiTaskModule, self).__init__()
+        super(BaseMultiTaskModule, self).__init__()
         
         # Step 1: 載入參數
-        self.config = config
+        self.experiment_parameters = experiment_parameters
         
         # Step 2: 彙整模型參數
         self.model_parameters = {
-            **self.config['model_parameters']['data_independent'], 
-            **self.config['model_parameters']['data_dependent']
+            **self.experiment_parameters['model_parameters']['data_independent'], 
+            **self.experiment_parameters['model_parameters']['data_dependent']
             }
 
         # Step 3: 載入訓練參數 
-        self.training_parameters = self.config['training_parameters'] 
+        self.training_parameters = self.experiment_parameters['training_parameters'] 
         self.lr = lr 
 
         # Step 4: 建立模型
         self.model = self.config_model(
             self.model_parameters, 
-            self.config['training_parameters']['dropout']
+            self.experiment_parameters['training_parameters']['dropout']
             )
 
         # Step 5: 進行多任務設定 

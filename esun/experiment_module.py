@@ -2,13 +2,13 @@
 # coding: utf-8
 import os, sys
 
-from pl_module import MultiTaskModule, MultiTaskDataModule
+from pl_module import BaseMultiTaskModule, BaseMultiTaskDataModule
 import torch.nn.functional as F
 
 import dataset_builder
 from model import MultiTaskModel
 
-
+# [ ] Move to util 
 def blockPrinting(func):
     def func_wrapper(*args, **kwargs):
         # block all printing to the console
@@ -22,15 +22,61 @@ def blockPrinting(func):
 
     return func_wrapper
 
+@blockPrinting
+def get_data_dependent_model_parameters():
+    # @DataDependent
+    use_chid = dataset_builder.USE_CHID
+    dense_dims = dataset_builder.dense_dims.run()[0]
+    sparse_dims = dataset_builder.sparse_dims.run()[0]
 
-class Ex1MultiTaskDataModule(MultiTaskDataModule):
+    num_y_data = len(dataset_builder.processed_y_data.run())
+    num_y_data = num_y_data//2
+
+    ground_truths = dataset_builder.processed_y_data.run()[-num_y_data:]
+    out_dims = [y_data.shape[1] for y_data in ground_truths]
+
+    class_outputs = [type(y_data[0].item())!=float for y_data in ground_truths]
+
+    return {
+        'dense_dims': dense_dims, 
+        'sparse_dims': sparse_dims,
+        'use_chid': use_chid, 
+        'out_dims': out_dims,
+        'class_outputs': class_outputs 
+    }
+class ExperimentConfig:
+    # @ExperimentDependent 
+    best_model_checkpoint = 'epoch07-loss0.00.ckpt'
+
+    name = 'ncku_customer_embedding'
+
+    experiment_parameters = {
+        "model_parameters": {
+            "data_independent":{
+                'hidden_dims': 64, 
+                'n_layers': 2, 
+                'cell': 'LSTM', 
+                'bi': False
+            },
+            "data_dependent": get_data_dependent_model_parameters()
+        },
+        "training_parameters":{
+            "dropout": 0.5, 
+            "warmup_epochs": 5, 
+            "annealing_cycle_epochs": 40
+        }
+    }
+
+    
+
+class ExperimentalMultiTaskDataModule(BaseMultiTaskDataModule):
     # TODO: 
     # [ ] change prepare_data to download only script 
     # [ ] change setup to ETL script 
     # [ ] implement data_dependent parameters getter as follows: dm.num_classes, dm.width, dm.vocab
     # [V] allow batch_size to be saved as parameter 
     def __init__(self, batch_size = 64, num_workers = 4, pin_memory = False):
-        super(Ex1MultiTaskDataModule, self).__init__(
+        super(ExperimentalMultiTaskDataModule, self).__init__(
             batch_size = batch_size,
             num_workers = num_workers,
             pin_memory = pin_memory
@@ -40,35 +86,14 @@ class Ex1MultiTaskDataModule(MultiTaskDataModule):
     def prepare_data(self):
         self.train_dataset = dataset_builder.train_dataset.run()[0]
         self.test_dataset = dataset_builder.test_dataset.run()[0]
-        self.model_parameters = self._get_data_dependent_model_parameters()
+        
 
-    @blockPrinting
-    def _get_data_dependent_model_parameters(self):
-        # @DataDependent
-        use_chid = dataset_builder.USE_CHID
-        dense_dims = dataset_builder.dense_dims.run()[0]
-        sparse_dims = dataset_builder.sparse_dims.run()[0]
-
-        num_y_data = len(dataset_builder.processed_y_data.run())
-        num_y_data = num_y_data//2
-
-        ground_truths = dataset_builder.processed_y_data.run()[-num_y_data:]
-        out_dims = [y_data.shape[1] for y_data in ground_truths]
-
-        class_outputs = [type(y_data[0].item())!=float for y_data in ground_truths]
-
-        return {
-            'dense_dims': dense_dims, 
-            'sparse_dims': sparse_dims,
-            'use_chid': use_chid, 
-            'out_dims': out_dims,
-            'class_outputs': class_outputs 
-        }
-
-class Ex1MultiTaskModule(MultiTaskModule):
     
-    def __init__(self, config, lr=2e-4):
-        super(Ex1MultiTaskModule, self).__init__(config, lr=lr)
+
+class ExperimentalMultiTaskModule(BaseMultiTaskModule):
+    
+    def __init__(self, experiment_parameters, lr=2e-4):
+        super(ExperimentalMultiTaskModule, self).__init__(experiment_parameters, lr=lr)
 
     def config_model(self, model_parameters, dropout):
         return MultiTaskModel(

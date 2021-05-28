@@ -13,27 +13,57 @@
 以下為資料夾架構，標上 * 的檔案為實驗執行或資料下載後，才會生成的檔案或資料夾；標上 V 的為特定實驗專屬之檔案夾。
 ```
 .
-├── data                    
+├── data                                             # 實驗資料
 |    ├── source                                        # 存放原始資料 
-|    |      ├── O download_data_from_google_drive.ipynb  # 從google_dirve下載原始資料用
+|    |      ├──   download_data_from_google_drive.ipynb  # 從google_dirve下載原始資料用
 |    |      ├── * google_drive.json                      # 串接google_drive用的api-keys，下載方式參考 download_data_from_google_drive.ipynb
 |    |      ├── * sample_chid.txt                        # 原始資料
 |    |      ├── ...                                        ... 
 |    |      └── * sample_zip_if_cca_y.csv                # 原始資料 
-     ├── * sample                                      # 存放原始資料downsample後的資料
-     ├── * [experiment_group_name]                     # 存放特定類型的實驗(e.g., rnn)所需之資料
-     |      ├── * tmp                                    # 中繼檔
-     |      └── * result                                 # 結果檔
-     ├── * [experiment_group_name]                     # 存放特定實驗用資料
-     |      ├── * tmp                                    # 中繼檔
-     |      └── * result                                 # 結果檔
-├── docs                    
-├── src                     
-├── test                    
-├── tools                   
-├── LICENSE
-└── README.md
-
+|    ├── * sample                                      # 存放原始資料downsample後的資料
+|    ├── *V [experiment_group_name]                     # 存放特定類型的實驗(e.g., rnn)所需之資料
+|    |      ├── * tmp                                    # 中繼檔
+|    |      └── * result                                 # 結果檔
+|    ├── *V [experiment_name]                           # 存放特定實驗(e.g., ex1)用資料
+|    |      ├── * tmp                                    # 中繼檔
+|    |      └── * result                                 # 結果檔
+|    ├── *V [experiment_name]                           # 存放特定實驗(e.g., ex1)用資料
+|    └── ... 
+|
+├── common                                           # 共用模組           
+|    ├── ETLBase.py                                     # 小工具 
+|    ├── utils.py                                       # 小工具 
+|    ├── pl_module.py                                # 內含多任務實驗共用之抽象模組 
+|    └── __init__.py 
+|    
+├── experiments                                      # V 實驗模組 
+|    ├── V [experiment_name]                           # V 特定實驗之實驗模組 
+|    |      ├── V experiment_module.py                    # V 實驗設定模組                                
+|    |      ├── V model.py                                # V 模型模組 
+|    |      ├── V dataset_builder.py                   # V 資料前處理模組 
+|    |      ├── V preprocess.py                        # V 資料前處理模組 
+|    |      └── V __init__.py                        
+|    └── V [experiment_name]
+|    └── ...
+|
+├── *checkpoint                                      # 儲存模型暫存檔 
+|    ├── *V [experiment_name]                          # 儲存特定實驗的模型暫存檔
+|    |      ├── *V epoch964-loss0.00.ckpt                 # V 最佳模型的暫存檔
+|    |      └── *V last.ckpt                              # V 最後一個epoch的模型暫存檔   
+|    ├── *V [experiment_name]
+|    └── ... 
+|
+├── *logs                                              # 存放訓練LOG: 各任務by-iteration的成效、實驗參數、模型架構圖 
+|    └── tensorboard 
+|           ├── *V [experiment_name]                      # 儲存特定實驗的LOG 
+|           |       ├── *V version_0                        # 儲存第1次實驗的LOG 
+|           |       ├── *V version_1                        # 儲存第2次實驗的LOG 
+|           |       └── ... 
+|           ├── *V [experiment_name]                      
+|           └── ... 
+├── run_project.py                                    # 主要實驗運行用檔案 (python run_project.py -m <run_mode> -e <experiment_name> [-l <log_dir>] (dflt.=logs/tensorboard)
+├── requirements.txt 
+└── ReadMe.md 
 ```
 
 # 實驗執行方法 

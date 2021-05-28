@@ -13,3 +13,4 @@ __pycache__/
 *.0
 */tb_logs/
 *.ckpt
+*.DS_Store

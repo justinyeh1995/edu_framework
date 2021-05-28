@@ -1,12 +1,42 @@
-# Mod
-1. Edit readme
-2. Add install_packages.sh file
-3. Add download link in notebook
-4. Add create_data_folder in preprocess.py
-5. Refactorize pl_module.py / run_project.py 
-6. Add package versions to install_packages.sh and ReadMe.md 
-7. Edit readme: 設定與執行
-8. Move create_data_folder into the initialization of the ETL object. 
+# 簡介: 
+
+此程式框架的用途是幫助多任務實驗的協作與開發，提供了實驗的訓練、測試、Debug、前處理用的共用模組，並且支援Checkpoint，讓每次實驗產生的最佳模型可以被儲存以供測試使用，也提供logging的機制，以讓訓練過程中的模型的成效可以用Tensorboard來隨時檢視。
+
+於每次實驗，根據我們所制定的規範創立一個全新的實驗設定資料夾，在其中定義模型、模型參數、各任務衡量指標、資料前處理方法，即可與我們的實驗共用模組進行串接整合，讓每一次的實驗都可以被簡易地複製、衡量、調整。
+
+以下將進一步介紹此框架的 1. 資料夾架構 2. 實驗執行方法 3. 實驗設定方法 4. 小工具 5. 範例檔說明 
+
+此程式為beta版，若於使用中有疑問或建議，都可以隨時提供給我們。
+
+# 資料夾架構 
+
+以下為資料夾架構，標上 * 的檔案為實驗執行或資料下載後，才會生成的檔案或資料夾，標上 V 的檔案為實驗範例模組，標上 O 的為核心的共用模組。
+'''
+.
+├── data                    
+     ├── source 
+     |     ├── O download_data_from_google_drive.ipynb   # 從google_dirve下載原始資料用
+           ├── * google_drive.json                       # 執行google_drive下載資料時，需先至https://console.developers.google.com下載的檔案，內含private/public keys。
+           ├── * sample_chid.txt                         # 原始資料
+           ├── ...                                       ... 
+           └── * sample_zip_if_cca_y.csv                 # 原始資料 
+├── docs                    
+├── src                     
+├── test                    
+├── tools                   
+├── LICENSE
+└── README.md
+
+'''
+
+# 實驗執行方法 
+
+# 小工具 
+
+
+# 範例 
+
+
 
 # 原始程式碼
 ```diff

@@ -15,18 +15,25 @@ seed_everything(1, workers=True)
 
 # Load Arguments  
 try:
-    opts, args = getopt.getopt(sys.argv[1:],"m:e:")
+    opts, args = getopt.getopt(sys.argv[1:],"m:e:l:")
 except getopt.GetoptError:
-    print('test.py -e <experiment_name> -m <run_mode>')
+    print('test.py -e <experiment_name> -m <run_mode> [-l <log_dir>]')
     sys.exit(2)
 experiment_name = dict(opts)['-e']
 run_mode = dict(opts)['-m'] 
+
+if '-l' in dict(opts):
+    log_dir = dict(opts)['-l'] # e.g., '/home/ai/work/logs/tensorboard'
+else:
+    log_dir = 'logs/tensorboard'
+
 print("experiment_name:", experiment_name) 
 print("run_mode:", run_mode) 
 
 if run_mode != 'fit1batch' and run_mode != 'fastdebug' and run_mode != 'train' and run_mode != 'test':
-    print('test.py -e <experiment_name> -m <run_mode>')
+    print('test.py -e <experiment_name> -m <run_mode> [-l <log_dir>]')
     print('<run_mode> should be "fit1batch", "fastdebug", "train", or "test"')
+    print('<log_dir> is the directory to store tensorboard logs. "logs/tensorboard" by default.')
     sys.exit(2)
 
 # Import experiment package 
@@ -46,7 +53,7 @@ module = ExperimentalMultiTaskModule(ExperimentConfig.experiment_parameters)
 
 print('MultiTaskModule Built')
 
-logger = TensorBoardLogger('/home/ai/work/logs/tensorboard', 
+logger = TensorBoardLogger(log_dir, 
                            ExperimentConfig.name, 
                            default_hp_metric=False, 
                            log_graph=True)

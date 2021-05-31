@@ -17,7 +17,7 @@ seed_everything(1, workers=True)
 try:
     opts, args = getopt.getopt(sys.argv[1:],"m:e:l:")
 except getopt.GetoptError:
-    print('test.py -e <experiment_name> -m <run_mode> [-l <log_dir>]')
+    print('run_project.py -e <experiment_name> -m <run_mode> [-l <log_dir>]')
     sys.exit(2)
 experiment_name = dict(opts)['-e']
 run_mode = dict(opts)['-m'] 
@@ -31,7 +31,7 @@ print("experiment_name:", experiment_name)
 print("run_mode:", run_mode) 
 
 if run_mode != 'fit1batch' and run_mode != 'fastdebug' and run_mode != 'train' and run_mode != 'test':
-    print('test.py -e <experiment_name> -m <run_mode> [-l <log_dir>]')
+    print('run_project.py -e <experiment_name> -m <run_mode> [-l <log_dir>]')
     print('<run_mode> should be "fit1batch", "fastdebug", "train", or "test"')
     print('<log_dir> is the directory to store tensorboard logs. "logs/tensorboard" by default.')
     sys.exit(2)

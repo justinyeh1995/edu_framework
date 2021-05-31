@@ -10,6 +10,44 @@
 
 此程式為beta版，若於使用中有疑問或建議，都可以隨時提供給我們。
 
+## 目錄: 
+
+
+- [簡介](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%B0%A1%E4%BB%8B)
+- [資料夾架構](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B)
+- [實驗執行方法](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95)
+    - [Step 1: 安裝dependencies](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-1-%E5%AE%89%E8%A3%9Ddependencies)
+    - [Step 2: 下載原始資料](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)
+    - [Step 3: 測試實驗是否可執行](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-3-%E6%B8%AC%E8%A9%A6%E5%AF%A6%E9%A9%97%E6%98%AF%E5%90%A6%E5%8F%AF%E5%9F%B7%E8%A1%8C)
+    - [Step 4: 建構新實驗](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)
+        - [1) 實驗模組(experiment_module.py)]()
+    - [Step 5: 執行新實驗](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)
+- [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
+- [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7)
+  ""
+- 實驗執行方法
+  "https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95"
+  - Step 1: 安裝dependencies
+    "https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-1-%E5%AE%89%E8%A3%9Ddependencies"
+  - Step 2: 下載原始資料
+    "https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99
+    "
+  - Step 3: 測試實驗是否可執行
+    "https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-3-%E6%B8%AC%E8%A9%A6%E5%AF%A6%E9%A9%97%E6%98%AF%E5%90%A6%E5%8F%AF%E5%9F%B7%E8%A1%8C
+    "
+  - Step 4: 建構新實驗
+    "https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97"
+    - [1) 實驗模組](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#1-%E5%AF%A6%E9%A9%97%E6%A8%A1%E7%B5%84-experiment_modulepy)
+    - [2) 模型](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#2-%E6%A8%A1%E5%9E%8B-modelpy)
+    - [3) 前處理](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86-dataset_builderpypreprocesspy)
+  - Step 5: 執行新實驗
+    "https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97"
+- 範例檔說明
+  "https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E"
+- 小工具
+  "https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7"
+
+
 # 資料夾架構 
 
 以下為資料夾架構，標上 * 的檔案為實驗執行後，才會生成的檔案或資料夾；標上 V 的為特定實驗專屬之實驗檔或檔案夾；

@@ -105,12 +105,14 @@ pip install tensorboard==2.4.0
 ## Step 2: 下載原始資料 
 
 * 方法一: 至data/source執行**download_data_from_google_drive.ipynb**進行以下原始資料的下載
-
+```
 🔵sample_chid.txt                            # 原始資料
 🔵sample_idx_map.npy                         # 原始資料
 🔵sample_zip_if_cca_cdtx0001_hist.csv        # ...
 🔵sample_zip_if_cca_cust_f.csv               # ...
 🔵sample_zip_if_cca_y.csv                    # 原始資料 
+```
+
 
 
 * 方法二: 自行下載以上資料至data/source。
@@ -127,9 +129,15 @@ pip install tensorboard==2.4.0
 
 ## Step 4: 建構新實驗: 
 
-可以複製ex1資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex2)，並修改其中的`experiment_module.py`/`model.py`/`dataset_builder.py`/`preprocess.py`。以下將分別說明此四個檔案的修改方式。
+可以複製ex1資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex2)，並修改其中的`experiment_module.py`/`model.py`/`dataset_builder.py`/`preprocess.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`dataset_builder.py`和`preprocess.py`為前處理程式。
 
+以下將分別說明此三類程式的建構方式: 
 
+### 實驗模組 (`experiment_module.py`)
+
+### 模型 (`model.py`)
+
+### 資料前處理 (`dataset_builder.py`/`preprocess.py`)
 
 
 ## Step 5: 執行Fit1Batch & Training: 

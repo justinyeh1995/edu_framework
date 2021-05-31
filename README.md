@@ -12,7 +12,6 @@
 
 ## 目錄: 
 
-
 - [簡介](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%B0%A1%E4%BB%8B)
 - [資料夾架構](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B)
 - [實驗執行方法](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95)
@@ -101,6 +100,11 @@
 
 執行: 
 `sh install_packages.sh`
+
+或:
+```
+pip install -r requirements.txt
+```
 
 或: 
 ```

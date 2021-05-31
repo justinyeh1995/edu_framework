@@ -131,9 +131,104 @@ pip install tensorboard==2.4.0
 
 可以複製ex1資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex2)，並修改其中的`experiment_module.py`/`model.py`/`dataset_builder.py`/`preprocess.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`dataset_builder.py`和`preprocess.py`為前處理程式。
 
-以下將分別說明此三類程式的建構方式: 
+以下將以ex1為範例，分別說明此三類程式的建構方式: 
 
 ### 實驗模組 (`experiment_module.py`)
+
+實驗模組必須包含三個Class: `ExperimentConfig`、`ExperimentalMultiTaskDataModule`和`ExperimentalMultiTaskModule`，`ExperimentConfig`定義了實驗名稱、實驗參數、以及最佳模型的暫存檔名稱，`ExperimentalMultiTaskDataModule`定義了資料前處理、訓練以及測試資料，`ExperimentalMultiTaskModule`定義了多任務模型、任務名稱、任務目標函數以及任務成效衡量指標。
+
+以下將針對撰寫方式進一步說明: 
+
+1. **ExperimentConfig**:
+```python 
+class ExperimentConfig:
+    # @ExperimentDependent 
+    best_model_checkpoint = 'epoch07-loss0.00.ckpt' # 最佳模型的暫存檔名稱
+
+    name = experiment_name  # 實驗名稱，需和資料夾名稱相同(e.g., ex1) 
+
+    experiment_parameters = {                    # 實驗參數 
+        "model_parameters": {                      # 模型參數: 會放到model.py的參數。
+            "data_independent":{                     # 和資料無關的模型參數，(e.g., hidden_dims 中間層維度, n_layers 層數, ...) 
+                'hidden_dims': 64,              
+                'n_layers': 2, 
+                'cell': 'LSTM', 
+                'bi': False
+            },
+            "data_dependent": {                      # 和資料相關之模型參數，(e.g., dense_dims 輸入之數值型特徵維度, use_chid 是否使用顧客ID為特徵, out_dims 模型輸出的維度)  
+                'dense_dims': dense_dims, 
+                'sparse_dims': sparse_dims,
+                'use_chid': use_chid, 
+                'out_dims': out_dims,
+                'class_outputs': class_outputs 
+            }
+        },
+        "training_parameters":{                      # 訓練參數，(e.g., dropout, warmup_epochs, annealing_cycle_epochs) 
+            "dropout": 0.5, 
+            "warmup_epochs": 5, 
+            "annealing_cycle_epochs": 40
+        }
+    }
+```
+
+* 其中，dropout/warmup_epochs/annealing_cycle_epochs若不提供，預測則分別會給0.5, 5, 40。warmup_epochs和annealing_cycle_epochs會輸入以下learning rate scheduler，進行learning rate動態調整，以加速模型訓練。
+
+```python 
+LinearWarmupCosineAnnealingLR(optimizer, 
+ warmup_epochs=self._warmup_epochs, 
+ max_epochs=self._annealing_cycle_epochs 
+)
+```
+2. **ExperimentalMultiTaskDataModule**:
+
+
+```python 
+class ExperimentalMultiTaskDataModule(BaseMultiTaskDataModule):
+    # @blockPrinting
+    def prepare_data(self):
+        self.train_dataset = train_dataset.run()[0] 
+        self.test_dataset = test_dataset.run()[0]
+```
+
+* 於prepare_data定義train_dataset和test_dataset。此兩個物件須為torch.utils.data的TensorDataset物件。
+
+3. **ExperimentalMultiTaskModule**:
+
+```python 
+import torch.nn.functional as F
+class ExperimentalMultiTaskModule(BaseMultiTaskModule):
+
+    def config_model(self, model_parameters, dropout): # 此處引入model.py的最top-level的nn.Module，此nn.Module吃model_parameters和dropout兩個參數，後面將於model.py進一步說明建構方式。
+        return MultiTaskModel(
+                model_parameters,
+                dropout = dropout
+            )
+            
+    def config_task_names(self):                                 # 此處定義模型輸出所對應之任務名稱 
+        return ['objmean', 'tscnt', 'label_0']
+        
+    def config_loss_funcs(self): 
+        return [F.mse_loss, F.mse_loss, F.binary_cross_entropy]  # 此處定義各任務之目標函數 
+    
+    
+
+    def config_task_metrics(self):                               # 此處定義個任務之衡量指標名稱 
+        return {
+            'objmean': ['mse', 'mae'], 
+            'tscnt': ['mse', 'mae'], 
+            'label_0': ['acc', 'auc']
+        }
+    
+    def config_metric_calculators(self):                         # (optional) 定義個指標名稱所對應之指標計算元件。若有新指標(非mse/mae/acc/auc)才需實作此函數。
+        from torchmetrics import MeanSquaredError, MeanAbsoluteError, Accuracy, AUROC
+        return {
+            'mse': lambda: MeanSquaredError(compute_on_step=False), 
+            'mae': lambda: MeanAbsoluteError(compute_on_step=False), 
+            'acc': lambda: Accuracy(compute_on_step=False),
+            'auc': lambda: AUROC(compute_on_step=False, pos_label=1)
+        }
+
+```
 
 ### 模型 (`model.py`)
 

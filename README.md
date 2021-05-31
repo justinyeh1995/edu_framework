@@ -75,6 +75,71 @@
 
 # 實驗執行方法 
 
+## Step 1: 安裝dependencies 
+
+首先將相關套件進行安裝。
+
+執行: 
+`sh install_packages.sh`
+
+或: 
+```
+pip install google-api-python-client==2.5.0
+pip install oauth2client==4.1.3
+
+pip install numpy==1.18.5
+pip install pandas==1.1.4
+pip install tqdm==4.54.1
+pip install feather-format==0.4.1
+pip install tables==3.6.1
+
+pip install sklearn==0.0
+pip install torch==1.8.1
+
+pip install torchmetrics==0.3.2
+pip install pytorch-lightning==1.3.2
+pip install lightning-bolts==0.3.3
+
+pip install tensorboard==2.4.0
+```
+## Step 2: 下載原始資料 
+
+* 方法一: 至data/source執行**download_data_from_google_drive.ipynb**進行以下原始資料的下載
+
+🔵sample_chid.txt                            # 原始資料
+🔵sample_idx_map.npy                         # 原始資料
+🔵sample_zip_if_cca_cdtx0001_hist.csv        # ...
+🔵sample_zip_if_cca_cust_f.csv               # ...
+🔵sample_zip_if_cca_y.csv                    # 原始資料 
+
+
+* 方法二: 自行下載以上資料至data/source。
+
+若採用方法一，須至google developer platform下載🔵google_drive.json，串接google_drive用的api-keys，下載方式參考 download_data_from_google_drive.ipynb。
+
+## Step 3: 測試實驗是否可執行 
+
+執行FastDebug: 
+`python run_project.py -m fastdebug -e ex1` 
+
+
+此程式會對experiments/ex1資料夾所定義之實驗進行debug。過程中會對原始資料進行前處理，並將結果與佔存檔儲存於`data/sample`、`data/rnn/tmp`、`data/rnn/result`、`data/ex1/tmp`、`data/ex1/result`，接著，資料處理完後，就會進行1個step的training和validation，以快速驗證模型、程式的運作正常。
+
+## Step 4: 建構新實驗: 
+
+可以複製ex1資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex2)，並修改其中的`experiment_module.py`/`model.py`/`dataset_builder.py`/`preprocess.py`。以下將分別說明此四個檔案的修改方式。
+
+
+
+
+## Step 5: 執行Fit1Batch & Training: 
+`python run_project.py -m fit1batch -e ex1` 
+
+若要驗證模型架構是正確，可以執行fit1batch，此時會讓模型Overfit一個Batch的訓練資料，此時會在
+
+`python run_project.py -m training -e ex1` 
+
+
 # 小工具 
 
 

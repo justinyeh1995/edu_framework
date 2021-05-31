@@ -133,14 +133,15 @@ pip install tensorboard==2.4.0
 
 以下將以ex1為範例，分別說明此三類程式的建構方式: 
 
-### 實驗模組 (`experiment_module.py`)
+### 1) 實驗模組 (`experiment_module.py`)
 
 實驗模組必須包含三個Class: `ExperimentConfig`、`ExperimentalMultiTaskDataModule`和`ExperimentalMultiTaskModule`，`ExperimentConfig`定義了實驗名稱、實驗參數、以及最佳模型的暫存檔名稱，`ExperimentalMultiTaskDataModule`定義了資料前處理、訓練以及測試資料，`ExperimentalMultiTaskModule`定義了多任務模型、任務名稱、任務目標函數以及任務成效衡量指標。
 
 以下將針對撰寫方式進一步說明: 
 
-1. **ExperimentConfig**:
+**1. ExperimentConfig**:
 ```python 
+
 class ExperimentConfig:
     # @ExperimentDependent 
     best_model_checkpoint = 'epoch07-loss0.00.ckpt' # 最佳模型的暫存檔名稱
@@ -179,7 +180,7 @@ LinearWarmupCosineAnnealingLR(optimizer,
  max_epochs=self._annealing_cycle_epochs 
 )
 ```
-2. **ExperimentalMultiTaskDataModule**:
+**2. ExperimentalMultiTaskDataModule**:
 
 
 ```python 
@@ -192,7 +193,7 @@ class ExperimentalMultiTaskDataModule(BaseMultiTaskDataModule):
 
 * 於prepare_data定義train_dataset和test_dataset。此兩個物件須為torch.utils.data的TensorDataset物件。
 
-3. **ExperimentalMultiTaskModule**:
+**3. ExperimentalMultiTaskModule**:
 
 ```python 
 import torch.nn.functional as F
@@ -230,9 +231,64 @@ class ExperimentalMultiTaskModule(BaseMultiTaskModule):
 
 ```
 
-### 模型 (`model.py`)
+### 2) 模型 (`model.py`)
 
-### 資料前處理 (`dataset_builder.py`/`preprocess.py`)
+model.py的top-level module依照nn.Module既有方法進行實作，但須注意__init__需吃`model_parameters`和`dropout`，model_parameters為一dictionary，
+內容為`ExperimentConfig.experiment_parameters["model_parameters"]` 中`"data_independent"`以及`"data_dependent"`底下的所有參數。
+
+```python 
+class MultiTaskModel(torch.nn.Module):
+    def __init__(self, model_parameters, dropout=0.5):
+        super(MultiTaskModel, self).__init__()
+
+        # Load parameters: 
+        hidden_dims = model_parameters['hidden_dims']
+        n_layers = model_parameters['n_layers'] 
+        cell = model_parameters['cell'] 
+        bi = model_parameters['bi'] 
+        dense_dims = model_parameters['dense_dims'] 
+        sparse_dims = model_parameters['sparse_dims'] 
+        use_chid = model_parameters['use_chid'] 
+        out_dims = model_parameters['out_dims'] 
+        class_outputs = model_parameters['class_outputs']
+
+        # Build model blocks: 
+        self.rnn = ET_Rnn(
+            dense_dims, 
+            sparse_dims, 
+            hidden_dims, 
+            n_layers=n_layers, 
+            use_chid=use_chid,
+            cell=cell, 
+            bi=bi, 
+            dropout=dropout
+        )
+        
+        self.mlps = nn.ModuleList([
+            MLP(
+                self.rnn.out_dim, hidden_dims=[self.rnn.out_dim // 2], out_dim=od
+            ) for od in out_dims
+        ])
+
+        # Parameters used in forward 
+        self.class_outputs = class_outputs
+
+    def forward(self, *x):
+        x_dense, x_sparse = x 
+        logits = self.rnn(x_dense, x_sparse)
+        outs = []
+        for mlp, is_class in zip(self.mlps, self.class_outputs):
+            out = mlp(logits)
+            if is_class:
+                out = torch.sigmoid(out)
+            outs.append(out)
+        return outs
+
+
+```
+
+
+### 3) 資料前處理 (`dataset_builder.py`/`preprocess.py`)
 
 
 ## Step 5: 執行Fit1Batch & Training: 

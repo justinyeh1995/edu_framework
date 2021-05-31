@@ -298,18 +298,57 @@ class MultiTaskModel(torch.nn.Module):
 於不同的實驗或模型所需之資料前處理方式不一樣，因此亦可以自行創建自己的資料前處理方式。詳細使用方式將於**範例介紹**說明，`ETLPro`的使用方式則會於**小工具**介紹。
 
 
-## Step 5: 執行Fit1Batch & Training: 
-`python run_project.py -m fit1batch -e ex1` 
+## Step 5: 執行新實驗: 
 
-若要驗證模型架構是正確，可以執行fit1batch，此時會讓模型Overfit一個Batch的訓練資料，此時會在
+當新的實驗建構完成，建議依以下順序進行debug與訓練: 
 
-`python run_project.py -m training -e ex1` 
+**1. fastdebug **
+
+首先，執行fastdebug，確保即使模型與實驗設定修改後，訓練與驗證皆能順利執行: 
+
+`python run_project.py -m fastdebug -e [實驗資料夾名稱]` 
+
+**2. fit1batch** 
+
+接著，為了確保模型設計是合理的，讓模型overfit一個訓練的batch，正常的狀況，loss要能夠持續下降。
+
+`python run_project.py -m fit1batch -e [實驗資料夾名稱] (-l [log_dir])` 
+
+執行過程中，會存放TensorBoard的Log於資料夾`./logs/tensorboard/[實驗資料夾名稱]/version_[x]`。於terminal輸入`tensorboard --logdir logs/tensorboard/[實驗資料夾名稱]`，即可於瀏覽器開啟TensorBoard查看訓練狀況(http://localhost:6006/ )。其中val的圖表顯示的即是於前述batch上之成效衡量結果。
+
+若要修改log資料夾，可以於執行時，用`-l`指定新log資料夾路徑，e.g., 
+
+`python run_project.py -m fit1batch -e [實驗資料夾名稱] -l MyDirectory`，此時，則於terminal輸入`tensorboard --logdir MyDirectory/[實驗資料夾名稱]`，即可查看該實驗結果。
+
+**3. train** 
+
+執行訓練: 
+
+`python run_project.py -m train -e [實驗資料夾名稱] (-l [log_dir])`  
+
+模型的validation/training performance的呈現操作方式，同fit1batch。
+
+訓練過程中，表現最佳的模型以及最後一個epoch的模型暫存檔(.ckpt)會被保存於`./checkpoint/[實驗資料夾名稱]`中，每增加一個epoch，就會被更新一次。
+
+**4. test**
+
+若要用測試資料檢測模型的最終結果，可以將`./checkpoint/[實驗資料夾名稱]`中，最佳模型的.ckpt檔指定給`experiment_module.py`中`ExperimentConfig`的`best_model_checkpoint`參數，接著執行: 
+
+`python run_project.py -m test -e [實驗資料夾名稱]`
+
+
+# 範例說明
 
 
 # 小工具 
 
+## ETLPro 
 
-# 範例說明
+## utils.blockPrint
+
+
+
+
 
 # Old ReadMe: 
 

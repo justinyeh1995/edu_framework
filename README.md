@@ -8,7 +8,7 @@
 ) 3. [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E
 ) 4. [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7) 
 
-此程式為beta版，若於使用中有疑問或建議，都可以隨時提供給我們。
+此程式為beta版，若於使用中有疑問或建議，可以於[**意見回饋**]()提供給我們，並且在把實驗納入此框架的過程中，麻煩也幫我們填寫[**實驗紀錄表**]()，已方便我們追蹤進度。
 
 ## 目錄: 
 
@@ -25,6 +25,8 @@
     - [Step 5: 執行新實驗](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)
 - [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
 - [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7)
+- [實驗紀錄表]()
+- [意見回饋]()
 
 
 # 資料夾架構 
@@ -91,6 +93,8 @@
 ├── requirements.txt 
 └── ReadMe.md 
 ```
+
+
 
 # 實驗執行方法 
 
@@ -368,7 +372,14 @@ class MultiTaskModel(torch.nn.Module):
 ## utils.blockPrint
 
 
+# 實驗記錄表
+|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|
+|--|:--:|--|--|--|--|--|--|--|--|
+|ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V| | | | |
 
+# 意見回饋 
+
+- [ ] 
 
 
 # Old ReadMe: 

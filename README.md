@@ -8,7 +8,8 @@
 ) 3. [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E
 ) 4. [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7) 
 
-此程式為beta版，若於使用中有疑問或建議，可以於[**意見回饋**]()提供給我們，並且在把實驗納入此框架的過程中，麻煩也幫我們填寫[**實驗紀錄表**](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)，已方便我們追蹤進度。
+此程式為beta版，若於使用中有疑問或建議，可以於[意見回饋](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)提供給我們，我們將會對此框架進行調整。
+另外，在把實驗納入此框架的過程中，麻煩也幫我們填寫[實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)，已方便我們追蹤進度。
 
 ## 目錄: 
 
@@ -26,7 +27,7 @@
 - [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
 - [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7)
 - [實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)
-- [意見回饋]()
+- [意見回饋](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)
 
 
 # 資料夾架構 

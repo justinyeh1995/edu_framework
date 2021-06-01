@@ -145,6 +145,8 @@ class ETLPro:
             super(ETLPro, self).__init__(process_name, pre_request_etls, result_dir, save=True)
         else:
             super(ETLPro, self).__init__(process_name, pre_request_etls=pre_request_etls, save=False)
+    def set_pf_output_node(self, pf_output_node):
+        self.pf_output_node = pf_output_node
 
 
 class SelectResult(ETLPro):

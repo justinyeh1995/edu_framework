@@ -24,9 +24,9 @@
         - [2) 模型](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#2-%E6%A8%A1%E5%9E%8B-modelpy)
         - [3) 前處理](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86-dataset_builderpypreprocesspy)
     - [Step 5: 執行新實驗](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)
-        -  [1) 實驗Debug]()
-        -  [2) 模型訓練與測試]()
-        -  [3) TensorBoard-訓練成效監控]()
+        -  [1) 實驗Debug](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#1-%E5%AF%A6%E9%A9%97debug)
+        -  [2) 模型訓練與測試](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#2-%E6%A8%A1%E5%9E%8B%E8%A8%93%E7%B7%B4%E8%88%87%E6%B8%AC%E8%A9%A6)
+        -  [3) TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)
 - [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
 - [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7)
 - [實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)
@@ -341,7 +341,7 @@ class MultiTaskModel(torch.nn.Module):
 
 **fit1batch** 
 
-接著，為了確保模型設計是合理的，讓模型overfit一個訓練的batch，正常的狀況，loss要能夠持續下降，loss的監控參考 [3) TensorBoard-訓練成效監控]()。
+接著，為了確保模型設計是合理的，讓模型overfit一個訓練的batch，正常的狀況，loss要能夠持續下降，loss的監控參考 [TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)。
 
 `python run_project.py -m fit1batch -e [實驗資料夾名稱] (-l [log_dir])` 
 
@@ -355,7 +355,7 @@ class MultiTaskModel(torch.nn.Module):
 
 `python run_project.py -m train -e [實驗資料夾名稱] (-l [log_dir])`  
 
-模型的validation/training performance的監控參考 [3)TensorBoard-訓練成效監控]()。
+模型的validation/training performance的監控參考 [TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)。
 
 訓練過程中，表現最佳的模型以及最後一個epoch的模型暫存檔(.ckpt)會被保存於`./checkpoint/[實驗資料夾名稱]`中，每增加一個epoch，就會被更新一次。
 

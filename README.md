@@ -24,6 +24,9 @@
         - [2) 模型](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#2-%E6%A8%A1%E5%9E%8B-modelpy)
         - [3) 前處理](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86-dataset_builderpypreprocesspy)
     - [Step 5: 執行新實驗](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)
+        -  [1) 實驗Debug]()
+        -  [2) 模型訓練與測試]()
+        -  [3) TensorBoard-訓練成效監控]()
 - [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
 - [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7)
 - [實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)
@@ -328,39 +331,51 @@ class MultiTaskModel(torch.nn.Module):
 
 當新的實驗建構完成，建議依以下順序進行debug與訓練: 
 
-**1. fastdebug**
+### 1) 實驗Debug:
+
+**fastdebug**
 
 首先，執行fastdebug，確保即使模型與實驗設定修改後，訓練與驗證皆能順利執行: 
 
 `python run_project.py -m fastdebug -e [實驗資料夾名稱]` 
 
-**2. fit1batch** 
+**fit1batch** 
 
-接著，為了確保模型設計是合理的，讓模型overfit一個訓練的batch，正常的狀況，loss要能夠持續下降。
+接著，為了確保模型設計是合理的，讓模型overfit一個訓練的batch，正常的狀況，loss要能夠持續下降，loss的監控參考 [3) TensorBoard-訓練成效監控]()。
 
 `python run_project.py -m fit1batch -e [實驗資料夾名稱] (-l [log_dir])` 
 
-執行過程中，會存放TensorBoard的Log於資料夾`./logs/tensorboard/[實驗資料夾名稱]/version_[x]`。於terminal輸入`tensorboard --logdir logs/tensorboard/[實驗資料夾名稱]`，即可於瀏覽器開啟TensorBoard查看訓練狀況(http://localhost:6006/ )。其中val的圖表顯示的即是於前述batch上之成效衡量結果。
+執行過程中，會存放TensorBoard的Log於資料夾`./logs/tensorboard/[實驗資料夾名稱]/version_[x]`。
 
-若要修改log資料夾，可以於執行時，用`-l`指定新log資料夾路徑，e.g., 
+### 2) 模型訓練與測試
 
-`python run_project.py -m fit1batch -e [實驗資料夾名稱] -l MyDirectory`，此時，則於terminal輸入`tensorboard --logdir MyDirectory/[實驗資料夾名稱]`，即可查看該實驗結果。
-
-**3. train** 
+**train** 
 
 執行訓練: 
 
 `python run_project.py -m train -e [實驗資料夾名稱] (-l [log_dir])`  
 
-模型的validation/training performance的呈現操作方式，同fit1batch。
+模型的validation/training performance的監控參考 [3)TensorBoard-訓練成效監控]()。
 
 訓練過程中，表現最佳的模型以及最後一個epoch的模型暫存檔(.ckpt)會被保存於`./checkpoint/[實驗資料夾名稱]`中，每增加一個epoch，就會被更新一次。
 
-**4. test**
+**test**
 
 若要用測試資料檢測模型的最終結果，可以將`./checkpoint/[實驗資料夾名稱]`中，最佳模型的.ckpt檔指定給`experiment_module.py`中`ExperimentConfig`的`best_model_checkpoint`參數，接著執行: 
 
 `python run_project.py -m test -e [實驗資料夾名稱]`
+
+### 3) TensorBoard-訓練成效監控 
+
+於terminal輸入`tensorboard --logdir logs/tensorboard/[實驗資料夾名稱]`，即可於瀏覽器開啟TensorBoard查看訓練狀況(http://localhost:6006/ )。
+
+* _Note: _若是執行fit1batch，其中val的圖表顯示的為在一個訓練的batch上衡量的成效。
+
+若要修改log資料夾，可以於執行時，用`-l`指定新log資料夾路徑，e.g., 
+
+`python run_project.py -m [fit1batch/train] -e [實驗資料夾名稱] -l MyDirectory`，此時，則於terminal輸入`tensorboard --logdir MyDirectory/[實驗資料夾名稱]`，即可查看該實驗結果。
+
+若有進行實驗參數調整，可於 http://localhost:6006/#hparams 查看各實驗參數下的模型成效。
 
 
 # 範例檔說明

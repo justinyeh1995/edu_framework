@@ -27,7 +27,7 @@
         -  [1) 實驗Debug](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#1-%E5%AF%A6%E9%A9%97debug)
         -  [2) 模型訓練與測試](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#2-%E6%A8%A1%E5%9E%8B%E8%A8%93%E7%B7%B4%E8%88%87%E6%B8%AC%E8%A9%A6)
         -  [3) TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)
-        -  [4) CPU/GPU加速]()
+        -  [4) CPU/GPU加速](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#4-gpucpu%E5%8A%A0%E9%80%9F)
 - [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
 - [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7)
 - [實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)
@@ -402,9 +402,9 @@ class MultiTaskModel(torch.nn.Module):
 
 
 # 實驗記錄表
-|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|
-|--|:--:|--|--|--|--|--|--|--|--|
-|ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V| | | | |
+|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|GPU成功加速|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|
+|--|:--:|--|--|--|--|--|--|--|--|--|
+|ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V| |V| | | | 
 
 # 意見回饋 
 

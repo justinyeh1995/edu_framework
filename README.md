@@ -265,7 +265,11 @@ class ExperimentalMultiTaskModule(BaseMultiTaskModule):
             'acc': lambda: Accuracy(compute_on_step=False),
             'auc': lambda: AUROC(compute_on_step=False, pos_label=1)
         }
-
+    def batch_forward(self, batch):                              # 此處根據模型的forward方式定義一個batch的forward，以供共用模組的training/validation/testing將ground_truth和outputs套用到loss上。
+        x_dense, x_sparse, objmean, tscnt, label_0 = batch
+        outputs = self(x_dense, x_sparse)
+        ground_truths = objmean, tscnt, label_0
+        return outputs, ground_truths
 ```
 
 ### 2) 模型 (`model.py`)

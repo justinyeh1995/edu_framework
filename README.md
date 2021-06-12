@@ -1,3 +1,17 @@
+# MODIFICATION: 
+- [V] 設計新preprocess module (based on [pyflow-viz](https://pypi.org/project/pyflow-viz/)) 幫助data pipeline的視覺化。
+      - [V] 視覺化完整 pipeline 
+      - [V] 視覺化dependency 
+- [ ] 把此新preprocess module打包進ex3 作為使用範例
+- [ ] 於ex3內放置data pipeline視覺化範例
+
+# ISSUES:
+- [ ] 行內相容性問題 
+      - [ ] cpu 環境 
+      - [ ] gpu 環境 
+- [ ] colab相容性問題 
+
+
 # 簡介: 
 
 此程式框架的用途是幫助多任務實驗的協作與開發，提供了實驗的訓練、測試、Debug、前處理用的共用模組，並且支援Checkpoint，讓每次實驗產生的最佳模型可以被儲存以供測試使用，也提供logging的機制，以讓訓練過程中的模型的成效可以用Tensorboard來隨時檢視。

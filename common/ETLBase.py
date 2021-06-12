@@ -238,13 +238,16 @@ class SelectResult(ETLPro):
     def process(self, inputs):
         assert len(self.selected_indices) < len(inputs)
         return [inputs[i] for i in self.selected_indices]
+    def get(self):
+        assert len(self.selected_indices) == 1
+        return self.run()[0]
     
     
 class DataNode(ETLPro):
     def __init__(self, process_name, pre_request_etls, result_dir=None, **kwargs):
         super(DataNode, self).__init__(process_name, pre_request_etls, result_dir=result_dir)
         self.kwargs = kwargs
-        
+        self.n_out = 1
     def set_process(self, current_process):
         self.current_process = current_process 
     def set_n_out(self, n_out):
@@ -255,6 +258,9 @@ class DataNode(ETLPro):
             return [result]
         else:
             return result
+    def get(self):
+        assert self.n_out == 1
+        return self.run()[0]
         
 
 # for ETL with multiple output

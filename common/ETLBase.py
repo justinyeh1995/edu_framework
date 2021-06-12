@@ -6,11 +6,51 @@ import pandas as pd
 import numpy as np
 from pyflow import GraphBuilder
 
-class PipelineBuilder():
+class PipeConfigBuilder():
     def __init__(self):
+        self.pyflow_GB = GraphBuilder()
+    def add(self, var_name, value, rank=None, color='gray', shape='cylinder', fontsize=None):
+        def current_process():
+            return value 
+        current_process_name = f'{var_name}={value}'
+        # method_alias = current_process_name 
+        n_out = 1
+        
+        self.pyflow_GB.add(current_process, 
+                           method_alias = var_name, 
+                           output_alias = str(value),
+                           n_out = n_out,
+                           rank = rank,
+                           color = color,
+                           shape = shape,
+                           fontsize = fontsize
+                          )
+        # no call function here, directly call the method in add. 
+        pf_output = self.pyflow_GB()
+        process_module = DataNode(
+            current_process_name,
+            []
+        )
+        process_module.set_process(current_process)
+        process_module.set_n_out(n_out)
+        process_module.set_pf_output_node(pf_output)
+        return process_module
+    def view(self, *args, **kargs):
+        return self.pyflow_GB.view(
+            *args, 
+            **kargs
+        )
+    def view_dependency(self, *args, **kargs):
+        return self.pyflow_GB.view_dependency(*args, **kargs)
+    
+class PipelineBuilder():
+    def __init__(self, pipe=None):
         self.current_process = None 
         self.current_process_name = None
-        self.pyflow_GB = GraphBuilder()
+        if pipe:
+            self.pyflow_GB = pipe.pyflow_GB
+        else:
+            self.pyflow_GB = GraphBuilder()
         
     def add(self, process, method_alias=None, output_alias=None, result_dir=None, 
             n_out=1, rank=None, color='lightblue', shape=None, fontsize=None):

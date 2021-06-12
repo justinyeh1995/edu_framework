@@ -4,6 +4,82 @@ import gc
 import feather
 import pandas as pd
 import numpy as np
+from pyflow import GraphBuilder
+
+class PipelineBuilder():
+    def __init__(self):
+        self.current_process = None 
+        self.current_process_name = None
+        self.pyflow_GB = GraphBuilder()
+        
+    def add(self, process, method_alias=None, output_alias=None, result_dir=None, 
+            n_out=1, rank=None, color='lightblue', shape=None, fontsize=None):
+        self.current_process = process
+        self.current_process_name = process.__name__
+        self.n_out = n_out
+        
+        if type(result_dir) == list: 
+            assert len(result_dir) == n_out
+            for out, path in zip(output_alias, result_dir):
+                assert out == path.split("/")[-1].split(".")[0]
+        if result_dir:
+            color = 'pink'
+        self.result_dir = result_dir
+        
+        self.pyflow_GB.add(process, 
+                           method_alias = method_alias, 
+                           output_alias = output_alias,
+                           n_out = n_out,
+                           rank = rank,
+                           color = color,
+                           shape = shape,
+                           fontsize = fontsize
+                          )
+        
+        return self
+    def __call__(self, *args, **kwargs):
+        assert self.current_process
+        assert self.current_process_name
+        
+        
+        pf_input = [arg.pf_output_node for arg in args]
+        pf_output = self.pyflow_GB(*pf_input, **kwargs)
+        
+        process_module = DataNode(
+            self.current_process_name,
+            list(args),
+            result_dir = self.result_dir,
+            **kwargs
+        )
+        
+        process_module.set_process(self.current_process)
+        process_module.set_n_out(self.n_out)
+        
+        if self.n_out > 1:
+            
+            outs = []
+            for i, pf_output_node in zip(range(self.n_out), pf_output):
+                
+                out = SelectResult(
+                self.current_process_name + f'[{i}]',
+                [process_module],
+                selected_indices=[i])
+                out.set_pf_output_node(pf_output_node)
+                
+                outs.append(out)
+                
+            return outs
+            
+        else:
+            process_module.set_pf_output_node(pf_output)
+            return process_module 
+    def view(self, *args, **kargs):
+        return self.pyflow_GB.view(
+            *args, 
+            **kargs
+        )
+    def view_dependency(self, *args, **kargs):
+        return self.pyflow_GB.view_dependency(*args, **kargs)
 
 
 class ETLBase:
@@ -162,6 +238,25 @@ class SelectResult(ETLPro):
     def process(self, inputs):
         assert len(self.selected_indices) < len(inputs)
         return [inputs[i] for i in self.selected_indices]
+    
+    
+class DataNode(ETLPro):
+    def __init__(self, process_name, pre_request_etls, result_dir=None, **kwargs):
+        super(DataNode, self).__init__(process_name, pre_request_etls, result_dir=result_dir)
+        self.kwargs = kwargs
+        
+    def set_process(self, current_process):
+        self.current_process = current_process 
+    def set_n_out(self, n_out):
+        self.n_out = n_out 
+    def process(self, inputs):
+        result = self.current_process(*inputs, **self.kwargs)
+        if self.n_out == 1:
+            return [result]
+        else:
+            return result
+        
+
 # for ETL with multiple output
 
 

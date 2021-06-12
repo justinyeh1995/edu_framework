@@ -5,9 +5,9 @@
 - [V] 把此新preprocess module打包進ex3 作為使用範例
       - [V] 建立 ex3
       - [V] 把preprocessing functions 放進去
-- [ ] refine DataNode and SelectResult:
+- [V] refine DataNode and SelectResult:
       - [V] implement get method on DataNode and SelectResult  
-      - [ ] allow passing of verbose variable. 
+      - [V] allow passing of verbose variable. 
 - [ ] 於ex3內放置data pipeline視覺化範例
 
 # ISSUES:

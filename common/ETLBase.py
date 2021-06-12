@@ -88,7 +88,7 @@ class ETLBase:
         self.pre_request_etls = pre_request_etls
         self.save = save
 
-    def run(self):
+    def run(self, verbose=False):
         '''
         Check if the pre-request results are completed.
         If completed, load the result. Otherwise, run the pre-request ETL process.
@@ -96,19 +96,23 @@ class ETLBase:
         inputs = []
         for pre_etl in self.pre_request_etls:
             if pre_etl.is_complete():
-                print(f'[LOAD] result of "{pre_etl.process_name}"')
+                if verbose:
+                    print(f'[LOAD] result of "{pre_etl.process_name}"')
                 inputs.extend(pre_etl.load_result())
 
             else:
-                print(f'[RUN] process of "{pre_etl.process_name}"')
+                if verbose:
+                    print(f'[RUN] process of "{pre_etl.process_name}"')
                 inputs.extend(pre_etl.run())
 
         results = self.process(inputs)
-        print(f'[COMPLETE] {self.process_name}')
+        if verbose:
+            print(f'[COMPLETE] {self.process_name}')
         del inputs
         gc.collect()
         if self.save:
-            print(f'[SAVE] result of "{self.process_name}"')
+            if verbose:
+                print(f'[SAVE] result of "{self.process_name}"')
             self.save_result(results)
         return results
 
@@ -119,7 +123,7 @@ class ETLBase:
         '''
         return False
 
-    def load_result(self):
+    def load_result(self, verbose=False):
         '''
         This function load the temporary result file saved by "save_result" function.
         Should be override if save_result is override.
@@ -137,7 +141,7 @@ class ETLBase:
         outputs = inputs
         return outputs
 
-    def save_result(self, results):
+    def save_result(self, results, verbose=False):
         '''
         Save result for the next ETL Process.
         Sould be considered overrided if re-use of processed data is considered
@@ -157,8 +161,7 @@ class ETLwithDifferentResults(ETLBase):
         else:
             self.result_dirs = [result_dir]
         self._create_data_folder(self.result_dirs)
-
-    def _create_data_folder(self, result_dirs):
+    def _create_data_folder(self, result_dirs, verbose=True):
         # create folders on initialization
         for result_path in result_dirs:
             if ".." in result_path:
@@ -168,7 +171,8 @@ class ETLwithDifferentResults(ETLBase):
                 folder_path += f"{folder_name}/"
                 if not os.path.exists(folder_path):
                     os.mkdir(folder_path)
-                    print(f"You have created directory: {folder_path}")
+                    if verbose: 
+                        print(f"You have created directory: {folder_path}")
 
     def is_complete(self):
         for file_dir in self.result_dirs:
@@ -176,7 +180,7 @@ class ETLwithDifferentResults(ETLBase):
                 return False
         return True
 
-    def load_result(self):
+    def load_result(self, verbose=False):
         results = []
         for file_dir in self.result_dirs:
             if '.h5' in file_dir:
@@ -191,11 +195,11 @@ class ETLwithDifferentResults(ETLBase):
                 except:
                     pass
                 results.append(np_result)
-            else:
-                pass
+            if verbose:
+                print(f' from {file_dir}')
         return results
 
-    def save_result(self, results):
+    def save_result(self, results, verbose=False):
         for i, file_dir in enumerate(self.result_dirs):
             # feather.write_dataframe(results[0], self.result_dir)
             if '.h5' in file_dir:
@@ -204,7 +208,8 @@ class ETLwithDifferentResults(ETLBase):
                 feather.write_dataframe(results[i], file_dir)
             elif '.npy' in file_dir:
                 np.save(file_dir.split('.npy')[0], results[i])
-            print(f' as {file_dir}')
+            if verbose:
+                print(f' as {file_dir}')
 
 
 class ETLPro:
@@ -238,9 +243,9 @@ class SelectResult(ETLPro):
     def process(self, inputs):
         assert len(self.selected_indices) < len(inputs)
         return [inputs[i] for i in self.selected_indices]
-    def get(self):
+    def get(self, verbose=False):
         assert len(self.selected_indices) == 1
-        return self.run()[0]
+        return self.run(verbose=verbose)[0]
     
     
 class DataNode(ETLPro):
@@ -258,9 +263,9 @@ class DataNode(ETLPro):
             return [result]
         else:
             return result
-    def get(self):
+    def get(self, verbose=False):
         assert self.n_out == 1
-        return self.run()[0]
+        return self.run(verbose=verbose)[0]
         
 
 # for ETL with multiple output

@@ -2,7 +2,9 @@
 - [V] 設計新preprocess module (based on [pyflow-viz](https://pypi.org/project/pyflow-viz/)) 幫助data pipeline的視覺化。
       - [V] 視覺化完整 pipeline 
       - [V] 視覺化dependency 
-- [ ] 把此新preprocess module打包進ex3 作為使用範例
+- [V] 把此新preprocess module打包進ex3 作為使用範例
+      - [V] 建立 ex3
+      - [V] 把preprocessing functions 放進去
 - [ ] 於ex3內放置data pipeline視覺化範例
 
 # ISSUES:

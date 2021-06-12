@@ -1,4 +1,6 @@
 # MODIFICATION: 
+
+## New Preprocessing Model 
 - [V] 設計新preprocess module (based on [pyflow-viz](https://pypi.org/project/pyflow-viz/)) 幫助data pipeline的視覺化。
       - [V] 視覺化完整 pipeline 
       - [V] 視覺化dependency 
@@ -8,6 +10,10 @@
 - [V] refine DataNode and SelectResult:
       - [V] implement get method on DataNode and SelectResult  
       - [V] allow passing of verbose variable. 
+- [V] allow visualization of configuration variable. 
+- [V] let DataNode takes kargs with ETLPro class argument 
+- [ ] build preprocess configuration object. 
+- [ ] 讓此工具完整取代 experiment_module.py 中的 preprocessing 
 - [ ] 於ex3內放置data pipeline視覺化範例
 
 # ISSUES:

@@ -35,7 +35,6 @@ class PipelineBuilder():
                            shape = shape,
                            fontsize = fontsize
                           )
-        
         return self
     def __call__(self, *args, **kwargs):
         assert self.current_process
@@ -43,13 +42,16 @@ class PipelineBuilder():
         
         
         pf_input = [arg.pf_output_node for arg in args]
-        pf_output = self.pyflow_GB(*pf_input, **kwargs)
+        
+        pf_kwargs = dict([(key, self._to_pf_out_node(arg)) for key, arg in kwargs.items()])
+
+        pf_output = self.pyflow_GB(*pf_input, **pf_kwargs)
         
         process_module = DataNode(
             self.current_process_name,
             list(args),
             result_dir = self.result_dir,
-            **kwargs
+            **kwargs 
         )
         
         process_module.set_process(self.current_process)
@@ -73,6 +75,12 @@ class PipelineBuilder():
         else:
             process_module.set_pf_output_node(pf_output)
             return process_module 
+    def _to_pf_out_node(self, arg):
+        if type(arg).__name__ == 'DataNode+ETLBase':
+            return arg.pf_output_node
+        if type(arg).__name__ == 'SelectResult+ETLBase':
+            return arg.pf_output_node
+        return arg
     def view(self, *args, **kargs):
         return self.pyflow_GB.view(
             *args, 
@@ -99,17 +107,16 @@ class ETLBase:
                 if verbose:
                     print(f'[LOAD] result of "{pre_etl.process_name}"')
                 inputs.extend(pre_etl.load_result())
-
             else:
                 if verbose:
                     print(f'[RUN] process of "{pre_etl.process_name}"')
                 inputs.extend(pre_etl.run())
-
         results = self.process(inputs)
         if verbose:
             print(f'[COMPLETE] {self.process_name}')
         del inputs
         gc.collect()
+                            
         if self.save:
             if verbose:
                 print(f'[SAVE] result of "{self.process_name}"')
@@ -251,72 +258,35 @@ class SelectResult(ETLPro):
 class DataNode(ETLPro):
     def __init__(self, process_name, pre_request_etls, result_dir=None, **kwargs):
         super(DataNode, self).__init__(process_name, pre_request_etls, result_dir=result_dir)
-        self.kwargs = kwargs
+        self.kwargs = dict([(key, self._get_real_var(arg)) for key, arg in kwargs.items()])
         self.n_out = 1
+        
+    def _get_real_var(self, arg):
+        '''    
+        Some of the args in kwargs is not real data but ETLPro Objects.
+        To solve the problem, convert them all to data using .get.  
+        '''
+        if type(arg).__name__ == 'DataNode+ETLBase':
+            return arg.get()
+        if type(arg).__name__ == 'SelectResult+ETLBase':
+            return arg.get()
+        return arg
+    
     def set_process(self, current_process):
         self.current_process = current_process 
+        
     def set_n_out(self, n_out):
         self.n_out = n_out 
+        
     def process(self, inputs):
+        
         result = self.current_process(*inputs, **self.kwargs)
         if self.n_out == 1:
             return [result]
         else:
             return result
+    
     def get(self, verbose=False):
         assert self.n_out == 1
         return self.run(verbose=verbose)[0]
         
-
-# for ETL with multiple output
-
-
-'''class ETLwithFeatherResult(ETLBase):
-    def __init__(self, process_name, pre_request_etls, result_dir, save=True):
-        super(ETLwithFeatherResult, self).__init__(
-            process_name,
-            pre_request_etls=pre_request_etls,
-            save=save
-        )
-        self.result_dir = result_dir  # a list of diractories
-
-    def is_complete(self):
-        return os.path.exists(self.result_dir)
-
-    def load_result(self):
-        return [feather.read_dataframe(self.result_dir)]
-
-    def save_result(self, results):
-        feather.write_dataframe(results[0], self.result_dir)
-        print(f' as {self.result_dir}')
-'''
-
-'''class ETLwithH5Result(ETLBase):
-    def __init__(self, process_name, pre_request_etls, result_dir, save=True):
-        super(ETLwithH5Result, self).__init__(
-            process_name,
-            pre_request_etls=pre_request_etls,
-            save=save
-        )
-        self.result_dir = result_dir
-
-    def is_complete(self):
-        return os.path.exists(self.result_dir)
-
-    def load_result(self):
-        return [pd.read_hdf(self.result_dir, key=self.result_dir.split('.'), mode='r')]
-
-    def save_result(self, results):
-        # feather.write_dataframe(results[0], self.result_dir)
-        results[0].to_hdf(self.result_dir, key=self.result_dir.split('.')[0], mode='w')
-        print(f' as {self.result_dir}')'''
-
-'''
-class ETLPro(ETLSelectiveInherent):
-    def __new__(cls, process_name, pre_request_etls, result_dir=None, **kwargs):
-        super_class = ETLSelectiveInherent
-        cls = type(cls.__name__ + '+' + super_class.__name__, (cls, super_class), {})
-        return super(ETLPro, cls).__new__(cls, process_name, pre_request_etls, result_dir=result_dir)
-
-    def __init__(self, process_name, pre_request_etls, result_dir=None, **kwargs):
-        super(ETLPro, self).__init__(process_name, pre_request_etls, result_dir=result_dir)'''

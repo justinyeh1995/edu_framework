@@ -8,7 +8,7 @@ from pyflow import GraphBuilder
 
 from common.utils import Str2CodeAdaptor
 
-class PipeConfigBuilder(Str2CodeAdaptor):
+class PipeConfigBuilder:
     def __init__(self):
         self.pyflow_GB = GraphBuilder()
     def add(self, var_name, value, rank=None, color='gray', shape='cylinder', fontsize=None):
@@ -46,15 +46,13 @@ class PipeConfigBuilder(Str2CodeAdaptor):
     def view_dependency(self, *args, **kargs):
         return self.pyflow_GB.view_dependency(*args, **kargs)
     
-    def setups(self, obj = None, **kargs):
+    def setups(self, env = None, **kargs):
         for var_name, value in kargs.items():
             config_module = self.add(var_name, value)
-            if obj == 'global':
-                Str2CodeAdaptor.set_global_var(var_name, config_module)
-            elif obj:
-                Str2CodeAdaptor.add_var_to_obj(obj, var_name, config_module)
+            if env: # not None, can be globals() or an object. 
+                Str2CodeAdaptor.add_var(env, var_name, config_module)
             else:
-                Str2CodeAdaptor.add_var_to_obj(self, var_name, config_module)
+                Str2CodeAdaptor.add_var(self, var_name, config_module)
     
 class PipelineBuilder():
     def __init__(self, pipe=None):

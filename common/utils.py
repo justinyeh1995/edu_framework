@@ -23,10 +23,12 @@ class Str2CodeAdaptor:
       
     '''
     @staticmethod 
-    def set_global_var(var, value):
+    def set_global_var(__globals__, var, value):
         assert type(var) == str 
-        exec('Str2CodeAdaptor.tmp = value')
-        exec(f'{var}=Str2CodeAdaptor.tmp', globals())
+        assert type(__globals__) == dict
+        Str2CodeAdaptor.tmp = value
+        __globals__.update({var: Str2CodeAdaptor.tmp})
+        # exec(f'{var}=Str2CodeAdaptor.tmp', globals())
         del Str2CodeAdaptor.tmp 
     @staticmethod
     def add_var_to_obj(obj, var, value, declare='public'):
@@ -37,6 +39,17 @@ class Str2CodeAdaptor:
             exec(f'obj.{var}=tmp')
         else:
             exec(f'obj._{var}=tmp')
+    @staticmethod
+    def add_var(env, var, value):
+        '''
+        This function allows the call to `set_global_var` and `add_var_to_obj` with the determination of `env`, 
+        where env can be `globals()` or a object. 
+        '''
+        if type(env) == dict:
+            Str2CodeAdaptor.set_global_var(env, var, value)
+        else:
+            Str2CodeAdaptor.add_var_to_obj(env, var, value)
+            
     def set_var(self, var, value, declare='public'):
         assert declare=='public' or declare == 'private'
         assert type(var) == str 

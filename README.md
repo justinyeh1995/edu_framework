@@ -13,9 +13,14 @@
 - [V] allow visualization of configuration variable. 
 - [V] let DataNode takes kargs with ETLPro class argument 
 - [V] build preprocess configuration object. 
+    - [V] Using pprint to make config values better visualized in the DAG graph (given a max-line-length) 
+- [V] 任何etl程式都可以被以圖形化的方式呈現。(只要function定義好、接好、config也定義好即可) 
 - [V] 用 exec() 讓pipeline的撰寫和config的assignment可以更自然。 HARD!! 
-- [ ] 任何etl程式都可以被以圖形化的方式呈現。(只要function定義好、接好、config也定義好即可) 
+    - [V] Allow all functions to be inserted into the PipelineBuilder in one go by 1. globals() 2. from package_name import * 
+    - [ ] Allow object function to be inserted too. 
+- [V] Use the setup_connection on the current ex1 pipeline. 
 - [ ] 讓此工具完整取代 experiment_module.py 中的 preprocessing. 
+- [ ] Scan over the code and switch public func/vars to private ones. 
 - [ ] 於ex3內放置data pipeline視覺化範例
 
 # ISSUES:

@@ -5,12 +5,14 @@ import feather
 import pandas as pd
 import numpy as np
 from pyflow import GraphBuilder
-
+import pprint 
 from common.utils import Str2CodeAdaptor
 
 class PipeConfigBuilder:
     def __init__(self):
         self.pyflow_GB = GraphBuilder()
+        self._pp = pprint.PrettyPrinter(width=10, compact=True, indent=1)
+        
     def add(self, var_name, value, rank=None, color='gray', shape='cylinder', fontsize=None):
         def current_process():
             return value 
@@ -20,7 +22,7 @@ class PipeConfigBuilder:
         
         self.pyflow_GB.add(current_process, 
                            method_alias = var_name, 
-                           output_alias = str(value),
+                           output_alias = self._pp.pformat(value),
                            n_out = n_out,
                            rank = rank,
                            color = color,
@@ -29,10 +31,7 @@ class PipeConfigBuilder:
                           )
         # no call function here, directly call the method in add. 
         pf_output = self.pyflow_GB()
-        config_module = DataNode(
-            current_process_name,
-            []
-        )
+        config_module = DataNode(current_process_name, [])
         config_module.set_process(current_process)
         config_module.set_n_out(n_out)
         config_module.set_pf_output_node(pf_output)
@@ -55,9 +54,17 @@ class PipeConfigBuilder:
                 Str2CodeAdaptor.add_var(self, var_name, config_module)
     
 class PipelineBuilder():
-    def __init__(self, pipe=None):
+    def __init__(self, pipe=None, func_source=None):
+        '''
+        Input: 
+            - pipe: the pre-request pipe or a config object from PipeConfigBuilder. 
+            - func_source: the name of the module/package holding the functions used in this pipeline or 
+                the globals() dictionary if the functions is defined in main function. 
+        '''
         self.current_process = None 
         self.current_process_name = None
+        self.pipe = pipe
+        self.func_source = func_source
         if pipe:
             self.pyflow_GB = pipe.pyflow_GB
         else:
@@ -90,8 +97,7 @@ class PipelineBuilder():
     def __call__(self, *args, **kwargs):
         assert self.current_process
         assert self.current_process_name
-        
-        
+        # print("In __call__, args, kargs:", args, kwargs)
         pf_input = [arg.pf_output_node for arg in args]
         
         pf_kwargs = dict([(key, self._to_pf_out_node(arg)) for key, arg in kwargs.items()])
@@ -139,7 +145,70 @@ class PipelineBuilder():
         )
     def view_dependency(self, *args, **kargs):
         return self.pyflow_GB.view_dependency(*args, **kargs)
+    
+    def setup_connection(self, code_str, env = None, result_dir = None, func = None):
+        '''
+        This function allows self.add to be simplify with simple python function call command. 
+        Input:
+            - obj: determine where to put the output variables of the function call. 
+                - if `obj` == globals(): put into global environment. 
+                - if `obj` == None: put into self 
+                - otherwise: put into the object represented by `obj`
+        '''
+        if env: # not None, can be globals() or an object. 
+            pass 
+        else:
+            env = self
+            
+        out_vars, func_str, args_str_list, kwargs_str_dict = Str2CodeAdaptor.breakdown_function_call(code_str)
+        
+        private_func_str = f"self._{func_str.replace('.','_')}"
+        
+        if func:
+            exec(f"{private_func_str} = func")
+        else: # If no custom function 
+            # insert function from global 
+            if type(self.func_source) == dict:
+                tmp = self.func_source[func_str]
+                exec(f"{private_func_str} = tmp")
+            if type(self.func_source) == str:
+                exec(f'from {self.func_source} import {func_str}')
+                exec(f"{private_func_str} = {func_str}")
+        
+        func_added_pipe = self.add(
+            eval(private_func_str), 
+            method_alias = func_str,
+            n_out = len(out_vars), 
+            output_alias = out_vars, 
+            result_dir = result_dir
+        )
+        # print('func_added_pipe:', func_added_pipe)
+        # TODO: evaluate values in input_dict : 
+        #  [V] if env == globals(), get global_variable from global. 
+        #  [V] if env == None, use self as the prefix of object values. 
+        #  [V] if env == an object, use this object as the prefix (meaning that the pre-request objects are from this object.) 
+        
+        args = [Str2CodeAdaptor.get_var(env, var) for var in args_str_list]
+        
+        def force_eval(value_str):
+            try:
+                try:
+                    return eval(value_str)
+                except:
+                    return Str2CodeAdaptor.get_var(env, value_str)
+            except: 
+                if type(env) != dict:
+                    # if cannot find in this pipe, how about try to find it from the requested pipe connect to this pipe (i.e., env.pipe)
+                    return Str2CodeAdaptor.get_var(env.pipe, value_str)
+        kargs = dict([(var, force_eval(value_str)) for var, value_str in kwargs_str_dict.items()])
+        # print("In setup connection, args, kargs:",args, kargs)
+        out_nodes = func_added_pipe(*args, **kargs)# eval(f'func_added_pipe{input_str}')
 
+        if len(out_vars) > 1:
+            for out_name, node in zip(out_vars, out_nodes):
+                Str2CodeAdaptor.add_var(env, out_name, node)
+        else:
+            Str2CodeAdaptor.add_var(env, out_vars[0], out_nodes)
 
 class ETLBase:
     def __init__(self, process_name, pre_request_etls=[], save=False):

@@ -13,7 +13,7 @@
 - [V] allow visualization of configuration variable. 
 - [V] let DataNode takes kargs with ETLPro class argument 
 - [V] build preprocess configuration object. 
-- [ ] 用 exec() 讓pipeline的撰寫和config的assignment可以更自然。
+- [V] 用 exec() 讓pipeline的撰寫和config的assignment可以更自然。 HARD!! 
 - [ ] 任何etl程式都可以被以圖形化的方式呈現。(只要function定義好、接好、config也定義好即可) 
 - [ ] 讓此工具完整取代 experiment_module.py 中的 preprocessing. 
 - [ ] 於ex3內放置data pipeline視覺化範例

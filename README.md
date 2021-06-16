@@ -414,7 +414,10 @@ class MultiTaskModel(torch.nn.Module):
 
 # 意見回饋 
 
-- [ ] 
+- [1] GNN模型輸入資料的方式與先前ETRNN的使用dataloader的方式不同
+- [2] Multitask如果是作為訓練任務來實現的話，每個任務會有不同的loss(Recall、AUC)，不確定紀錄訓練過程是否可以同時記錄多任務的loss
+- 
+-  
 
 
 # Old ReadMe: 

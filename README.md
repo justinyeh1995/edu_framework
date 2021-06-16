@@ -410,14 +410,14 @@ class MultiTaskModel(torch.nn.Module):
 |--|:--:|--|--|--|--|--|--|--|--|--|--|
 |ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V| |V| | | |玉山團隊|
 |ex2|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V| | | | | | | |玉山團隊|
-|ex3|TemDMGE|下月使用紅利(bnsfg)、下月使用分期(iterm)、下月消費商店(stonc_label)-cross doamin|V| | | | | | | |成大團隊|
-|ex4|TemDMGE_shared|下月使用紅利(bnsfg)、下月使用分期(iterm)、下月消費商店(stonc_label)-cross doamin|V| | | | | | | |成大團隊|
-|ex5|TemGCN|下月使用紅利(bnsfg)-single doamin|V| | | | | | | |成大團隊|
-|ex6|TemGCN|下月使用分期(iterm)-single doamin|V| | | | | | | |成大團隊|
-|ex7|TemGCN|下月消費商店(stonc_label)-single doamin|V| | | | | | | |成大團隊|
-|ex8|GCN_RNN|下月使用紅利(bnsfg)-single doamin|V| | | | | | | |成大團隊|
-|ex9|GCN_RNN|下月使用分期(iterm)-single doamin|V| | | | | | | |成大團隊|
-|ex10|GCN_RNN|下月消費商店(stonc_label)-single doamin|V| | | | | | | |成大團隊|
+|ex3|TemDMGE|下月使用紅利(bnsfg)、下月使用分期(iterm)、下月消費商店(stonc_label)-cross doamin|| | | | | | | |成大團隊|
+|ex4|TemDMGE_shared|下月使用紅利(bnsfg)、下月使用分期(iterm)、下月消費商店(stonc_label)-cross doamin|| | | | | | | |成大團隊|
+|ex5|TemGCN|下月使用紅利(bnsfg)-single doamin|| | | | | | | |成大團隊|
+|ex6|TemGCN|下月使用分期(iterm)-single doamin|| | | | | | | |成大團隊|
+|ex7|TemGCN|下月消費商店(stonc_label)-single doamin|| | | | | | | |成大團隊|
+|ex8|GCN_RNN|下月使用紅利(bnsfg)-single doamin|| | | | | | | |成大團隊|
+|ex9|GCN_RNN|下月使用分期(iterm)-single doamin|| | | | | | | |成大團隊|
+|ex10|GCN_RNN|下月消費商店(stonc_label)-single doamin|| | | | | | | |成大團隊|
 
 # 意見回饋 
 

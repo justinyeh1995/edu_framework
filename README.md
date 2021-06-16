@@ -411,10 +411,18 @@ class MultiTaskModel(torch.nn.Module):
 |ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V| |V| | | |玉山團隊|
 |ex2|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V| | | | | | | |玉山團隊|
 
+|ex3|TemDMGE|下月使用紅利(bnsfg)、下月使用分期(iterm)、下月消費商店(stonc_label)-cross doamin|V| | | | | | | |成大團隊|
+|ex4|TemDMGE_shared|下月使用紅利(bnsfg)、下月使用分期(iterm)、下月消費商店(stonc_label)-cross doamin|V| | | | | | | |成大團隊|
+|ex5|TemGCN|下月使用紅利(bnsfg)-single doamin|V| | | | | | | |成大團隊|
+|ex6|TemGCN|下月使用分期(iterm)-single doamin|V| | | | | | | |成大團隊|
+|ex7|TemGCN|下月消費商店(stonc_label)-single doamin|V| | | | | | | |成大團隊|
+|ex8|GCN_RNN|下月使用紅利(bnsfg)-single doamin|V| | | | | | | |成大團隊|
+|ex9|GCN_RNN|下月使用分期(iterm)-single doamin|V| | | | | | | |成大團隊|
+|ex10|GCN_RNN|下月消費商店(stonc_label)-single doamin|V| | | | | | | |成大團隊|
 
 # 意見回饋 
 
-- [1] GNN模型輸入資料的方式與先前ETRNN的使用dataloader的方式不同
+- [1] GNN模型輸入資料的方式與先前ETRNN的使用dataloader的方式不同 (static graph可不使用data loader、dynamic graph以每月的snapshots作為不同的graph)
 - [2] Multitask如果是作為訓練任務來實現的話，每個任務會有不同的loss(Recall、AUC)，不確定紀錄訓練過程是否可以同時記錄多任務的loss
 - 
 -  

@@ -5,56 +5,28 @@ import torch.nn.functional as F
 from common.utils import blockPrinting 
 from common.pl_module import BaseMultiTaskModule, BaseMultiTaskDataModule
 
-from experiments.ex1 import dataset_builder, preprocess
-from experiments.ex1.model import MultiTaskModel
-
+from experiments.ex3.data_pipeline import pipe, USE_CHID
+from experiments.ex3.model import MultiTaskModel
 
 experiment_name = __file__.split("/")[-2] # same as the name of current folder 
 experiment_group_name = 'rnn' # folder saving the data of all rnn experiments 
 
-preprocessor = preprocess.PreProcessor(
-    origin_path = 'data/source',
-    sample_path = 'data/sample',
-    tmp_path = f'data/{experiment_group_name}/tmp', 
-    result_path = f'data/{experiment_group_name}/result',
-    n_chid_sample = 500, 
-    window_size = 120, 
-    test_size = 2 
-)
-
-dataset = dataset_builder.DatasetBuilder(
-        tmp_path = f'data/{experiment_name}/tmp', 
-        result_path = f'data/{experiment_name}/result', 
-        numeric_cols = ['bnspt', 'timestamp_0', 'timestamp_1', 'objam'], 
-        category_cols = ['chid', 'bnsfg', 'iterm', 'mcc', 'scity'], 
-        dense_feat = ['bnspt', 'timestamp_0', 'timestamp_1', 'objam'], 
-        sparse_feat = ['chid', 'bnsfg', 'iterm', 'mcc', 'scity'], 
-        USE_CHID = True
-    )
-
-
-(x_train, x_test, y_train, y_test, 
-    feature_map, chid_to_nid_map, columns) = preprocessor.connect_pipeline()
-
-train_dataset, test_dataset = dataset.connect_pipeline(
-    x_train, x_test, y_train, y_test, 
-        feature_map, chid_to_nid_map, columns)
-# TODO: allow input of preprocessor and output of train_dataset and test_dataset 
 
 @blockPrinting
-def _get_data_dependent_model_parameters(dataset):
+def _get_data_dependent_model_parameters(pipe):
     # @DataDependent
-    use_chid = dataset.USE_CHID
-    dense_dims = dataset.dense_dims.run()[0]
-    sparse_dims = dataset.sparse_dims.run()[0]
+    use_chid = USE_CHID
+    
+    dense_dims = pipe.dense_dims.get()
+    sparse_dims = pipe.sparse_dims.get()
+    
+    num_y_data = 3
 
-    num_y_data = len(dataset.processed_y_data.run())
-    num_y_data = num_y_data//2
+    ground_truths = [pipe.test_objmean, pipe.test_tscnt, pipe.test_label_0]
+    
+    out_dims = [y_data.get().shape[1] for y_data in ground_truths]
 
-    ground_truths = dataset.processed_y_data.run()[-num_y_data:]
-    out_dims = [y_data.shape[1] for y_data in ground_truths]
-
-    class_outputs = [type(y_data[0].item())!=float for y_data in ground_truths]
+    class_outputs = [type(y_data.get()[0].item())!=float for y_data in ground_truths]
 
     return {
         'dense_dims': dense_dims, 
@@ -78,7 +50,7 @@ class ExperimentConfig:
                 'cell': 'LSTM', 
                 'bi': False
             },
-            "data_dependent": _get_data_dependent_model_parameters(dataset)
+            "data_dependent": _get_data_dependent_model_parameters(pipe)
         },
         "training_parameters":{
             "dropout": 0.5, 
@@ -86,8 +58,6 @@ class ExperimentConfig:
             "annealing_cycle_epochs": 40
         }
     }
-
-
 
 
 class ExperimentalMultiTaskDataModule(BaseMultiTaskDataModule):
@@ -109,8 +79,8 @@ class ExperimentalMultiTaskDataModule(BaseMultiTaskDataModule):
     def prepare_data(self):
         # things to do on 1 GPU/TPU not on every GPU/TPU in distributed mode. 
         # e.g., download 
-        self.train_dataset = train_dataset.run()[0]
-        self.test_dataset = test_dataset.run()[0]
+        self.train_dataset = pipe.train_dataset.get()
+        self.test_dataset = pipe.test_dataset.get()
 
 
 class ExperimentalMultiTaskModule(BaseMultiTaskModule):

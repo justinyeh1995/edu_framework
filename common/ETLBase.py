@@ -177,8 +177,13 @@ class PipelineBuilder():
                 tmp = self.func_source[func_str]
                 exec(f"{private_func_str} = tmp")
             if type(self.func_source) == str:
-                exec(f'from {self.func_source} import {func_str}')
-                exec(f"{private_func_str} = {func_str}")
+                if '.' in func_str:
+                    fn = func_str.split(".")[0]
+                    exec(f'from {self.func_source} import {fn}')
+                    exec(f"{private_func_str} = {func_str}")
+                else:
+                    exec(f'from {self.func_source} import {func_str}')
+                    exec(f"{private_func_str} = {func_str}")
         
         func_added_pipe = self.add(
             eval(private_func_str), 

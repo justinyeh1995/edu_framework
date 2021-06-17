@@ -146,6 +146,11 @@ class PipelineBuilder():
     def view_dependency(self, *args, **kargs):
         return self.pyflow_GB.view_dependency(*args, **kargs)
     
+    def _func_(self, _func):
+        # decorator for adding a function as a member of the class.  
+        exec(f'self._{_func.__name__} = _func')
+        return _func
+    
     def setup_connection(self, code_str, env = None, result_dir = None, func = None):
         '''
         This function allows self.add to be simplify with simple python function call command. 

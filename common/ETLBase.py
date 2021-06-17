@@ -420,3 +420,13 @@ class DataNode(ETLPro):
         assert self.n_out == 1
         return self.run(verbose=verbose)[0]
         
+# TODO:
+# - [V] change temp object name to obj rather than the function name
+# - [V] make the ETLBase allow save when a result directory is assigned
+# - [V] allow saving of multiple files (ETL might have multiple results)
+# - [V] allow single input and single output (not list)
+# - [V] allow subset selection from previous ETL process
+# - [X] allow the input to be a dictionary and the output to be a dictionary, too
+# - [V] make the ETL Process object allows two step construction like nn.module. 1. first initialized with configuration . 2. Be called to assign inputs and obtain outputs later
+# - [ ] incorporate google drive download as the first step of ETL
+# - [V] allows zero input ETL if the ETL does not have previous ETL

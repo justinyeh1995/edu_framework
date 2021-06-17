@@ -276,14 +276,3 @@ if __name__ == "__main__":
     print(Train, Test)
     print(Dense_dims, Sparse_dims)
 '''
-    # TODO:
-    # - [V] change temp object name to obj rather than the function name
-    # - [V] make the ETLBase allow save when a result directory is assigned
-    # - [V] allow saving of multiple files (ETL might have multiple results)
-    # - [ ] allow single input and single output (not list)
-    # - [ ] allow subset selection from previous ETL process
-    # - [ ] allow the input to be a dictionary and the output to be a dictionary, too
-    # - [ ] make the ETL Process object allows two step construction like nn.module. 1. first initialized with configuration . 2. Be called to assign inputs and obtain outputs later
-    # - [ ] incorporate google drive download as the first step of ETL
-    # - [ ] allows zero input ETL if the ETL does not have previous ETL
-    # - [ ] implement __item__ selected so that the ETL can be splitted by output !

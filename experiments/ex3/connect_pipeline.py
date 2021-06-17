@@ -20,8 +20,8 @@ from experiments.ex3.config_pipeline import config
 pipe = PipelineBuilder(config, func_source='experiments.ex3.preprocess_operators')
 
 sample_path = 'data/sample'
-tmp_path = 'data/tmp' # 'data/tmp'
-result_path = 'data/result' # 'data/result'
+tmp_path = 'data/ex3/tmp' # 'data/tmp'
+result_path = 'data/ex3/result' # 'data/result'
 
 pipe.setup_connection('chids = load_chids(chid_file=chid_file)')
 

@@ -5,11 +5,13 @@ import torch.nn.functional as F
 from common.utils import blockPrinting 
 from common.pl_module import BaseMultiTaskModule, BaseMultiTaskDataModule
 
-from experiments.ex3.data_pipeline import pipe, USE_CHID
+from experiments.ex3.connect_pipeline import pipe, USE_CHID
 from experiments.ex3.model import MultiTaskModel
 
 experiment_name = __file__.split("/")[-2] # same as the name of current folder 
 experiment_group_name = 'rnn' # folder saving the data of all rnn experiments 
+
+
 
 
 @blockPrinting
@@ -62,9 +64,6 @@ class ExperimentConfig:
 
 class ExperimentalMultiTaskDataModule(BaseMultiTaskDataModule):
     # TODO: 
-    # [ ] change prepare_data to download only script 
-    # [ ] change setup to ETL script 
-    # [ ] implement data_dependent parameters getter as follows: dm.num_classes, dm.width, dm.vocab
     # [V] allow batch_size to be saved as parameter 
 
     def __init__(self, batch_size = 64, num_workers = 4, pin_memory = False):
@@ -73,7 +72,6 @@ class ExperimentalMultiTaskDataModule(BaseMultiTaskDataModule):
             num_workers = num_workers,
             pin_memory = pin_memory
         )
-        
 
     # @blockPrinting
     def prepare_data(self):

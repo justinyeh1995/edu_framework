@@ -1,17 +1,20 @@
 #-*- coding: utf-8 -*-
 import os
+import sys 
 import gc
 import feather
 import pandas as pd
+from tabulate import tabulate
 import numpy as np
 from pyflow import GraphBuilder
 import pprint 
 from common.utils import Str2CodeAdaptor
 
+_pp = pprint.PrettyPrinter(width=10, compact=True, indent=1)
 class PipeConfigBuilder:
     def __init__(self):
         self.pyflow_GB = GraphBuilder()
-        self._pp = pprint.PrettyPrinter(width=10, compact=True, indent=1)
+        self.graph_dict = dict()
         
     def add(self, var_name, value, rank=None, color='gray', shape='cylinder', fontsize=None):
         def current_process():
@@ -22,7 +25,7 @@ class PipeConfigBuilder:
         
         self.pyflow_GB.add(current_process, 
                            method_alias = var_name, 
-                           output_alias = self._pp.pformat(value),
+                           output_alias = _pp.pformat(value),
                            n_out = n_out,
                            rank = rank,
                            color = color,
@@ -35,6 +38,7 @@ class PipeConfigBuilder:
         config_module.set_process(current_process)
         config_module.set_n_out(n_out)
         config_module.set_pf_output_node(pf_output)
+        self.graph_dict[pf_output.get_node_uid()] = config_module
         return config_module
     
     def view(self, *args, **kargs):
@@ -54,6 +58,8 @@ class PipeConfigBuilder:
                 Str2CodeAdaptor.add_var(self, var_name, config_module)
     
 class PipelineBuilder():
+    # - [ ] load the function only if the function does not exist 
+    # - [ ] load the function in the beginning if source_func is provided 
     def __init__(self, pipe=None, func_source=None):
         '''
         Input: 
@@ -69,6 +75,11 @@ class PipelineBuilder():
             self.pyflow_GB = pipe.pyflow_GB
         else:
             self.pyflow_GB = GraphBuilder()
+            
+        self.graph_dict = dict()
+        self.data_info_holder = _DataInfoHolder()
+        self._current_mode = 'arg_only'
+
         
     def add(self, process, method_alias=None, output_alias=None, result_dir=None, 
             n_out=1, rank=None, color='lightblue', shape=None, fontsize=None):
@@ -124,13 +135,14 @@ class PipelineBuilder():
                 [process_module],
                 selected_indices=[i])
                 out.set_pf_output_node(pf_output_node)
-                
+                self.graph_dict[pf_output_node.get_node_uid()] = out
                 outs.append(out)
                 
             return outs
             
         else:
             process_module.set_pf_output_node(pf_output)
+            self.graph_dict[pf_output.get_node_uid()] = process_module
             return process_module 
     def _to_pf_out_node(self, arg):
         if type(arg).__name__ == 'DataNode+ETLBase':
@@ -138,18 +150,128 @@ class PipelineBuilder():
         if type(arg).__name__ == 'SelectResult+ETLBase':
             return arg.pf_output_node
         return arg
-    def view(self, *args, **kargs):
+    def view(self, *args, option = 'arg_only', **kargs):
+        if kargs['summary'] == False:
+            self._assign_datanode_info(option = option)
         return self.pyflow_GB.view(
             *args, 
             **kargs
         )
-    def view_dependency(self, *args, **kargs):
+    def view_dependency(self, *args, option = 'arg_only', **kargs):
+        if kargs['summary'] == False:
+            self._assign_datanode_info(option = option)
         return self.pyflow_GB.view_dependency(*args, **kargs)
+    
+    def _assign_datanode_info(self, option = 'arg_only'):
+        assert option == 'all' or option == 'light' or option == 'arg_only'
+        if option == 'arg_only':
+            for node_id, data_node in self.graph_dict.items():
+                graph_node = self.pyflow_GB.graph_dict[node_id]
+                graph_node['alias'] = "_".join(node_id.split("_")[:-1])
+            return 
+        if self._current_mode == option:
+            return 
+        else:
+            if option == 'all' or option == 'light':
+                for node_id, data_node in self.graph_dict.items():
+                    graph_node = self.pyflow_GB.graph_dict[node_id]
+                    graph_node['alias'] = self._obtain_datanode_info(node_id, data_node, option = option)
+                    graph_node['attributes']['fontsize']=1
+    def _obtain_datanode_info(self, node_id, data_node, option = 'light'):
+        assert option == 'all' or option == 'light'
+        if option == 'all':
+            data_name = "_".join(node_id.split("_")[:-1])
+            _size_ = self.data_info_holder.get_size(node_id, data_node)
+            _type_ = self.data_info_holder.get_type(node_id, data_node)
+            _data_content_ = self.data_info_holder.get_data_content(node_id, data_node)
+            result_string = f'{data_name}\ntype:{_type_}\nsize: {_size_} bytes\n{_data_content_}'
+        else:
+            data_name = "_".join(node_id.split("_")[:-1])
+            _size_ = self.data_info_holder.get_size(node_id, data_node)
+            _type_ = self.data_info_holder.get_type(node_id, data_node)
+            result_string = f'{data_name}\ntype:{_type_}\nsize: {_size_} bytes'
+        self.data_info_holder.clean_up_result()
+        return result_string
+    
+    def is_leaf(self, arg_name):
+        info = self.pyflow_GB.graph_dict[arg_name]
+        if 'type' not in info or 'children' not in info:
+            return False 
+        else:
+            return info['type'] == 'data' and len(info['children']) == 0
+        
+    def get_all_ancestor_pf_data_nodes(self, graph_dict, node):
+        data_nodes = dict()
+        def recursive(node):
+            try:
+                node_id = node.pf_output_node.get_node_uid()
+                data_nodes[node_id] = (graph_dict[node_id], node)
+            except:
+                pass 
+            finally:
+                for parent_node in node.pre_request_etls:
+                    recursive(parent_node)
+        recursive(node)
+        return data_nodes
     
     def _func_(self, _func):
         # decorator for adding a function as a member of the class.  
         exec(f'self._{_func.__name__} = _func')
         return _func
+    
+    def _rep_func_(self, func_name):
+        '''
+        Inputs: 
+            - func_name: the name of the function that should be replace 
+            - new_func: the new function (type: method) 
+        '''
+        matched_operations = self._select_operation_by_name(func_name)
+        output_nodes_list = self._get_output_nodes_list(matched_operations)
+        def decorator(new_func):
+            self._assign_new_function(output_nodes_list, new_func)
+        return decorator
+        
+    def _select_operation_by_name(self, func_name):
+        '''
+        Input: 
+            - func_name: the name of the function 
+        Output:
+            - matched_operations: a list of operation nodes in pyflow graph_dict 
+        '''
+        def is_selected_operation(node_id, func_name):
+            node = self.pyflow_GB.graph_dict[node_id]
+            if 'type' in node and node['type'] == 'operation' and node['alias'] == func_name:
+                return True
+            else:
+                return False
+        matched_operations = list(filter(
+            lambda node_id: is_selected_operation(node_id, func_name), 
+            self.pyflow_GB.graph_dict.keys()
+        ))
+        return matched_operations
+    def _get_output_nodes_list(self, operations):
+        '''
+        Inputs:
+            - matched_operations: a list of operation nodes in pyflow graph_dict. 
+        Outputs:
+            - output_nodes_list: a list of children list where each element is a output data node 
+                of an operation. 
+        '''
+        output_nodes_list = [self.pyflow_GB.graph_dict[operation]['children'] for operation in operations]
+        return output_nodes_list
+
+    def _assign_new_function(self, output_nodes_list, new_func):
+        '''
+        Given a list of output nodes where the new function should be assigned as their process. 
+        Note: the new function is injected from one of the output nodes of the operation. 
+        '''
+        for output_nodes in output_nodes_list:
+            if len(output_nodes) > 1:
+                assert type(self.graph_dict[output_nodes[0]]).__name__ == 'SelectResult+ETLBase'
+                self.graph_dict[output_nodes[0]].pre_request_etls[0].set_process(new_func)
+            else:
+                assert type(self.graph_dict[output_nodes[0]]).__name__.split('+')[0] == 'DataNode'
+                self.graph_dict[output_nodes[0]].set_process(new_func)
     
     def setup_connection(self, code_str, env = None, result_dir = None, func = None):
         '''
@@ -173,17 +295,20 @@ class PipelineBuilder():
             exec(f"{private_func_str} = func")
         else: # If no custom function 
             # insert function from global 
-            if type(self.func_source) == dict:
-                tmp = self.func_source[func_str]
-                exec(f"{private_func_str} = tmp")
-            if type(self.func_source) == str:
-                if '.' in func_str:
-                    fn = func_str.split(".")[0]
-                    exec(f'from {self.func_source} import {fn}')
-                    exec(f"{private_func_str} = {func_str}")
-                else:
-                    exec(f'from {self.func_source} import {func_str}')
-                    exec(f"{private_func_str} = {func_str}")
+            try:
+                eval(private_func_str)
+            except:
+                if type(self.func_source) == dict:
+                    tmp = self.func_source[func_str]
+                    exec(f"{private_func_str} = tmp")
+                if type(self.func_source) == str:
+                    if '.' in func_str:
+                        fn = func_str.split(".")[0]
+                        exec(f'from {self.func_source} import {fn}')
+                        exec(f"{private_func_str} = {func_str}")
+                    else:
+                        exec(f'from {self.func_source} import {func_str}')
+                        exec(f"{private_func_str} = {func_str}")
         
         func_added_pipe = self.add(
             eval(private_func_str), 
@@ -220,6 +345,54 @@ class PipelineBuilder():
         else:
             Str2CodeAdaptor.add_var(env, out_vars[0], out_nodes)
 
+class _DataInfoHolder:
+    def __init__(self):
+        self.print_content_dict = dict()
+        self.size_dict = dict()
+        self.type_dict = dict()
+        self._result = None 
+    def get_size(self, node_id, data_node):
+        if node_id in self.size_dict:
+            return self.size_dict[node_id]
+        else:
+            if self._result is not None:
+                self.size_dict[node_id] = sys.getsizeof(self._result)
+            else:
+                self._result = data_node.get()
+                self.size_dict[node_id] = sys.getsizeof(self._result)
+            return self.size_dict[node_id]
+    def get_type(self, node_id, data_node):
+        if node_id in self.type_dict:
+            return self.type_dict[node_id]
+        else:
+            if self._result is not None:
+                self.type_dict[node_id] = type(self._result)
+            else:
+                self._result = data_node.get()
+                self.type_dict[node_id] = type(self._result)
+            return self.type_dict[node_id]
+    def get_data_content(self, node_id, data_node):
+        if node_id in self.print_content_dict:
+            return self.print_content_dict[node_id]
+        else:
+            if self._result is not None:
+                self.print_content_dict[node_id] = self._get_print_result(self._result)
+            else:
+                self._result = data_node.get()
+                self.print_content_dict[node_id] = self._get_print_result(self._result)
+            return self.print_content_dict[node_id]
+    def _get_print_result(self, result):
+        if type(result) == pd.core.frame.DataFrame:
+            print_result = tabulate(result.head(1).T, headers='keys', tablefmt='psql')
+        else:
+            print_result = _pp.pformat(result)
+        if print_result.count('\n')>20:
+            print_result = "\n".join(print_result.split('\n')[:8] + ['...'] + print_result.split('\n')[-4:])
+        return print_result
+    def clean_up_result(self):
+        self._result = None 
+        gc.collect()
+        
 class ETLBase:
     def __init__(self, process_name, pre_request_etls=[], save=False):
         self.process_name = process_name

@@ -85,11 +85,11 @@ class ET_Rnn(torch.nn.Module):
 
     def init_hidden(self, x):
         if self.cell == 'LSTM':
-            hidden = Variable(torch.zeros(self.n_layers * (self.bi + 1), x.size(0), self.hidden_dims))
-            context = Variable(torch.zeros(self.n_layers * (self.bi + 1), x.size(0), self.hidden_dims))
+            hidden = Variable(torch.zeros(self.n_layers * (self.bi + 1), x.size(0), self.hidden_dims, device=x.device))
+            context = Variable(torch.zeros(self.n_layers * (self.bi + 1), x.size(0), self.hidden_dims, device=x.device))
             ret = (hidden, context)
         elif self.cell == 'GRU':
-            hidden = Variable(torch.zeros(self.n_layers * (self.bi + 1), x.size(0), self.hidden_dims))
+            hidden = Variable(torch.zeros(self.n_layers * (self.bi + 1), x.size(0), self.hidden_dims, device=x.device))
             ret = hidden
 
         return ret

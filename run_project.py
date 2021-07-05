@@ -13,12 +13,11 @@ from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor, Mode
 
 
 seed_everything(1, workers=True)
-
 # Load Arguments
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "m:e:l:")
+    opts, args = getopt.getopt(sys.argv[1:], "m:e:l:g:c:")
 except getopt.GetoptError:
-    print('run_project.py -e <experiment_name> -m <run_mode> [-l <log_dir>]')
+    print('run_project.py -e <experiment_name> -m <run_mode> [-l <log_dir>] [-g <gpu_count>] [-c <cpu_count>]')
     sys.exit(2)
 experiment_name = dict(opts)['-e']
 run_mode = dict(opts)['-m']
@@ -27,6 +26,18 @@ if '-l' in dict(opts):
     log_dir = dict(opts)['-l']  # e.g., '/home/ai/work/logs/tensorboard'
 else:
     log_dir = 'logs/tensorboard'
+
+
+if '-g' in dict(opts):
+    gpu_count = int(dict(opts)['-g'])  # e.g., 1
+else:
+    gpu_count = None 
+
+if '-c' in dict(opts):
+    cpu_count = int(dict(opts)['-c'])  # e.g., 16
+else:
+    cpu_count = 4
+
 
 print("experiment_name:", experiment_name)
 print("run_mode:", run_mode)
@@ -43,7 +54,7 @@ exec(f'from experiments.{experiment_name}.experiment_module import ExperimentalM
 exec(f'from experiments.{experiment_name}.experiment_module import ExperimentalMultiTaskModule')
 
 # Load experiment objects
-datamodule = ExperimentalMultiTaskDataModule(num_workers=4, pin_memory=False)
+datamodule = ExperimentalMultiTaskDataModule(num_workers=cpu_count, pin_memory=(gpu_count!=0)) # 
 # - Note: pin_memory = True only when GPU is available, or the program may slowdown dramatically.
 
 datamodule.prepare_data()
@@ -72,7 +83,7 @@ checkpoint = ModelCheckpoint(
 
 early_stopping = EarlyStopping('val_loss', mode='min', verbose=True)
 
-lr_monitor = LearningRateMonitor(logging_interval='epoch', log_momentum=True)
+# lr_monitor = LearningRateMonitor(logging_interval='epoch', log_momentum=True)
 
 
 # Start Running ...
@@ -81,22 +92,24 @@ if run_mode == 'fit1batch':
     # Note: Why you should always overfit a single batch to debug your deep learning model?
     # https://www.youtube.com/watch?v=nAZdK4codMk
     trainer = pl.Trainer(
-        # auto_scale_batch_size='power',
+        auto_scale_batch_size='power',
         auto_lr_find=True,
         logger=logger,
-        callbacks=[checkpoint, lr_monitor],
+        callbacks=[checkpoint],
         deterministic=True,
-        num_sanity_val_steps=1,
+        num_sanity_val_steps=0,
         overfit_batches=1,
-        gpus=None,
-        auto_select_gpus=True
+        gpus=gpu_count,
+        auto_select_gpus=True,
+        accelerator="ddp"
     )
     # Notes:
     # num_sanity_val_steps should be set so that
     # 1. model architecture can be plot in the beginning.
     # 2. validation step can be tested before training start.
     trainer.tune(module, datamodule=datamodule)
-    datamodule.batch_size = 64
+    
+    # datamodule.batch_size = 64
     # module.lr = 2e-2
     trainer.fit(module, datamodule=datamodule)
 elif run_mode == 'fastdebug' or run_mode == 'train':
@@ -104,12 +117,13 @@ elif run_mode == 'fastdebug' or run_mode == 'train':
         auto_scale_batch_size='power',
         auto_lr_find=True,
         logger=logger,
-        callbacks=[checkpoint, lr_monitor, early_stopping],
+        callbacks=[checkpoint, early_stopping],
         deterministic=True,
         num_sanity_val_steps=1,  # Debug
         fast_dev_run=(run_mode == 'fastdebug'),
-        gpus=None,
-        auto_select_gpus=True
+        gpus=gpu_count,
+        auto_select_gpus=True,
+        accelerator="ddp"
     )
     trainer.tune(module, datamodule=datamodule)
     trainer.fit(module, datamodule=datamodule)

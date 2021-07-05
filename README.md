@@ -388,12 +388,9 @@ class MultiTaskModel(torch.nn.Module):
 
 ### 4) GPU/CPU加速：
 
-至`run_project.py`設定: 
-
-1. `pin_memory=True` 
-2. `num_workers`為CPU數量 
-3. `gpus`為gpu數量。
-
+```
+python run_project.py -m [fit1batch/train] -e [實驗資料夾名稱] -g [GPU數量] -c [使用的cpu worker數量]
+```
 
 # 範例檔說明
 

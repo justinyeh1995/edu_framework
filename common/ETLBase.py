@@ -2,7 +2,7 @@
 import os
 import sys 
 import gc
-import feather
+
 import pandas as pd
 from tabulate import tabulate
 import numpy as np
@@ -496,6 +496,7 @@ class ETLwithDifferentResults(ETLBase):
             if '.h5' in file_dir:
                 results.append(pd.read_hdf(file_dir, key=file_dir.split('.h5')[0].split('/')[-1], mode='r'))
             elif '.feather' in file_dir:
+                import feather
                 results.append(feather.read_dataframe(file_dir))
             elif '.npy' in file_dir:
                 # np.save(file_dir.split('.npy')[0], feature_mapper)

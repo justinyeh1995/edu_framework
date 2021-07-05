@@ -59,7 +59,7 @@
         -  [1) 實驗Debug](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#1-%E5%AF%A6%E9%A9%97debug)
         -  [2) 模型訓練與測試](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#2-%E6%A8%A1%E5%9E%8B%E8%A8%93%E7%B7%B4%E8%88%87%E6%B8%AC%E8%A9%A6)
         -  [3) TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)
-        -  [4) CPU/GPU加速]()
+        -  [4) CPU/GPU加速](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#4-gpucpu%E5%8A%A0%E9%80%9F)
 - [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
 - [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7)
 - [實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)
@@ -142,32 +142,6 @@
 執行: 
 `sh install_packages.sh`
 
-或:
-```
-pip install -r requirements.txt
-```
-
-或: 
-
-```
-pip install google-api-python-client==2.5.0
-pip install oauth2client==4.1.3
-
-pip install numpy==1.18.5
-pip install pandas==1.1.4
-pip install tqdm==4.54.1
-pip install feather-format==0.4.1
-pip install tables==3.6.1
-
-pip install sklearn==0.0
-pip install torch==1.8.1
-
-pip install torchmetrics==0.3.2
-pip install pytorch-lightning==1.3.2
-pip install lightning-bolts==0.3.3
-
-pip install tensorboard==2.4.0
-```
 若要使用Nvidia GPU，須安裝GPU版本pytorch，詳情請見：https://pytorch.org。
 
 
@@ -297,7 +271,11 @@ class ExperimentalMultiTaskModule(BaseMultiTaskModule):
             'acc': lambda: Accuracy(compute_on_step=False),
             'auc': lambda: AUROC(compute_on_step=False, pos_label=1)
         }
-
+    def batch_forward(self, batch):                              # 此處根據模型的forward方式定義一個batch的forward，以供共用模組的training/validation/testing將ground_truth和outputs套用到loss上。
+        x_dense, x_sparse, objmean, tscnt, label_0 = batch
+        outputs = self(x_dense, x_sparse)
+        ground_truths = objmean, tscnt, label_0
+        return outputs, ground_truths
 ```
 
 ### 2) 模型 (`model.py`)
@@ -416,12 +394,9 @@ class MultiTaskModel(torch.nn.Module):
 
 ### 4) GPU/CPU加速：
 
-至`run_project.py`設定: 
-
-1. `pin_memory=True` 
-2. `num_workers`為CPU數量 
-3. `gpus`為gpu數量。
-
+```
+python run_project.py -m [fit1batch/train] -e [實驗資料夾名稱] -g [GPU數量] -c [使用的cpu worker數量]
+```
 
 # 範例檔說明
 
@@ -434,13 +409,25 @@ class MultiTaskModel(torch.nn.Module):
 
 
 # 實驗記錄表
-|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|
-|--|:--:|--|--|--|--|--|--|--|--|
-|ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V| | | | |
+|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|GPU成功加速|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|負責人|
+|--|:--:|--|--|--|--|--|--|--|--|--|--|
+|ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V| |V| | | |玉山團隊|
+|ex2|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V| | | | | | | |玉山團隊|
+|ex3|TemDMGE|下月使用紅利(bnsfg)、下月使用分期(iterm)、下月消費商店(stonc_label)-cross doamin|| | | | | | | |成大團隊|
+|ex4|TemDMGE_shared|下月使用紅利(bnsfg)、下月使用分期(iterm)、下月消費商店(stonc_label)-cross doamin|| | | | | | | |成大團隊|
+|ex5|TemGCN|下月使用紅利(bnsfg)-single doamin|| | | | | | | |成大團隊|
+|ex6|TemGCN|下月使用分期(iterm)-single doamin|| | | | | | | |成大團隊|
+|ex7|TemGCN|下月消費商店(stonc_label)-single doamin|| | | | | | | |成大團隊|
+|ex8|GCN_RNN|下月使用紅利(bnsfg)-single doamin|| | | | | | | |成大團隊|
+|ex9|GCN_RNN|下月使用分期(iterm)-single doamin|| | | | | | | |成大團隊|
+|ex10|GCN_RNN|下月消費商店(stonc_label)-single doamin|| | | | | | | |成大團隊|
 
 # 意見回饋 
 
-- [ ] 
+- [1] GNN模型輸入資料的方式與先前ETRNN的使用dataloader的方式不同 (static graph可不使用data loader、dynamic graph以每月的snapshots作為不同的graph)
+- [2] Multitask如果是作為訓練任務來實現的話，每個任務會有不同的loss(Recall、AUC)，不確定紀錄訓練過程是否可以同時記錄多任務的loss
+- 
+-  
 
 
 # Old ReadMe: 

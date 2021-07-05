@@ -2,9 +2,10 @@ pip install google-api-python-client==2.5.0
 pip install oauth2client==4.1.3
 
 pip install numpy==1.18.5
-pip install pandas==1.1.4
+pip install pandas==1.0.3
+conda install pandas==1.0.3 
 pip install tqdm==4.54.1
-pip install feather-format==0.4.1
+# pip install feather-format==0.4.1
 pip install tables==3.6.1
 
 pip install sklearn==0.0

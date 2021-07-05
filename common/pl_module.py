@@ -248,7 +248,7 @@ class BaseMultiTaskModule(pl.LightningModule):
             for metric_name in self.task_metric_names[task_name]:
                 if metric_name == 'acc' or metric_name == 'auc':
                     gnd = gnd.int() 
-                self._metric_dict[mode][task_name][metric_name](out, gnd)
+                self._metric_dict[mode][task_name][metric_name](out.to('cpu'), gnd.to('cpu'))
 
     def validation_epoch_end(self, outputs):
         if self.current_epoch > 0:

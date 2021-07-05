@@ -54,7 +54,7 @@ exec(f'from experiments.{experiment_name}.experiment_module import ExperimentalM
 exec(f'from experiments.{experiment_name}.experiment_module import ExperimentalMultiTaskModule')
 
 # Load experiment objects
-datamodule = ExperimentalMultiTaskDataModule(num_workers=cpu_count, pin_memory=(gpu_count!=0)) # 
+datamodule = ExperimentalMultiTaskDataModule(num_workers=cpu_count, pin_memory=(gpu_count is not None)) # 
 # - Note: pin_memory = True only when GPU is available, or the program may slowdown dramatically.
 
 datamodule.prepare_data()
@@ -150,7 +150,7 @@ elif run_mode == 'test':
 # - [V] 實作lightning DataModule以進一步把Data的部分和pl_module解偶: https://pytorch-lightning.readthedocs.io/en/latest/extensions/datamodules.html#why-do-i-need-a-datamodule
 # - [V] Identify @ExperimentDependent parts in run_project.py and move them to experiment_module.py.
 # - [ ] Organize Folder Structure (share + common)
-#       - [ ] make sure preprocess.py can be run in the ex1 directory
+#       - [V] make sure preprocess.py can be run in the ex1 directory
 #       - [ ] Move all 'path' to an .ini file
 #       - [V] allow directory of import to be redirected during runtime.
 # - [ ] Allow using arbitrary score for checkpoint and early stop (need to self.log in pl_module.py)

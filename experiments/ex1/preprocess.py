@@ -39,7 +39,7 @@ class PreProcessor():
 
         df_cdtx = Load_cdtx(
             'load_cdtx',[sampled_chids], 
-            os.path.join(self.sample_path,'sampled_cdtx0001_hist.feather'), 
+            os.path.join(self.sample_path,'sampled_cdtx0001_hist.h5'), 
             cdtx_file = self.cdtx_file
             )
 
@@ -53,13 +53,13 @@ class PreProcessor():
         df_cdtx = AddMonthTo_cdtx(
             'add_month_to_cdtx',
             [df_cdtx],
-            result_dir=os.path.join(self.tmp_path, 'df_cdtx.feather')
+            result_dir=os.path.join(self.tmp_path, 'df_cdtx.h5')
         )
         # add_month_to_cdtx.run()
         df_full_y_sum = OuterProductTableOfChidsMonth(
             'outer_product_table_of_chids_and_months',
             [df_cdtx],
-            result_dir=os.path.join(self.tmp_path, 'df_full_y_sum.feather')
+            result_dir=os.path.join(self.tmp_path, 'df_full_y_sum.h5')
         )
 
         df_cdtx_monthly_objam = CalculateMonthlyTargetValues(
@@ -71,7 +71,7 @@ class PreProcessor():
         df_full_y_sum = MergeWithOtherTable(
             'merge_df_full_y_sum_with_df_cdtx',
             [df_full_y_sum, df_cdtx_monthly_objam],
-            result_dir=os.path.join(self.tmp_path, 'df_full_y_sum_1.feather'),
+            result_dir=os.path.join(self.tmp_path, 'df_full_y_sum_1.h5'),
             join_method='left'
         )
         # df_full_y_sum.run()
@@ -81,14 +81,14 @@ class PreProcessor():
         df_cust_f = Load_cust_f(
             'load_cust_f',
             [sampled_chids], 
-            os.path.join(self.sample_path,'sampled_cust_f.feather'), 
+            os.path.join(self.sample_path,'sampled_cust_f.h5'), 
             cust_f_file = self.cust_f_file
             )
 
         df_cust_f = ConvertUidToNid(
             'convert_uid_to_nid_on_cust_f',
             [df_cust_f, chid_to_nid_map],
-            result_dir=os.path.join(self.tmp_path, 'df_cust_f.feather')
+            result_dir=os.path.join(self.tmp_path, 'df_cust_f.h5')
         )
 
         df_full_y_sum = MergeWithOtherTable(
@@ -127,7 +127,7 @@ class PreProcessor():
         df_cdtx = AddDurationSinceLastTrans(
             'add_duration_since_last_trans',
             [df_cdtx],
-            result_dir=os.path.join(self.tmp_path, 'df_cdtx_2.feather')
+            result_dir=os.path.join(self.tmp_path, 'df_cdtx_2.h5')
         )
         # df_cdtx.run()
 
@@ -137,7 +137,7 @@ class PreProcessor():
             category_cols=['chid', 'bnsfg', 'iterm', 'mcc', 'scity'],
             numeric_cols=['bnspt', 'timestamp_0', 'timestamp_1', 'objam'],
             result_dir=[
-                os.path.join(self.tmp_path, 'df_input.feather'),
+                os.path.join(self.tmp_path, 'df_input.h5'),
                 os.path.join(self.tmp_path, 'feature_map.npy')
             ]
         )
@@ -159,7 +159,7 @@ class PreProcessor():
                           'sum_u2_ind', 'constant_l2_ind', 'constant_u4_ind',
                           'growth_rate', 'monotone_down', 'monotone_up', 'data_dt'],
             result_dir=[
-                os.path.join(self.tmp_path, 'df_feat_input.feather'),
+                os.path.join(self.tmp_path, 'df_feat_input.h5'),
                 os.path.join(self.tmp_path, 'cust_feature_map.npy')
             ]
         )
@@ -174,7 +174,7 @@ class PreProcessor():
             'convert_data_dt_into_np_datetime64_on_df_feat_input',
             [df_feat_input],
             time_column='data_dt',
-            result_dir=os.path.join(self.tmp_path, 'df_feat_input_2.feather')
+            result_dir=os.path.join(self.tmp_path, 'df_feat_input_2.h5')
         )
 
         df_feat_input = AddDurationSince20180101(
@@ -189,7 +189,7 @@ class PreProcessor():
             'extract_target_columns_from_df',
             [df_full_y_sum],
             target_cols=['chid', 'data_dt', 'objam_sum', 'objam_mean', 'trans_count', 'objam_mean_M3'],  # 'shop_count'
-            result_dir=os.path.join(self.tmp_path, 'df_y.feather')
+            result_dir=os.path.join(self.tmp_path, 'df_y.h5')
         )
         # df_y.run()
         df_y = AddDurationSince20180101(

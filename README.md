@@ -379,7 +379,7 @@ python run_project.py -m [fit1batch/train] -e [實驗資料夾名稱] -g [GPU數
 # 實驗記錄表
 |實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|GPU成功加速|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|負責人|
 |--|:--:|--|--|--|--|--|--|--|--|--|--|
-|ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V| |V| | | |玉山團隊|
+|ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V|V|V| | | |玉山團隊|
 |ex2|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V| | | | | | | |玉山團隊|
 |ex3|TemDMGE|下月使用紅利(bnsfg)、下月使用分期(iterm)、下月消費商店(stonc_label)-cross doamin|| | | | | | | |成大團隊|
 |ex4|TemDMGE_shared|下月使用紅利(bnsfg)、下月使用分期(iterm)、下月消費商店(stonc_label)-cross doamin|| | | | | | | |成大團隊|

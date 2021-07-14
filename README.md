@@ -32,8 +32,8 @@
         -  [4) CPU/GPU加速]()
 - [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
 - [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7)
-    - 1) 資料前處理工具: ETLBase 
-    - 2) blockPrinting 
+    - 1) [資料前處理工具: ETLBase](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86%E5%B7%A5%E5%85%B7-etlbase)
+    - 2) [blockPrinting]()
 - [實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)
 - [意見回饋](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)
 
@@ -411,7 +411,7 @@ class MultiTaskModel(torch.nn.Module):
 ### 工具使用方式說明: 
 此工具主要分為參數設定模組 PipeConfigBuilder 和 串接模組PipelineBuilder 這兩塊，前者用來設定前處理會用到的參數，例如window size、類別或數值型因子的欄位名稱等等，後者則是用來串接前處理模塊。
 
-#### 參數設定模組 (PipeConfigBuilder)
+#### 1) 參數設定 (PipeConfigBuilder)
 
 假設前處理涉及兩個參數a,b，分別設定為1,2，可以用以下方是設定: 
 ```python
@@ -427,18 +427,18 @@ config.view(summary=False)
 ![alt text](http://url/to/img.png)
 
 
-#### 串接模組 (PipelineBuilder)
+#### 2) 建立前處理方式 (PipelineBuilder)
 
 接著可以開始來定義前處理方式。
 
-1) 首先我們先透過以下方是建立好 PipelineBuilder: 
+* 首先我們先透過以下方是建立好 PipelineBuilder: 
 ```python
 from common.ETLBase import PipelineBuilder
 pipe = PipelineBuilder(config)
 ```
 PipelineBuilder帶入config，代表config中所建立的那些參數(a,b)，及可以在前處理程式串接過程中被取用。 
 
-2) 接著我們可以去定義資料處理模塊，舉例來說我們希望有一個可以把a,b進行相加的模塊: 
+* 接著我們可以去定義資料處理模塊，舉例來說我們希望有一個可以把a,b進行相加的模塊: 
 ```python
 @pipe._func_
 def plus_a_b(a=1,b=2):
@@ -446,7 +446,7 @@ def plus_a_b(a=1,b=2):
 ``` 
 如此我們即可以把PipelineBuilder任別出此模塊。
 
-3) 最後進行模塊串接，假設我們想要讓c = a + b, d = a + c, e = d + d, f = b + d，我們可以以下面的方式進行串接: 
+* 最後進行模塊串接，假設我們想要讓c = a + b, d = a + c, e = d + d, f = b + d，我們可以以下面的方式進行串接: 
 
 ```python 
 pipe.setup_connection('c = plus_a_b(a=a,b=b)')
@@ -464,7 +464,7 @@ pipe.view(summary=False)
 ```
 ![alt text](http://url/to/img.png)
 
-#### 於.py定義前處理模組、參數與串接模塊: 
+#### 3) 於.py定義前處理模組、參數與串接模塊: 
 
 前處理模塊可統一定義於一個.py中，並以以下方是載入PipelineBuilder中: 
 
@@ -475,7 +475,7 @@ pipe = PipelineBuilder(config, func_source='experiments.ex3.preprocess_operators
 如以上範例所式，此方式可以載入experiments/ex3/preprocess_operators.py中的所有函式作為串接的模塊使用。
 
 
-#### 啟動前處理並或許中繼結果: 
+#### 4) 啟動前處理並或許中繼結果: 
 
 在開發前處理的過程中，常常會需要檢視前處理過程中的中繼產物，透過一下方法即可將前處理進行計算並取得某一模塊的輸出結果: 
 
@@ -486,7 +486,7 @@ pipe.f.get(verbose=True)
 例如我們想要取得上面pipe中所得之f的值，即可用get來取得。 
 
 
-#### 暫存功能: 
+#### 5) 暫存功能: 
 
 若要使前處理重複使用的中繼產物可以更快被取得，我們提供暫存功能: 
 
@@ -504,7 +504,7 @@ pipe.setup_connection(
 
 目前支援的格式有.feather/.h5/.npy三種格式，.feather和.h5為儲存pandas.DataFrame用的格式、.npy則是用來儲存numpy.array用的格式。
 
-#### Dependency視覺化介紹: 
+#### 6) Dependency視覺化介紹: 
 
 我們亦提供了Hightlight Dependency的功能，舉例來說，透過以下方式即可把圖中，split_data所依賴的模組與資料產物都標住處來。
 ```

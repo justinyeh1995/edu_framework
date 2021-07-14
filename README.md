@@ -434,7 +434,7 @@ class MultiTaskModel(torch.nn.Module):
 
 因此，我們希望透過提供簡易好用的前處理工具，不只讓前處理程式更易於理解，也可以開發更快速。此前處理工具可以透過視覺化的方式，將前處理過程中的模塊、模塊的輸入、輸出，以及模塊之間的串連方式，以[有向圖(DAG)](https://zh.wikipedia.org/wiki/File:Tred-G.svg)的方式呈現，讓前處理的步驟與邏輯可以一目了然。另外，此工具也加入了資料中繼檔暫存功能，讓前處理過程中的中間產物，可以被以檔案的方式儲存起來，讓後續使用此中間產物的處理模塊可以快速仔入，進行後續模塊的調整。
 
-以下我們將對此工具的使用方式進行簡單說明，詳細使用方式請參考[Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb): 
+以下我們將對此工具的使用方式進行簡單說明，詳細使用方式請參考[Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)。
 
 ### 工具使用方式說明: 
 此工具主要分為參數設定模組 PipeConfigBuilder 和 串接模組PipelineBuilder 這兩塊，前者用來設定前處理會用到的參數，例如window size、類別或數值型因子的欄位名稱等等，後者則是用來串接前處理模塊。
@@ -483,6 +483,8 @@ pipe.setup_connection('e = plus_a_b(d,d)')
 pipe.setup_connection('f = plus_a_b(b,d)')
 ```
 
+注意: 帶入setup_connection的python字串請勿加入換行字符\n，或使用expression來定義參數，如: `c=plus_a_b(a=(1*2), b=(6*9))`，PipeConfigBuilder的setup中定義或是出現於先前定義之setup_connection的output。
+
 接著使用view即可呈現整張串接的結果: 
 
 ```python 
@@ -492,10 +494,52 @@ pipe.view(summary=False)
 
 ## 於.py定義前處理模組、參數與串接模塊: 
 
+前處理模塊可統一定義於一個.py中，並以以下方是載入PipelineBuilder中: 
+
+```python 
+from experiments.ex3.config_pipeline import config
+pipe = PipelineBuilder(config, func_source='experiments.ex3.preprocess_operators')
+``` 
+如以上範例所式，此方式可以載入experiments/ex3/preprocess_operators.py中的所有函式作為串接的模塊使用。
 
 
+## 啟動前處理並或許中繼結果: 
+
+在開發前處理的過程中，常常會需要檢視前處理過程中的中繼產物，透過一下方法即可將前處理進行計算並取得某一模塊的輸出結果: 
+
+```
+pipe.f.get(verbose=True)
+>> 6
+```
+例如我們想要取得上面pipe中所得之f的值，即可用get來取得。 
 
 
+## 暫存功能: 
+
+若要使前處理重複使用的中繼產物可以更快被取得，我們提供暫存功能: 
+
+```
+pipe.setup_connection(
+    'df_input, feature_map = extract_feature_cols_and_encode_categoricals(df_cdtx, numeric_cols=numeric_cols, category_cols=category_cols)',
+    result_dir=[
+                'df_input.feather',
+                'feature_map.npy'
+            ]
+)
+```
+
+舉例來說，上面的extract_feature_cols_and_encode_categoricals函數會輸出兩個暫存檔，並且此兩個檔案都會在後續資料處理被大量使用，即可以在result_dir給其各自的儲存檔名進行暫存，當程式執行到此函數時，其結果即會被自動儲存。
+
+目前支援的格式有.feather/.h5/.npy三種格式，.feather和.h5為儲存pandas.DataFrame用的格式、.npy則是用來儲存numpy.array用的格式。
+
+## Dependency視覺化介紹: 
+
+我們亦提供了Hightlight Dependency的功能，舉例來說，透過以下方式即可把圖中，split_data所依賴的模組與資料產物都標住處來。
+```
+pipe.view_dependency('split_data', summary=False)
+```
+
+詳細視覺化的進階操作請參考: [Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)
 
 
 

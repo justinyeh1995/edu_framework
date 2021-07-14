@@ -427,7 +427,7 @@ config.setups(a=1,b=2)
 ```python
 config.view(summary=False)
 ```
-![alt text](http://url/to/img.png)
+![alt text](https://raw.githubusercontent.com/udothemath/ncku_customer_embedding/d32f6bc035d15e3e2ee7ea0c5c565113a354687c/image/config.svg?token=ABUAH4YM3EL7GTBBETG4CDTA52ISK)
 
 
 ### 2) 前處理串接方式 (PipelineBuilder)
@@ -465,7 +465,7 @@ pipe.setup_connection('f = plus_a_b(b,d)')
 ```python 
 pipe.view(summary=False)
 ```
-![alt text](http://url/to/img.png)
+![alt text](https://raw.githubusercontent.com/udothemath/ncku_customer_embedding/d32f6bc035d15e3e2ee7ea0c5c565113a354687c/image/pipe.svg?token=ABUAH46VTE7W3UDH3DTDHS3A52IVW)
 
 ### 3) 於.py定義前處理模組: 
 
@@ -477,6 +477,11 @@ pipe = PipelineBuilder(config, func_source='experiments.ex3.preprocess_operators
 ``` 
 如以上範例所式，此方式可以載入experiments/ex3/preprocess_operators.py中的所有函式作為串接的模塊使用。
 
+一樣使用view即可檢視串接樣貌: 
+```python 
+pipe.view(summary=False)
+```
+![alt text](https://raw.githubusercontent.com/udothemath/ncku_customer_embedding/d32f6bc035d15e3e2ee7ea0c5c565113a354687c/image/whole.svg?token=ABUAH447Z3GVYEHQ3KUWAHTA52I3K)
 
 ### 4) 執行前處理並取得運算結果: 
 
@@ -517,7 +522,7 @@ pipe.setup_connection(
 ```
 pipe.view_dependency('split_data', summary=False)
 ```
-
+![alt text](https://raw.githubusercontent.com/udothemath/ncku_customer_embedding/d32f6bc035d15e3e2ee7ea0c5c565113a354687c/image/dependency.svg?token=ABUAH4YN6IILE64MNKWPXODA52I54)
 詳細視覺化的進階操作請參考: [Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)
 
 

@@ -1,33 +1,3 @@
-# MODIFICATION: 
-
-## New Preprocessing Model 
-- [V] 設計新preprocess module (based on [pyflow-viz](https://pypi.org/project/pyflow-viz/)) 幫助data pipeline的視覺化。
-      - [V] 視覺化完整 pipeline 
-      - [V] 視覺化dependency 
-- [V] 把此新preprocess module打包進ex3 作為使用範例
-      - [V] 建立 ex3
-      - [V] 把preprocessing functions 放進去
-- [V] refine DataNode and SelectResult:
-      - [V] implement get method on DataNode and SelectResult  
-      - [V] allow passing of verbose variable. 
-- [V] allow visualization of configuration variable. 
-- [V] let DataNode takes kargs with ETLPro class argument 
-- [V] build preprocess configuration object. 
-    - [V] Using pprint to make config values better visualized in the DAG graph (given a max-line-length) 
-- [V] 任何etl程式都可以被以圖形化的方式呈現。(只要function定義好、接好、config也定義好即可) 
-- [V] 用 exec() 讓pipeline的撰寫和config的assignment可以更自然。 HARD!! 
-    - [V] Allow all functions to be inserted into the PipelineBuilder in one go by 1. globals() 2. from package_name import * 
-    - [ ] Allow object function to be inserted too. 
-- [V] Use the setup_connection on the current ex1 pipeline. 
-- [ ] 讓此工具完整取代 experiment_module.py 中的 preprocessing. 
-- [ ] Scan over the code and switch public func/vars to private ones. 
-- [ ] 於ex3內放置data pipeline視覺化範例
-
-# ISSUES:
-- [ ] 行內相容性問題 
-      - [ ] cpu 環境 
-      - [ ] gpu 環境 
-- [ ] colab相容性問題 
 
 
 # 簡介: 
@@ -36,41 +6,49 @@
 
 於每次實驗，根據我們所制定的規範創立一個全新的實驗設定資料夾，在其中定義模型、模型參數、各任務衡量指標、資料前處理方法，即可與我們的實驗共用模組進行串接整合，讓每一次的實驗都可以被簡易地複製、衡量、調整。
 
-以下將進一步介紹此框架的 1. [資料夾架構](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B) 2. [實驗執行方法](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95
-) 3. [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E
-) 4. [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7) 
+以下將進一步介紹此框架的 1. [資料夾架構](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B) 2. [實驗執行方法](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95
+) 3. [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E
+) 4. [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7) 
 
-此程式為beta版，若於使用中有疑問或建議，可以於[意見回饋](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)提供給我們，我們將會對此框架進行調整。
-另外，在把實驗納入此框架的過程中，麻煩也幫我們填寫[實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)，已方便我們追蹤進度。
+此程式為beta版，若於使用中有疑問或建議，可以於[意見回饋](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)提供給我們，我們將會對此框架進行調整。
+另外，在把實驗納入此框架的過程中，麻煩也幫我們填寫[實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)，已方便我們追蹤進度。
 
 ## 目錄: 
 
-- [簡介](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%B0%A1%E4%BB%8B)
-- [資料夾架構](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B)
-- [實驗執行方法](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95)
-    - [Step 1: 安裝dependencies](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-1-%E5%AE%89%E8%A3%9Ddependencies)
-    - [Step 2: 下載原始資料](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)
-    - [Step 3: 測試實驗是否可執行](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-3-%E6%B8%AC%E8%A9%A6%E5%AF%A6%E9%A9%97%E6%98%AF%E5%90%A6%E5%8F%AF%E5%9F%B7%E8%A1%8C)
-    - [Step 4: 建構新實驗](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)
-        - [1) 實驗模組](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#1-%E5%AF%A6%E9%A9%97%E6%A8%A1%E7%B5%84-experiment_modulepy)
-        - [2) 模型](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#2-%E6%A8%A1%E5%9E%8B-modelpy)
-        - [3) 前處理](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86-dataset_builderpypreprocesspy)
-    - [Step 5: 執行新實驗](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)
-        -  [1) 實驗Debug](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#1-%E5%AF%A6%E9%A9%97debug)
-        -  [2) 模型訓練與測試](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#2-%E6%A8%A1%E5%9E%8B%E8%A8%93%E7%B7%B4%E8%88%87%E6%B8%AC%E8%A9%A6)
-        -  [3) TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)
-        -  [4) CPU/GPU加速](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#4-gpucpu%E5%8A%A0%E9%80%9F)
-- [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
-- [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7)
-- [實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)
-- [意見回饋](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)
+- [簡介](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E7%B0%A1%E4%BB%8B)
+- [資料夾架構](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B)
+- [實驗執行方法](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95)
+    - [Step 1: 安裝dependencies](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-1-%E5%AE%89%E8%A3%9Ddependencies)
+    - [Step 2: 下載原始資料](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)
+    - [Step 3: 測試實驗是否可執行](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-3-%E6%B8%AC%E8%A9%A6%E5%AF%A6%E9%A9%97%E6%98%AF%E5%90%A6%E5%8F%AF%E5%9F%B7%E8%A1%8C)
+    - [Step 4: 建構新實驗](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)
+        - [1) 實驗模組](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#1-%E5%AF%A6%E9%A9%97%E6%A8%A1%E7%B5%84-experiment_modulepy)
+        - [2) 模型](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#2-%E6%A8%A1%E5%9E%8B-modelpy)
+        - [3) 前處理](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#3-%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86-dataset_builderpypreprocesspy)
+    - [Step 5: 執行新實驗](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)
+        -  [1) 實驗Debug](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#1-%E5%AF%A6%E9%A9%97debug)
+        -  [2) 模型訓練與測試](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#2-%E6%A8%A1%E5%9E%8B%E8%A8%93%E7%B7%B4%E8%88%87%E6%B8%AC%E8%A9%A6)
+        -  [3) TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)
+        -  [4) CPU/GPU加速]()
+- [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
+- [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7)
+    - 1) [資料前處理工具: ETLBase](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86%E5%B7%A5%E5%85%B7-etlbase)
+        - 1.1) [參數設定](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#1-%E5%8F%83%E6%95%B8%E8%A8%AD%E5%AE%9A-pipeconfigbuilder)
+        - 1.2) [前處理串接方式 (PipelineBuilder)](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#2-%E5%89%8D%E8%99%95%E7%90%86%E4%B8%B2%E6%8E%A5%E6%96%B9%E5%BC%8F-pipelinebuilder)
+        - 1.3) [於.py定義前處理模組](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#3-%E6%96%BCpy%E5%AE%9A%E7%BE%A9%E5%89%8D%E8%99%95%E7%90%86%E6%A8%A1%E7%B5%84)
+        - 1.4) [執行前處理並取得運算結果](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#4-%E5%9F%B7%E8%A1%8C%E5%89%8D%E8%99%95%E7%90%86%E4%B8%A6%E5%8F%96%E5%BE%97%E9%81%8B%E7%AE%97%E7%B5%90%E6%9E%9C)
+        - 1.5) [中繼檔暫存功能](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#5-%E4%B8%AD%E7%B9%BC%E6%AA%94%E6%9A%AB%E5%AD%98%E5%8A%9F%E8%83%BD)
+        - 1.6) [Dependency視覺化介紹](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#6-dependency%E8%A6%96%E8%A6%BA%E5%8C%96%E4%BB%8B%E7%B4%B9)
+    - 2) [blockPrinting](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#utilsblockprint)
+- [實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)
+- [意見回饋](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)
 
 
 # 資料夾架構 
 
 以下為資料夾架構，標上 * 的檔案為實驗執行後，才會生成的檔案或資料夾；標上 V 的為特定實驗專屬之實驗檔或檔案夾；
 
-標上🟠為須由實驗者[自行建置](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)之實驗檔或資料夾；標上🟢為須執行之檔案，包含[檔案下載](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)與[實驗運行](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)；標上🔵為須[自行下載](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)之檔案。
+標上🟠為須由實驗者[自行建置](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)之實驗檔或資料夾；標上🟢為須執行之檔案，包含[檔案下載](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)與[實驗運行](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)；標上🔵為須[自行下載](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)之檔案。
 
 ```
 .
@@ -105,8 +83,9 @@
 |    ├──V🟠[experiment_name]                              # V 特定實驗之實驗模組 
 |    |      ├──V🟠experiment_module.py                    # V 實驗設定模組                                
 |    |      ├──V🟠model.py                                # V 模型模組 
-|    |      ├──V🟠dataset_builder.py                      # V 資料前處理模組 
-|    |      ├──V🟠preprocess.py                           # V 資料前處理模組 
+|    |      ├──V🟠preprocess_operators.py                 # V 資料前處理模組 (see ex3)
+|    |      ├──V🟠config_pipeline.py                      # V 資料前處理模組 (see ex3)
+|    |      ├──V🟠connect_pipeline.py                     # V 資料前處理模組 (see ex3)
 |    |      └──V🟠__init__.py                        
 |    └──V🟠[experiment_name]
 |    └── ...
@@ -172,7 +151,7 @@
 
 ## Step 4: 建構新實驗: 
 
-可以複製ex1資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex2)，並修改其中的`experiment_module.py`/`model.py`/`dataset_builder.py`/`preprocess.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`dataset_builder.py`和`preprocess.py`為前處理程式。
+可以複製[ex3](https://github.com/udothemath/ncku_customer_embedding/tree/enhance_preprocess_module/experiments/ex3)資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex4)，並修改其中的`experiment_module.py`/`model.py`/`config_pipeline.py`/`connect_pipeline.py`/`preprocess_operators.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`config_pipeline.py`/`connect_pipeline.py`/`preprocess_operators.py`為前處理程式。
 
 以下將以ex1為範例，分別說明此三類程式的建構方式: 
 
@@ -334,12 +313,11 @@ class MultiTaskModel(torch.nn.Module):
 
 ```
 
-### 3) 資料前處理 (`dataset_builder.py`/`preprocess.py`)
+### 3) 資料前處理 (`preprocess_operators.py`/`connect_pipeline.py`/`config_pipeline.py`)
 
-此兩程式定義了產生TensorDataset物件之資料前處理data pipeline，其使用了我們的`ETLPro`物件進行處理模組的定義並進行pipeline的串接。
+此三個程式定義了產生TensorDataset物件之資料前處理data pipeline，其使用了我們的`common/ETLBase.py`的`PipeConfigBuilder`物件進行處理模組的參數定義並用`PipeBuilder`進行串接的定義。
 
-
-於不同的實驗或模型所需之資料前處理方式不一樣，因此亦可以自行創建自己的資料前處理方式。詳細使用方式將於**範例檔介紹**說明，`ETLPro`的使用方式則會於**小工具**介紹。
+詳細使用方式於**小工具**介紹。
 
 
 ## Step 5: 執行新實驗: 
@@ -356,7 +334,7 @@ class MultiTaskModel(torch.nn.Module):
 
 **fit1batch** 
 
-接著，為了確保模型設計是合理的，讓模型overfit一個訓練的batch，正常的狀況，loss要能夠持續下降，loss的監控參考 [TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)。
+接著，為了確保模型設計是合理的，讓模型overfit一個訓練的batch，正常的狀況，loss要能夠持續下降，loss的監控參考 [TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)。
 
 `python run_project.py -m fit1batch -e [實驗資料夾名稱] (-l [log_dir])` 
 
@@ -370,7 +348,7 @@ class MultiTaskModel(torch.nn.Module):
 
 `python run_project.py -m train -e [實驗資料夾名稱] (-l [log_dir])`  
 
-模型的validation/training performance的監控參考 [TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)。
+模型的validation/training performance的監控參考 [TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)。
 
 訓練過程中，表現最佳的模型以及最後一個epoch的模型暫存檔(.ckpt)會被保存於`./checkpoint/[實驗資料夾名稱]`中，每增加一個epoch，就會被更新一次。
 
@@ -403,11 +381,13 @@ python run_project.py -m [fit1batch/train] -e [實驗資料夾名稱] -g [GPU數
 
 # 小工具 
 
-## ETLPro 
+## 資料前處理工具: ETLBase 
 
-## utils.blockPrint
+為了能讓資料轉換為能夠輸入模型的形式，實驗建置過程中，往往會需要耗費許多的心力來進行資料的前處理，而對於不同的模型版本，又有可能會有相應的不一樣的前處理方式，隨著實驗的增加，前處理的程式也相應得變得越來越難以維護。另外，建立前處理程式的過程中，往往涉及到大量冗長的資料轉換，因此在開發過程中也容易因資料轉換而耽誤了開發時程。
 
+因此，我們希望透過提供簡易好用的前處理工具，不只讓前處理程式更易於理解，也可以開發更快速。此前處理工具可以透過視覺化的方式，將前處理過程中的模塊、模塊的輸入、輸出，以及模塊之間的串連方式，以[有向圖(DAG)](https://zh.wikipedia.org/wiki/File:Tred-G.svg)的方式呈現，讓前處理的步驟與邏輯可以一目了然。另外，此工具也加入了資料中繼檔暫存功能，讓前處理過程中的中間產物，可以被以檔案的方式儲存起來，讓後續使用此中間產物的處理模塊可以快速仔入，進行後續模塊的調整。
 
+<<<<<<< HEAD
 # 實驗記錄表
 |實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|GPU成功加速|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|負責人|
 |--|:--:|--|--|--|--|--|--|--|--|--|--|
@@ -421,143 +401,181 @@ python run_project.py -m [fit1batch/train] -e [實驗資料夾名稱] -g [GPU數
 |ex8|GCN_RNN|下月使用紅利(bnsfg)-single doamin|| | | | | | | |成大團隊|
 |ex9|GCN_RNN|下月使用分期(iterm)-single doamin|| | | | | | | |成大團隊|
 |ex10|GCN_RNN|下月消費商店(stonc_label)-single doamin|| | | | | | | |成大團隊|
+=======
+此工具主要分為參數設定模組 PipeConfigBuilder 和 串接模組PipelineBuilder 這兩塊，前者用來設定前處理會用到的參數，例如window size、類別或數值型因子的欄位名稱等等，後者則是用來串接前處理模塊，以下我們將對此工具的使用方式進行簡單說明，詳細使用方式請參考[Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)。
+>>>>>>> 825e9da04d542a7c785eba931c31395bf59c9ac4
 
-# 意見回饋 
+### 1) 參數設定 (PipeConfigBuilder)
 
+<<<<<<< HEAD
 - [1] GNN模型輸入資料的方式與先前ETRNN的使用dataloader的方式不同 (static graph可不使用data loader、dynamic graph以每月的snapshots作為不同的graph)
 - [2] Multitask如果是作為訓練任務來實現的話，每個任務會有不同的loss(Recall、AUC)，不確定紀錄訓練過程是否可以同時記錄多任務的loss
 - 
 -  
-
-
-# Old ReadMe: 
-
-## 原始程式碼
-```diff
-! Under Construction !
-```
-
-You can check the latest sources with the command:
-```
-git clone git@github.com:udothemath/ncku_customer_embedding.git
-```
-
-## 安裝dependencies: 
-
-```
-sh install_packages.sh
-```
-
-### ToDo: add package version
-```
-pip install google-api-python-client==2.5.0
-pip install oauth2client==4.1.3
-
-pip install numpy==1.18.5
-pip install pandas==1.1.4
-pip install tqdm==4.54.1
-pip install feather-format==0.4.1
-pip install tables==3.6.1
-
-pip install sklearn==0.0
-pip install torch==1.8.1
-
-pip install torchmetrics==0.3.2
-pip install pytorch-lightning==1.3.2
-pip install lightning-bolts==0.3.3
-
-pip install tensorboard==2.4.0
-```
-
-## 如何設定與執行? 
-
-### 1. Download Dataset from Google Drive 
-* 至../data執行**download_data_from_google_drive.ipynb**進行訓練與測試資料下載
-
-### 2. Preprocessing and Build TensorDataset 
-
-* 先至../esun底下
-* 分段執行
-  * `python preprocess.py`: 將../data的資料進行downsampling和資料處理轉換，並將結果儲存於../esun/data/result。
-  * `python dataset_builder.py`: 將preprocess.py的結果進一步轉換為模型所需之格式(i.e., TensorDataset)。
-* 直接執行
-  * `python dataset_builder.py`
-
-### 3. 建立logging與checkpoint路徑
-
-1.  建立**logs/tensorboard**路徑，並於其中建立ncku_customer_embedding資料夾，以儲存實驗產生之Tensorboard Logs。
-2.  建立**checkpoint**資料夾，以儲存模型暫存檔。
-3.  打開../esun執行**run_project.py**進行編輯。
-    - 將TensorBoardLogger('/home/ai/work/logs/tensorboard',...)中的tensorboard路徑改為Step 1所創建的**logs/tensorboard路徑**。
-    - 將ModelCheckpoint(... dirpath='./checkpoint',...)中的dirpath路徑改為Step 2的**checkpoint路徑**
-
-### 4. 執行模型訓練、Debug或驗證
-
-* 訓練: `python run_project.py -m train`
-* Debug: 
-  - `python run_project.py -m fastdebug` (快速執行一次validation_step和train_step)
-  - `python run_project.py -m fit1batch` ([讓模型overfit一個batch](https://www.youtube.com/watch?v=nAZdK4codMk)) 
-* 驗證: 
-  - `python run_project.py -m test` (使用測試資料進行測試) 
-
-
-## 如何監控訓練狀況? 
-
-- 於terminal輸入`tensorboard --logdir [tensorboard/ncku_customer_embedding路徑]`，即可於瀏覽器開啟tensorboard查看訓練狀況(http://localhost:6006/)。
-
-
-## 重要程式設定說明 
-
-### Downsampling: 
-
-為了加速測試，**preprocess.py**做資料處理過程中，會進一步downsample至500名users，將**preprocess.py**中進行以下修改，即可考慮所有(50K)的users。
-
-將
+=======
+假設前處理涉及兩個參數a,b，分別設定為1,2，可以用以下方是設定: 
 ```python
-sampled_chids = Sample_chids(
-                      'sample_chids', 
-                      [chids], 
-                      result_dir = os.path.join(sample_path,'sampled_chids.npy'), 
-                      n_sample = 500
-           ) 
+from common.ETLBase import PipeConfigBuilder
+config = PipeConfigBuilder()
+config.setups(a=1,b=2)
 ```
-改為
-```python
-sampled_chids = Sample_chids(
-                      'sample_chids', 
-                      [chids], 
-                      result_dir = os.path.join(sample_path,'sampled_chids.npy'), 
-                      n_sample = None
-           ) 
-```
-### 如何修改模型參數? 
+設定完成後，即可用view來呈現設定狀態: 
+>>>>>>> 825e9da04d542a7c785eba931c31395bf59c9ac4
 
-至run_project.py修改: 
 ```python
-config = {
-           'hidden_dims': 64, 
-           'n_layers': 2, 
-           'cell': 'LSTM', 
-           'bi': False, 
-           'dropout': 0.5
-}
+config.view(summary=False)
+```
+![alt text](https://raw.githubusercontent.com/udothemath/ncku_customer_embedding/d32f6bc035d15e3e2ee7ea0c5c565113a354687c/image/config.svg?token=ABUAH4YM3EL7GTBBETG4CDTA52ISK)
+
+
+### 2) 前處理串接方式 (PipelineBuilder)
+
+接著可以開始來定義前處理方式。
+
+* 首先我們先透過以下方是建立好 PipelineBuilder: 
+```python
+from common.ETLBase import PipelineBuilder
+pipe = PipelineBuilder(config)
+```
+PipelineBuilder帶入config，代表config中所建立的那些參數(a,b)，及可以在前處理程式串接過程中被取用。 
+
+* 接著我們可以去定義資料處理模塊，舉例來說我們希望有一個可以把a,b進行相加的模塊: 
+```python
+@pipe._func_
+def plus_a_b(a=1,b=2):
+    return a+b
 ``` 
+如此我們即可以把PipelineBuilder任別出此模塊。
 
-至dataset_builder.py修改`dense_feat`、`sparse_feat`和`USE_CHID`以決定模型所使用的**類別型特徵**、**數值型特徵**以及**是否使用顧客id做為類別型特徵**。
+* 最後進行模塊串接，假設我們想要讓c = a + b, d = a + c, e = d + d, f = b + d，我們可以以下面的方式進行串接: 
 
-### 如何使preprocess.py認別其使用檔案的儲存路徑以及其產生的檔案之儲存路徑? 
-
-可將以下preprocess.py的路徑進行調整，`origin_path`是來源資料的路徑、`sample_path`是儲存來源資料的一個downsample的版本的路徑、`tmp_path`儲存preprocess過程中中繼檔的路徑、`result_path`儲存最終檔案的路徑。
-
-```python
-origin_path = '../data'
-sample_path = 'data/sample'
-tmp_path = 'data/tmp'
-result_path = 'data/result'
-chid_file = os.path.join(origin_path, 'sample_chid.txt')
-cdtx_file = os.path.join(origin_path, 'sample_zip_if_cca_cdtx0001_hist.csv')
-cust_f_file = os.path.join(origin_path, 'sample_zip_if_cca_cust_f.csv')
+```python 
+pipe.setup_connection('c = plus_a_b(a=a,b=b)')
+pipe.setup_connection('d = plus_a_b(a=a,c)')
+pipe.setup_connection('e = plus_a_b(d,d)')
+pipe.setup_connection('f = plus_a_b(b,d)')
 ```
 
-## Test
-Add my comment
+注意: 帶入setup_connection的python字串請勿加入換行字符\n，或使用expression來定義參數，如: `c=plus_a_b(a=(1*2), b=(6*9))`，PipeConfigBuilder的setup中定義或是出現於先前定義之setup_connection的output。
+
+接著使用view即可呈現整張串接的結果: 
+
+```python 
+pipe.view(summary=False)
+```
+![alt text](https://raw.githubusercontent.com/udothemath/ncku_customer_embedding/d32f6bc035d15e3e2ee7ea0c5c565113a354687c/image/pipe.svg?token=ABUAH46VTE7W3UDH3DTDHS3A52IVW)
+
+### 3) 於.py定義前處理模組: 
+
+前處理模塊可統一定義於一個.py中，並以以下方是載入PipelineBuilder中: 
+
+```python 
+from experiments.ex3.config_pipeline import config
+pipe = PipelineBuilder(config, func_source='experiments.ex3.preprocess_operators')
+``` 
+如以上範例所式，此方式可以載入experiments/ex3/preprocess_operators.py中的所有函式作為串接的模塊使用。
+
+一樣使用view即可檢視串接樣貌: 
+```python 
+pipe.view(summary=False)
+```
+![alt text](https://raw.githubusercontent.com/udothemath/ncku_customer_embedding/d32f6bc035d15e3e2ee7ea0c5c565113a354687c/image/whole.svg?token=ABUAH447Z3GVYEHQ3KUWAHTA52I3K)
+
+### 4) 執行前處理並取得運算結果: 
+
+我們所設計的工具，在定義資料串接方式時，前處理只會進行串接，並不會執行計算。
+**但是**在開發前處理的過程中，常常會需要檢視前處理過程中的中繼產物，透過以下方法即可將前處理進行計算並取得某一模塊的輸出結果: 
+
+```
+pipe.f.get(verbose=True)
+>> 6
+```
+例如我們想要取得上面pipe中所得之f的值，即可用get來取得，此時所有f所依賴的前處理模塊皆會進行執行。
+
+
+### 5) 中繼檔暫存功能: 
+
+若要使前處理重複使用的中繼產物可以更快被取得，我們提供暫存功能: 
+
+```
+pipe.setup_connection(
+    'df_input, feature_map = extract_feature_cols_and_encode_categoricals(df_cdtx, numeric_cols=numeric_cols, category_cols=category_cols)',
+    result_dir=[
+                'df_input.feather',
+                'feature_map.npy'
+            ]
+)
+```
+
+舉例來說，上面的extract_feature_cols_and_encode_categoricals函數會輸出兩個暫存檔，且此兩個檔案都會在後續資料處理被大量使用。為了減少開發時間，可以在result_dir給其各自的儲存檔名進行暫存，當程式執行到此函數時，其結果即會被自動儲存，下次執行時，即會直接載入所暫存的結果進行後續計算。
+
+目前支援的格式有.feather/.h5/.npy三種格式，.feather和.h5為儲存pandas.DataFrame用的格式、.npy則是用來儲存numpy.array用的格式。
+
+注意: 若要重從新執行此模塊的計算，須把暫存檔刪除才會重新執行，並產製結果，否則預設為直接使用暫存的結果。
+
+
+### 6) Dependency視覺化介紹: 
+
+我們亦提供了Hightlight Dependency的功能，舉例來說，透過以下方式即可把圖中，split_data所依賴的模組與資料產物都標住處來。
+```
+pipe.view_dependency('split_data', summary=False)
+```
+![alt text](https://raw.githubusercontent.com/udothemath/ncku_customer_embedding/d32f6bc035d15e3e2ee7ea0c5c565113a354687c/image/dependency.svg?token=ABUAH4YN6IILE64MNKWPXODA52I54)
+詳細視覺化的進階操作請參考: [Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)
+
+
+
+## utils.blockPrint
+用來把函數中會print出來的資訊都影藏起來。
+
+使用方法: 
+
+```python 
+from common.utils import blockPrinting
+
+@blockPrinting
+def function_to_block():
+      print('message to be blocked')
+```
+
+
+
+# 實驗記錄表
+|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|
+|--|:--:|--|--|--|--|--|--|--|--|
+|ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V| | | | |
+
+# 意見回饋 
+
+- [ ] 
+
+# MODIFICATION: 
+
+## New Preprocessing Model 
+- [X] 設計新preprocess module (based on [pyflow-viz](https://pypi.org/project/pyflow-viz/)) 幫助data pipeline的視覺化。
+      - [X] 視覺化完整 pipeline 
+      - [X] 視覺化dependency 
+- [X] 把此新preprocess module打包進ex3 作為使用範例
+      - [X] 建立 ex3
+      - [X] 把preprocessing functions 放進去
+- [X] refine DataNode and SelectResult:
+      - [X] implement get method on DataNode and SelectResult  
+      - [X] allow passing of verbose variable. 
+- [X] allow visualization of configuration variable. 
+- [X] let DataNode takes kargs with ETLPro class argument 
+- [X] build preprocess configuration object. 
+    - [X] Using pprint to make config values better visualized in the DAG graph (given a max-line-length) 
+- [X] 任何etl程式都可以被以圖形化的方式呈現。(只要function定義好、接好、config也定義好即可) 
+- [X] 用 exec() 讓pipeline的撰寫和config的assignment可以更自然。 HARD!! 
+    - [X] Allow all functions to be inserted into the PipelineBuilder in one go by 1. globals() 2. from package_name import * 
+    - [ ] Allow object function to be inserted too. 
+- [X] Use the setup_connection on the current ex1 pipeline. 
+- [X] 放置data pipeline視覺化範例
+- [ ] 讓此工具完整取代 experiment_module.py 中的 preprocessing. 
+- [ ] Scan over the code and switch public func/vars to private ones. 
+
+# ISSUES:
+- [ ] 行內相容性問題 
+      - [ ] cpu 環境 
+      - [ ] gpu 環境 
+- [ ] colab相容性問題 

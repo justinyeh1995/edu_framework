@@ -1,27 +1,27 @@
 # MODIFICATION: 
 
 ## New Preprocessing Model 
-- [V] 設計新preprocess module (based on [pyflow-viz](https://pypi.org/project/pyflow-viz/)) 幫助data pipeline的視覺化。
-      - [V] 視覺化完整 pipeline 
-      - [V] 視覺化dependency 
-- [V] 把此新preprocess module打包進ex3 作為使用範例
-      - [V] 建立 ex3
-      - [V] 把preprocessing functions 放進去
-- [V] refine DataNode and SelectResult:
-      - [V] implement get method on DataNode and SelectResult  
-      - [V] allow passing of verbose variable. 
-- [V] allow visualization of configuration variable. 
-- [V] let DataNode takes kargs with ETLPro class argument 
-- [V] build preprocess configuration object. 
-    - [V] Using pprint to make config values better visualized in the DAG graph (given a max-line-length) 
-- [V] 任何etl程式都可以被以圖形化的方式呈現。(只要function定義好、接好、config也定義好即可) 
-- [V] 用 exec() 讓pipeline的撰寫和config的assignment可以更自然。 HARD!! 
-    - [V] Allow all functions to be inserted into the PipelineBuilder in one go by 1. globals() 2. from package_name import * 
+- [X] 設計新preprocess module (based on [pyflow-viz](https://pypi.org/project/pyflow-viz/)) 幫助data pipeline的視覺化。
+      - [X] 視覺化完整 pipeline 
+      - [X] 視覺化dependency 
+- [X] 把此新preprocess module打包進ex3 作為使用範例
+      - [X] 建立 ex3
+      - [X] 把preprocessing functions 放進去
+- [X] refine DataNode and SelectResult:
+      - [X] implement get method on DataNode and SelectResult  
+      - [X] allow passing of verbose variable. 
+- [X] allow visualization of configuration variable. 
+- [X] let DataNode takes kargs with ETLPro class argument 
+- [X] build preprocess configuration object. 
+    - [X] Using pprint to make config values better visualized in the DAG graph (given a max-line-length) 
+- [X] 任何etl程式都可以被以圖形化的方式呈現。(只要function定義好、接好、config也定義好即可) 
+- [X] 用 exec() 讓pipeline的撰寫和config的assignment可以更自然。 HARD!! 
+    - [X] Allow all functions to be inserted into the PipelineBuilder in one go by 1. globals() 2. from package_name import * 
     - [ ] Allow object function to be inserted too. 
-- [V] Use the setup_connection on the current ex1 pipeline. 
+- [X] Use the setup_connection on the current ex1 pipeline. 
+- [X] 放置data pipeline視覺化範例
 - [ ] 讓此工具完整取代 experiment_module.py 中的 preprocessing. 
 - [ ] Scan over the code and switch public func/vars to private ones. 
-- [ ] 於ex3內放置data pipeline視覺化範例
 
 # ISSUES:
 - [ ] 行內相容性問題 
@@ -428,9 +428,90 @@ class MultiTaskModel(torch.nn.Module):
 
 # 小工具 
 
-## ETLPro 
+## 資料前處理工具: ETLBase 
+
+為了能讓資料轉換為能夠輸入模型的形式，實驗建置過程中，往往會需要耗費許多的心力來進行資料的前處理，而對於不同的模型版本，又有可能會有相應的不一樣的前處理方式，隨著實驗的增加，前處理的程式也相應得變得越來越難以維護。另外，建立前處理程式的過程中，往往涉及到大量冗長的資料轉換，因此在開發過程中也容易因資料轉換而耽誤了開發時程。
+
+因此，我們希望透過提供簡易好用的前處理工具，不只讓前處理程式更易於理解，也可以開發更快速。此前處理工具可以透過視覺化的方式，將前處理過程中的模塊、模塊的輸入、輸出，以及模塊之間的串連方式，以[有向圖(DAG)](https://zh.wikipedia.org/wiki/File:Tred-G.svg)的方式呈現，讓前處理的步驟與邏輯可以一目了然。另外，此工具也加入了資料中繼檔暫存功能，讓前處理過程中的中間產物，可以被以檔案的方式儲存起來，讓後續使用此中間產物的處理模塊可以快速仔入，進行後續模塊的調整。
+
+以下我們將對此工具的使用方式進行簡單說明，詳細使用方式請參考[Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb): 
+
+### 工具使用方式說明: 
+此工具主要分為參數設定模組 PipeConfigBuilder 和 串接模組PipelineBuilder 這兩塊，前者用來設定前處理會用到的參數，例如window size、類別或數值型因子的欄位名稱等等，後者則是用來串接前處理模塊。
+
+#### 參數設定模組 (PipeConfigBuilder)
+
+假設前處理涉及兩個參數a,b，分別設定為1,2，可以用以下方是設定: 
+```python
+from common.ETLBase import PipeConfigBuilder
+config = PipeConfigBuilder()
+config.setups(a=1,b=2)
+```
+設定完成後，即可用view來呈現設定狀態: 
+
+```python
+config.view(summary=False)
+```
+![alt text](http://url/to/img.png)
+
+
+#### 串接模組 (PipelineBuilder)
+
+接著可以開始來定義前處理方式。
+
+1) 首先我們先透過以下方是建立好 PipelineBuilder: 
+```python
+from common.ETLBase import PipelineBuilder
+pipe = PipelineBuilder(config)
+```
+PipelineBuilder帶入config，代表config中所建立的那些參數(a,b)，及可以在前處理程式串接過程中被取用。 
+
+2) 接著我們可以去定義資料處理模塊，舉例來說我們希望有一個可以把a,b進行相加的模塊: 
+```python
+@pipe._func_
+def plus_a_b(a=1,b=2):
+    return a+b
+``` 
+如此我們即可以把PipelineBuilder任別出此模塊。
+
+3) 最後進行模塊串接，假設我們想要讓c = a + b, d = a + c, e = d + d, f = b + d，我們可以以下面的方式進行串接: 
+
+```python 
+pipe.setup_connection('c = plus_a_b(a=a,b=b)')
+pipe.setup_connection('d = plus_a_b(a=a,c)')
+pipe.setup_connection('e = plus_a_b(d,d)')
+pipe.setup_connection('f = plus_a_b(b,d)')
+```
+
+接著使用view即可呈現整張串接的結果: 
+
+```python 
+pipe.view(summary=False)
+```
+![alt text](http://url/to/img.png)
+
+## 於.py定義前處理模組、參數與串接模塊: 
+
+
+
+
+
+
+
 
 ## utils.blockPrint
+用來把函數中會print出來的資訊都影藏起來。
+
+使用方法: 
+
+```python 
+from common.utils import blockPrinting
+
+@blockPrinting
+def function_to_block():
+      print('message to be blocked')
+```
+
 
 
 # 實驗記錄表

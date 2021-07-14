@@ -15,8 +15,8 @@
 
 ## 目錄: 
 
-- [簡介](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%B0%A1%E4%BB%8B)
-- [資料夾架構](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B)
+- [簡介](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E7%B0%A1%E4%BB%8B)
+- [資料夾架構](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B)
 - [實驗執行方法](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95)
     - [Step 1: 安裝dependencies](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-1-%E5%AE%89%E8%A3%9Ddependencies)
     - [Step 2: 下載原始資料](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)
@@ -32,6 +32,8 @@
         -  [4) CPU/GPU加速]()
 - [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
 - [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7)
+    - 1) 資料前處理工具: ETLBase 
+    - 2) blockPrinting 
 - [實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)
 - [意見回饋](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)
 
@@ -326,12 +328,11 @@ class MultiTaskModel(torch.nn.Module):
 
 ```
 
-### 3) 資料前處理 (`dataset_builder.py`/`preprocess.py`)
+### 3) 資料前處理 (`preprocess_operators.py`/`connect_pipeline.py`/`config_pipeline.py`)
 
-此兩程式定義了產生TensorDataset物件之資料前處理data pipeline，其使用了我們的`ETLPro`物件進行處理模組的定義並進行pipeline的串接。
+此三個程式定義了產生TensorDataset物件之資料前處理data pipeline，其使用了我們的`common/ETLBase.py`的`PipeConfigBuilder`物件進行處理模組的參數定義並用`PipeBuilder`進行串接的定義。
 
-
-於不同的實驗或模型所需之資料前處理方式不一樣，因此亦可以自行創建自己的資料前處理方式。詳細使用方式將於**範例檔介紹**說明，`ETLPro`的使用方式則會於**小工具**介紹。
+詳細使用方式於**小工具**介紹。
 
 
 ## Step 5: 執行新實驗: 

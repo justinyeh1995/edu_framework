@@ -1,33 +1,3 @@
-# MODIFICATION: 
-
-## New Preprocessing Model 
-- [X] 設計新preprocess module (based on [pyflow-viz](https://pypi.org/project/pyflow-viz/)) 幫助data pipeline的視覺化。
-      - [X] 視覺化完整 pipeline 
-      - [X] 視覺化dependency 
-- [X] 把此新preprocess module打包進ex3 作為使用範例
-      - [X] 建立 ex3
-      - [X] 把preprocessing functions 放進去
-- [X] refine DataNode and SelectResult:
-      - [X] implement get method on DataNode and SelectResult  
-      - [X] allow passing of verbose variable. 
-- [X] allow visualization of configuration variable. 
-- [X] let DataNode takes kargs with ETLPro class argument 
-- [X] build preprocess configuration object. 
-    - [X] Using pprint to make config values better visualized in the DAG graph (given a max-line-length) 
-- [X] 任何etl程式都可以被以圖形化的方式呈現。(只要function定義好、接好、config也定義好即可) 
-- [X] 用 exec() 讓pipeline的撰寫和config的assignment可以更自然。 HARD!! 
-    - [X] Allow all functions to be inserted into the PipelineBuilder in one go by 1. globals() 2. from package_name import * 
-    - [ ] Allow object function to be inserted too. 
-- [X] Use the setup_connection on the current ex1 pipeline. 
-- [X] 放置data pipeline視覺化範例
-- [ ] 讓此工具完整取代 experiment_module.py 中的 preprocessing. 
-- [ ] Scan over the code and switch public func/vars to private ones. 
-
-# ISSUES:
-- [ ] 行內相容性問題 
-      - [ ] cpu 環境 
-      - [ ] gpu 環境 
-- [ ] colab相容性問題 
 
 
 # 簡介: 
@@ -492,7 +462,7 @@ pipe.view(summary=False)
 ```
 ![alt text](http://url/to/img.png)
 
-## 於.py定義前處理模組、參數與串接模塊: 
+#### 於.py定義前處理模組、參數與串接模塊: 
 
 前處理模塊可統一定義於一個.py中，並以以下方是載入PipelineBuilder中: 
 
@@ -503,7 +473,7 @@ pipe = PipelineBuilder(config, func_source='experiments.ex3.preprocess_operators
 如以上範例所式，此方式可以載入experiments/ex3/preprocess_operators.py中的所有函式作為串接的模塊使用。
 
 
-## 啟動前處理並或許中繼結果: 
+#### 啟動前處理並或許中繼結果: 
 
 在開發前處理的過程中，常常會需要檢視前處理過程中的中繼產物，透過一下方法即可將前處理進行計算並取得某一模塊的輸出結果: 
 
@@ -514,7 +484,7 @@ pipe.f.get(verbose=True)
 例如我們想要取得上面pipe中所得之f的值，即可用get來取得。 
 
 
-## 暫存功能: 
+#### 暫存功能: 
 
 若要使前處理重複使用的中繼產物可以更快被取得，我們提供暫存功能: 
 
@@ -532,7 +502,7 @@ pipe.setup_connection(
 
 目前支援的格式有.feather/.h5/.npy三種格式，.feather和.h5為儲存pandas.DataFrame用的格式、.npy則是用來儲存numpy.array用的格式。
 
-## Dependency視覺化介紹: 
+#### Dependency視覺化介紹: 
 
 我們亦提供了Hightlight Dependency的功能，舉例來說，透過以下方式即可把圖中，split_data所依賴的模組與資料產物都標住處來。
 ```
@@ -567,135 +537,33 @@ def function_to_block():
 
 - [ ] 
 
+# MODIFICATION: 
 
-# Old ReadMe: 
+## New Preprocessing Model 
+- [X] 設計新preprocess module (based on [pyflow-viz](https://pypi.org/project/pyflow-viz/)) 幫助data pipeline的視覺化。
+      - [X] 視覺化完整 pipeline 
+      - [X] 視覺化dependency 
+- [X] 把此新preprocess module打包進ex3 作為使用範例
+      - [X] 建立 ex3
+      - [X] 把preprocessing functions 放進去
+- [X] refine DataNode and SelectResult:
+      - [X] implement get method on DataNode and SelectResult  
+      - [X] allow passing of verbose variable. 
+- [X] allow visualization of configuration variable. 
+- [X] let DataNode takes kargs with ETLPro class argument 
+- [X] build preprocess configuration object. 
+    - [X] Using pprint to make config values better visualized in the DAG graph (given a max-line-length) 
+- [X] 任何etl程式都可以被以圖形化的方式呈現。(只要function定義好、接好、config也定義好即可) 
+- [X] 用 exec() 讓pipeline的撰寫和config的assignment可以更自然。 HARD!! 
+    - [X] Allow all functions to be inserted into the PipelineBuilder in one go by 1. globals() 2. from package_name import * 
+    - [ ] Allow object function to be inserted too. 
+- [X] Use the setup_connection on the current ex1 pipeline. 
+- [X] 放置data pipeline視覺化範例
+- [ ] 讓此工具完整取代 experiment_module.py 中的 preprocessing. 
+- [ ] Scan over the code and switch public func/vars to private ones. 
 
-## 原始程式碼
-```diff
-! Under Construction !
-```
-
-You can check the latest sources with the command:
-```
-git clone git@github.com:udothemath/ncku_customer_embedding.git
-```
-
-## 安裝dependencies: 
-
-```
-sh install_packages.sh
-```
-
-### ToDo: add package version
-```
-pip install google-api-python-client==2.5.0
-pip install oauth2client==4.1.3
-
-pip install numpy==1.18.5
-pip install pandas==1.1.4
-pip install tqdm==4.54.1
-pip install feather-format==0.4.1
-pip install tables==3.6.1
-
-pip install sklearn==0.0
-pip install torch==1.8.1
-
-pip install torchmetrics==0.3.2
-pip install pytorch-lightning==1.3.2
-pip install lightning-bolts==0.3.3
-
-pip install tensorboard==2.4.0
-```
-
-## 如何設定與執行? 
-
-### 1. Download Dataset from Google Drive 
-* 至../data執行**download_data_from_google_drive.ipynb**進行訓練與測試資料下載
-
-### 2. Preprocessing and Build TensorDataset 
-
-* 先至../esun底下
-* 分段執行
-  * `python preprocess.py`: 將../data的資料進行downsampling和資料處理轉換，並將結果儲存於../esun/data/result。
-  * `python dataset_builder.py`: 將preprocess.py的結果進一步轉換為模型所需之格式(i.e., TensorDataset)。
-* 直接執行
-  * `python dataset_builder.py`
-
-### 3. 建立logging與checkpoint路徑
-
-1.  建立**logs/tensorboard**路徑，並於其中建立ncku_customer_embedding資料夾，以儲存實驗產生之Tensorboard Logs。
-2.  建立**checkpoint**資料夾，以儲存模型暫存檔。
-3.  打開../esun執行**run_project.py**進行編輯。
-    - 將TensorBoardLogger('/home/ai/work/logs/tensorboard',...)中的tensorboard路徑改為Step 1所創建的**logs/tensorboard路徑**。
-    - 將ModelCheckpoint(... dirpath='./checkpoint',...)中的dirpath路徑改為Step 2的**checkpoint路徑**
-
-### 4. 執行模型訓練、Debug或驗證
-
-* 訓練: `python run_project.py -m train`
-* Debug: 
-  - `python run_project.py -m fastdebug` (快速執行一次validation_step和train_step)
-  - `python run_project.py -m fit1batch` ([讓模型overfit一個batch](https://www.youtube.com/watch?v=nAZdK4codMk)) 
-* 驗證: 
-  - `python run_project.py -m test` (使用測試資料進行測試) 
-
-
-## 如何監控訓練狀況? 
-
-- 於terminal輸入`tensorboard --logdir [tensorboard/ncku_customer_embedding路徑]`，即可於瀏覽器開啟tensorboard查看訓練狀況(http://localhost:6006/)。
-
-
-## 重要程式設定說明 
-
-### Downsampling: 
-
-為了加速測試，**preprocess.py**做資料處理過程中，會進一步downsample至500名users，將**preprocess.py**中進行以下修改，即可考慮所有(50K)的users。
-
-將
-```python
-sampled_chids = Sample_chids(
-                      'sample_chids', 
-                      [chids], 
-                      result_dir = os.path.join(sample_path,'sampled_chids.npy'), 
-                      n_sample = 500
-           ) 
-```
-改為
-```python
-sampled_chids = Sample_chids(
-                      'sample_chids', 
-                      [chids], 
-                      result_dir = os.path.join(sample_path,'sampled_chids.npy'), 
-                      n_sample = None
-           ) 
-```
-### 如何修改模型參數? 
-
-至run_project.py修改: 
-```python
-config = {
-           'hidden_dims': 64, 
-           'n_layers': 2, 
-           'cell': 'LSTM', 
-           'bi': False, 
-           'dropout': 0.5
-}
-``` 
-
-至dataset_builder.py修改`dense_feat`、`sparse_feat`和`USE_CHID`以決定模型所使用的**類別型特徵**、**數值型特徵**以及**是否使用顧客id做為類別型特徵**。
-
-### 如何使preprocess.py認別其使用檔案的儲存路徑以及其產生的檔案之儲存路徑? 
-
-可將以下preprocess.py的路徑進行調整，`origin_path`是來源資料的路徑、`sample_path`是儲存來源資料的一個downsample的版本的路徑、`tmp_path`儲存preprocess過程中中繼檔的路徑、`result_path`儲存最終檔案的路徑。
-
-```python
-origin_path = '../data'
-sample_path = 'data/sample'
-tmp_path = 'data/tmp'
-result_path = 'data/result'
-chid_file = os.path.join(origin_path, 'sample_chid.txt')
-cdtx_file = os.path.join(origin_path, 'sample_zip_if_cca_cdtx0001_hist.csv')
-cust_f_file = os.path.join(origin_path, 'sample_zip_if_cca_cust_f.csv')
-```
-
-## Test
-Add my comment
+# ISSUES:
+- [ ] 行內相容性問題 
+      - [ ] cpu 環境 
+      - [ ] gpu 環境 
+- [ ] colab相容性問題 

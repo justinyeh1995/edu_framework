@@ -1,49 +1,48 @@
 
 
-{% assign branch = "enhance_preprocess_module" %}
 # 簡介: 
 
 此程式框架的用途是幫助多任務實驗的協作與開發，提供了實驗的訓練、測試、Debug、前處理用的共用模組，並且支援Checkpoint，讓每次實驗產生的最佳模型可以被儲存以供測試使用，也提供logging的機制，以讓訓練過程中的模型的成效可以用Tensorboard來隨時檢視。
 
 於每次實驗，根據我們所制定的規範創立一個全新的實驗設定資料夾，在其中定義模型、模型參數、各任務衡量指標、資料前處理方法，即可與我們的實驗共用模組進行串接整合，讓每一次的實驗都可以被簡易地複製、衡量、調整。
 
-以下將進一步介紹此框架的 1. [資料夾架構](https://github.com/udothemath/ncku_customer_embedding/blob/{{branch}}/README.md#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B) 2. [實驗執行方法](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95
-) 3. [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E
-) 4. [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7) 
+以下將進一步介紹此框架的 1. [資料夾架構](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B) 2. [實驗執行方法](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95
+) 3. [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E
+) 4. [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7) 
 
-此程式為beta版，若於使用中有疑問或建議，可以於[意見回饋](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)提供給我們，我們將會對此框架進行調整。
-另外，在把實驗納入此框架的過程中，麻煩也幫我們填寫[實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)，已方便我們追蹤進度。
+此程式為beta版，若於使用中有疑問或建議，可以於[意見回饋](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)提供給我們，我們將會對此框架進行調整。
+另外，在把實驗納入此框架的過程中，麻煩也幫我們填寫[實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)，已方便我們追蹤進度。
 
 ## 目錄: 
 
 - [簡介](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E7%B0%A1%E4%BB%8B)
 - [資料夾架構](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B)
-- [實驗執行方法](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95)
-    - [Step 1: 安裝dependencies](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-1-%E5%AE%89%E8%A3%9Ddependencies)
-    - [Step 2: 下載原始資料](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)
-    - [Step 3: 測試實驗是否可執行](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-3-%E6%B8%AC%E8%A9%A6%E5%AF%A6%E9%A9%97%E6%98%AF%E5%90%A6%E5%8F%AF%E5%9F%B7%E8%A1%8C)
-    - [Step 4: 建構新實驗](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)
-        - [1) 實驗模組](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#1-%E5%AF%A6%E9%A9%97%E6%A8%A1%E7%B5%84-experiment_modulepy)
-        - [2) 模型](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#2-%E6%A8%A1%E5%9E%8B-modelpy)
-        - [3) 前處理](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86-dataset_builderpypreprocesspy)
-    - [Step 5: 執行新實驗](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)
-        -  [1) 實驗Debug](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#1-%E5%AF%A6%E9%A9%97debug)
-        -  [2) 模型訓練與測試](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#2-%E6%A8%A1%E5%9E%8B%E8%A8%93%E7%B7%B4%E8%88%87%E6%B8%AC%E8%A9%A6)
-        -  [3) TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)
+- [實驗執行方法](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95)
+    - [Step 1: 安裝dependencies](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-1-%E5%AE%89%E8%A3%9Ddependencies)
+    - [Step 2: 下載原始資料](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)
+    - [Step 3: 測試實驗是否可執行](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-3-%E6%B8%AC%E8%A9%A6%E5%AF%A6%E9%A9%97%E6%98%AF%E5%90%A6%E5%8F%AF%E5%9F%B7%E8%A1%8C)
+    - [Step 4: 建構新實驗](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)
+        - [1) 實驗模組](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#1-%E5%AF%A6%E9%A9%97%E6%A8%A1%E7%B5%84-experiment_modulepy)
+        - [2) 模型](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#2-%E6%A8%A1%E5%9E%8B-modelpy)
+        - [3) 前處理](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#3-%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86-dataset_builderpypreprocesspy)
+    - [Step 5: 執行新實驗](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)
+        -  [1) 實驗Debug](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#1-%E5%AF%A6%E9%A9%97debug)
+        -  [2) 模型訓練與測試](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#2-%E6%A8%A1%E5%9E%8B%E8%A8%93%E7%B7%B4%E8%88%87%E6%B8%AC%E8%A9%A6)
+        -  [3) TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)
         -  [4) CPU/GPU加速]()
-- [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
-- [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7)
+- [範例檔說明](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
+- [小工具](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7)
     - 1) 資料前處理工具: ETLBase 
     - 2) blockPrinting 
-- [實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)
-- [意見回饋](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)
+- [實驗紀錄表](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)
+- [意見回饋](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)
 
 
 # 資料夾架構 
 
 以下為資料夾架構，標上 * 的檔案為實驗執行後，才會生成的檔案或資料夾；標上 V 的為特定實驗專屬之實驗檔或檔案夾；
 
-標上🟠為須由實驗者[自行建置](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)之實驗檔或資料夾；標上🟢為須執行之檔案，包含[檔案下載](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)與[實驗運行](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)；標上🔵為須[自行下載](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)之檔案。
+標上🟠為須由實驗者[自行建置](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)之實驗檔或資料夾；標上🟢為須執行之檔案，包含[檔案下載](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)與[實驗運行](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)；標上🔵為須[自行下載](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)之檔案。
 
 ```
 .
@@ -78,8 +77,9 @@
 |    ├──V🟠[experiment_name]                              # V 特定實驗之實驗模組 
 |    |      ├──V🟠experiment_module.py                    # V 實驗設定模組                                
 |    |      ├──V🟠model.py                                # V 模型模組 
-|    |      ├──V🟠dataset_builder.py                      # V 資料前處理模組 
-|    |      ├──V🟠preprocess.py                           # V 資料前處理模組 
+|    |      ├──V🟠preprocess_operators.py                 # V 資料前處理模組 (see ex3)
+|    |      ├──V🟠config_pipeline.py                      # V 資料前處理模組 (see ex3)
+|    |      ├──V🟠connect_pipeline.py                     # V 資料前處理模組 (see ex3)
 |    |      └──V🟠__init__.py                        
 |    └──V🟠[experiment_name]
 |    └── ...
@@ -171,7 +171,7 @@ pip install tensorboard==2.4.0
 
 ## Step 4: 建構新實驗: 
 
-可以複製ex1資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex2)，並修改其中的`experiment_module.py`/`model.py`/`dataset_builder.py`/`preprocess.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`dataset_builder.py`和`preprocess.py`為前處理程式。
+可以複製[ex3](https://github.com/udothemath/ncku_customer_embedding/tree/enhance_preprocess_module/experiments/ex3)資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex4)，並修改其中的`experiment_module.py`/`model.py`/`config_pipeline.py`/`connect_pipeline.py`/`preprocess_operators.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`config_pipeline.py`/`connect_pipeline.py`/`preprocess_operators.py`為前處理程式。
 
 以下將以ex1為範例，分別說明此三類程式的建構方式: 
 
@@ -350,7 +350,7 @@ class MultiTaskModel(torch.nn.Module):
 
 **fit1batch** 
 
-接著，為了確保模型設計是合理的，讓模型overfit一個訓練的batch，正常的狀況，loss要能夠持續下降，loss的監控參考 [TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)。
+接著，為了確保模型設計是合理的，讓模型overfit一個訓練的batch，正常的狀況，loss要能夠持續下降，loss的監控參考 [TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)。
 
 `python run_project.py -m fit1batch -e [實驗資料夾名稱] (-l [log_dir])` 
 
@@ -364,7 +364,7 @@ class MultiTaskModel(torch.nn.Module):
 
 `python run_project.py -m train -e [實驗資料夾名稱] (-l [log_dir])`  
 
-模型的validation/training performance的監控參考 [TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/multitask_experiment_framework/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)。
+模型的validation/training performance的監控參考 [TensorBoard-訓練成效監控](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)。
 
 訓練過程中，表現最佳的模型以及最後一個epoch的模型暫存檔(.ckpt)會被保存於`./checkpoint/[實驗資料夾名稱]`中，每增加一個epoch，就會被更新一次。
 

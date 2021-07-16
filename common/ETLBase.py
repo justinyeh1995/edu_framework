@@ -516,6 +516,7 @@ class ETLwithDifferentResults(ETLBase):
             if '.h5' in file_dir:
                 results[i].to_hdf(file_dir, key=file_dir.split('.')[0].split('/')[-1], mode='w')
             elif '.feather' in file_dir:
+                import feather
                 feather.write_dataframe(results[i], file_dir)
             elif '.npy' in file_dir:
                 np.save(file_dir.split('.npy')[0], results[i])

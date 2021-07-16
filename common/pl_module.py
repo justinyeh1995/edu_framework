@@ -294,8 +294,10 @@ class BaseMultiTaskModule(pl.LightningModule):
         metric_values = {}
         for task_name in self._metric_dict[mode].keys():
             for metric_name in self._metric_dict[mode][task_name].keys():
-                # TODO: add loop 
-                metric_value = self._metric_dict[mode][task_name][metric_name].compute()
+                try:
+                    metric_value = self._metric_dict[mode][task_name][metric_name].compute()
+                except:
+                    metric_value = float('nan')
                 metric_values[f'{task_name}_{metric_name}'] = metric_value
                 if verbose:
                     print(f'{task_name}_{metric_name}: {round(metric_value.item(),3)}')

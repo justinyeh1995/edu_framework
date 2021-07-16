@@ -106,7 +106,6 @@ class ExperimentalMultiTaskModule(BaseMultiTaskModule):
     '''
     If additional metrics are considered in the experiment, 
     we can override the following function with new metric calculator added.  
-
     def config_metric_calculators(self):
         from torchmetrics import MeanSquaredError, MeanAbsoluteError, Accuracy, AUROC
         return {
@@ -123,4 +122,3 @@ class ExperimentalMultiTaskModule(BaseMultiTaskModule):
         outputs = self(x_dense, x_sparse)
         ground_truths = objmean, tscnt, label_0
         return outputs, ground_truths
-

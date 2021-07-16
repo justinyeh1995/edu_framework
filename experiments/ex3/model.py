@@ -85,11 +85,11 @@ class ET_Rnn(torch.nn.Module):
 
     def init_hidden(self, x):
         if self.cell == 'LSTM':
-            hidden = Variable(torch.zeros(self.n_layers * (self.bi + 1), x.size(0), self.hidden_dims))
-            context = Variable(torch.zeros(self.n_layers * (self.bi + 1), x.size(0), self.hidden_dims))
+            hidden = Variable(torch.zeros(self.n_layers * (self.bi + 1), x.size(0), self.hidden_dims, device=x.device))
+            context = Variable(torch.zeros(self.n_layers * (self.bi + 1), x.size(0), self.hidden_dims, device=x.device))
             ret = (hidden, context)
         elif self.cell == 'GRU':
-            hidden = Variable(torch.zeros(self.n_layers * (self.bi + 1), x.size(0), self.hidden_dims))
+            hidden = Variable(torch.zeros(self.n_layers * (self.bi + 1), x.size(0), self.hidden_dims, device=x.device))
             ret = hidden
 
         return ret
@@ -104,6 +104,9 @@ class ET_Rnn(torch.nn.Module):
         logits, self.hidden = self.rnn(x, self.hidden)
         # TODO: why rnn takes two input? what is the purpose of self.hidden ?
         if self.use_chid:
+            # print("x_sparse.shape:",x_sparse.shape)
+            # print("len(self.embedding_list)", len(self.embedding_list))
+            # print("self.embedding_list[0]", self.embedding_list[0])
             user_embed = self.user_layer(self.embedding_list[0](x_sparse[:, 0, 0]))
             last_logits = torch.cat([logits[:, -1], user_embed], dim=-1)
         else:

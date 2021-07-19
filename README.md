@@ -391,12 +391,7 @@ python run_project.py -m [fit1batch/train] -e [實驗資料夾名稱] -g [GPU數
 
 ### 1) 參數設定 (PipeConfigBuilder)
 
-<<<<<<< HEAD
-- [1] GNN模型輸入資料的方式與先前ETRNN的使用dataloader的方式不同 (static graph可不使用data loader、dynamic graph以每月的snapshots作為不同的graph)
-- [2] Multitask如果是作為訓練任務來實現的話，每個任務會有不同的loss(Recall、AUC)，不確定紀錄訓練過程是否可以同時記錄多任務的loss
-- 
--  
-=======
+
 假設前處理涉及兩個參數a,b，分別設定為1,2，可以用以下方是設定: 
 ```python
 from common.ETLBase import PipeConfigBuilder
@@ -530,7 +525,8 @@ def function_to_block():
 
 # 意見回饋 
 
-- [ ] 
+- [1] GNN模型輸入資料的方式與先前ETRNN的使用dataloader的方式不同 (static graph可不使用data loader、dynamic graph以每月的snapshots作為不同的graph)
+- [2] Multitask如果是作為訓練任務來實現的話，每個任務會有不同的loss(Recall、AUC)，不確定紀錄訓練過程是否可以同時記錄多任務的loss
 
 # MODIFICATION: 
 

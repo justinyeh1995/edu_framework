@@ -387,23 +387,7 @@ python run_project.py -m [fit1batch/train] -e [實驗資料夾名稱] -g [GPU數
 
 因此，我們希望透過提供簡易好用的前處理工具，不只讓前處理程式更易於理解，也可以開發更快速。此前處理工具可以透過視覺化的方式，將前處理過程中的模塊、模塊的輸入、輸出，以及模塊之間的串連方式，以[有向圖(DAG)](https://zh.wikipedia.org/wiki/File:Tred-G.svg)的方式呈現，讓前處理的步驟與邏輯可以一目了然。另外，此工具也加入了資料中繼檔暫存功能，讓前處理過程中的中間產物，可以被以檔案的方式儲存起來，讓後續使用此中間產物的處理模塊可以快速仔入，進行後續模塊的調整。
 
-<<<<<<< HEAD
-# 實驗記錄表
-|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|GPU成功加速|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|負責人|
-|--|:--:|--|--|--|--|--|--|--|--|--|--|
-|ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V|V|V| | | |玉山團隊|
-|ex2|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V| | | | | | | |玉山團隊|
-|ex3|TemDMGE|下月使用紅利(bnsfg)、下月使用分期(iterm)、下月消費商店(stonc_label)-cross doamin|| | | | | | | |成大團隊|
-|ex4|TemDMGE_shared|下月使用紅利(bnsfg)、下月使用分期(iterm)、下月消費商店(stonc_label)-cross doamin|| | | | | | | |成大團隊|
-|ex5|TemGCN|下月使用紅利(bnsfg)-single doamin|| | | | | | | |成大團隊|
-|ex6|TemGCN|下月使用分期(iterm)-single doamin|| | | | | | | |成大團隊|
-|ex7|TemGCN|下月消費商店(stonc_label)-single doamin|| | | | | | | |成大團隊|
-|ex8|GCN_RNN|下月使用紅利(bnsfg)-single doamin|| | | | | | | |成大團隊|
-|ex9|GCN_RNN|下月使用分期(iterm)-single doamin|| | | | | | | |成大團隊|
-|ex10|GCN_RNN|下月消費商店(stonc_label)-single doamin|| | | | | | | |成大團隊|
-=======
 此工具主要分為參數設定模組 PipeConfigBuilder 和 串接模組PipelineBuilder 這兩塊，前者用來設定前處理會用到的參數，例如window size、類別或數值型因子的欄位名稱等等，後者則是用來串接前處理模塊，以下我們將對此工具的使用方式進行簡單說明，詳細使用方式請參考[Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)。
->>>>>>> 825e9da04d542a7c785eba931c31395bf59c9ac4
 
 ### 1) 參數設定 (PipeConfigBuilder)
 
@@ -420,7 +404,6 @@ config = PipeConfigBuilder()
 config.setups(a=1,b=2)
 ```
 設定完成後，即可用view來呈現設定狀態: 
->>>>>>> 825e9da04d542a7c785eba931c31395bf59c9ac4
 
 ```python
 config.view(summary=False)

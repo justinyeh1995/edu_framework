@@ -1,7 +1,9 @@
 #-*- coding: utf-8 -*-
 import os
 import sys 
+import traceback
 import gc
+import abc 
 
 import pandas as pd
 from tabulate import tabulate
@@ -11,6 +13,251 @@ import pprint
 from common.utils import Str2CodeAdaptor
 
 _pp = pprint.PrettyPrinter(width=10, compact=True, indent=1)
+
+# * Component of Preprocess Base:
+# 
+# [X] 1. function for setup configured variables (perhaps through a list of var string. Is it possible?) 
+# [X] 2. function for setup syntax sugar variables (such as SIX=6, TRUE = True) 
+# [X] 3. function for defining operators 
+# [X] 4. function for importing operators 
+# [X] 5. function for connecting operators 
+# [X] 6. function for defining the input and output variables through list of strings 
+# [X] 7. function for getting results 
+# [X] 8. function for defining the module_name
+# [X] 9. build_collector (for building input and output collector) 
+# [ ] 10. allow connection to be 
+#       - [X] 10.1 manually set (with result_dir manually set, directory manually set.)   
+#       - [ ] or automatically set (with all result_dir saved in <tmp>/<module_name>/<tmp>/<output_name>) 
+# [X] 11. in __init__:
+#   [X] 1. take pipe = None for deciding whether to connect to a existing pipe or initilize a new pipe  
+#   [X] 2. initilize: PARENT_TMP_DIR
+#   [X] 3. define_operators 
+# [X] 12. in config: 
+#   [X] 1. build_collector (for input and output) 
+#   [X] 2. connect pipe 
+#
+# Addon to ProcessBase: 
+# [ ] 1. Allow manual setting of temp file dir to the variables in collect_inputs/outputs 
+# [ ] 2. Setting color of collect block to purple. 
+# [ ] 3. Printing only the errors happended in the specialized module rather in the common module (for better user experinence)
+
+class Setup:
+    def __init__(self, **kargs):
+        self.kargs = kargs
+
+class ProcessBase():
+    '''
+    Setup steps: 
+    1. Inherent 
+    2. overwrite all methods 
+    3. .setup_vars
+    4. .config  
+    5. get_result
+    '''
+    def __init__(self, required_process=None, save_tmp=False, **kargs):
+        self.name = self.module_name() 
+        self.PARENT_TMP_DIR = f'tmp/{self.name}'
+        self._save_tmp = save_tmp
+        self.options = kargs
+        if required_process:
+            self.pipe = required_process.pipe 
+            self.pipe_config = required_process.pipe_config 
+        else:
+            self.pipe_config = PipeConfigBuilder()
+            self.pipe = PipelineBuilder(pipe=self.pipe_config, save=save_tmp)
+        self._define_operators()
+        self.var_set = False 
+        self.config_done = False
+        self.build_input_collector = False
+    @abc.abstractmethod
+    def module_name(self):
+        '''
+        Example:
+
+        return "module_name"
+        '''
+        pass 
+    @abc.abstractmethod
+    def fix_vars(self):
+        '''
+        Example:
+
+        return Setup(
+            SIX=6, 
+            TRUE=True
+        )
+        '''
+        return Setup()  
+    
+    @abc.abstractmethod
+    def packages(self):
+        '''
+        Example:
+
+        return [
+            'dev.etl.load_data',
+            'dev.etl.risk_management'
+        ]
+        '''
+        return [] 
+    @abc.abstractmethod
+    def define_functions(self, pipe):
+        '''
+        Example:
+
+        @pipe._func_
+        def get_today(etl):
+            return etl.today
+        '''
+        pass 
+    
+    
+
+    @abc.abstractmethod
+    def inputs(self):
+        '''
+        Example:
+
+        return ['input1', 'input2', 'input3'] 
+        '''
+        pass 
+    @abc.abstractmethod
+    def connections(self, **kargs):
+        '''
+        return a list of paired tuples, in each of which  
+            the first element being the connection python code and 
+            the second element a list of strings the names of the temporary files of the outputs. 
+
+            The second element can also be None, if saving temporary file is unneccesary for the outputs,
+                or a string if there is only one output in the connection python code. 
+
+        Example:
+
+        return [
+            ('w106 = get_w106(etl)', ['w106.feather']),
+            ('w107 = get_w107(etl)', ['w107.feather']) 
+        ]
+        ''' 
+        pass 
+    
+    @abc.abstractmethod
+    def outputs(self):
+        '''
+        Example:
+
+        return ['output1', 'output2', 'output3']
+        '''
+        pass 
+    # Public Methods: 
+    def setup_vars(self, **kargs):
+        assert self.pipe_config 
+        fix_kargs = self.fix_vars().kargs
+        if len(kargs)!=0:
+            self.build_input_collector = True 
+        dynamic_kargs = kargs
+        self.config_vars = {
+            **dynamic_kargs,
+            **fix_kargs
+        }
+        self.pipe_config.setups(**self.config_vars)
+        self.var_set = True 
+
+    def config(self, verbose=True):
+        if not self.var_set:
+            self.setup_vars()
+        
+        # if self.fix_vars().kargs:
+        #     inputs.extend(self.fix_vars().kargs.keys())
+        if self.build_input_collector:
+            self._build_collector(self.inputs(), mode = 'input', verbose=verbose) 
+        self._connect(self.pipe, verbose=verbose, **self.options) 
+        # self._build_collector(self.outputs(), mode = 'output', verbose=verbose)
+        self.config_done = True
+
+    def get_result(self, verbose=False, load_tmp = False):
+        if not self.config_done:
+            self.config(verbose=verbose)
+        result_list = []
+        for output_var_str in self.outputs():
+            result_list.append(getattr(self.pipe, output_var_str).get(
+                verbose=verbose, load_tmp = load_tmp))
+        return tuple(result_list)
+
+    # Private Methods: 
+    def _connect(self, pipe, verbose=True, **kargs):
+        for item in self.connections(**kargs):
+            if isinstance(item, tuple):
+                if len(item) == 2:
+                    connection, output_files = item 
+                elif len(item) == 1:
+                    connection, output_files = item[0], None 
+                elif len(item) == 0:
+                    continue
+            elif isinstance(item, str):
+                connection, output_files = item, None 
+            else:
+                connection, output_files = item, None 
+            try:
+                if verbose:
+                    print('[Connect]', connection)
+                if output_files == None:
+                    pass 
+                else:
+                    if isinstance(output_files, str):
+                        output_files = [output_files]
+                    output_files = [f'{self.PARENT_TMP_DIR}/tmp/{ofile}' for ofile in output_files]
+                if isinstance(connection, str):
+                    pipe.setup_connection(
+                        connection, 
+                        result_dir=output_files
+                        )
+                else:
+                    # conn = connection(required_process=self, save_tmp = self._save_tmp) # CustItemRecmd
+                    connection.config(verbose=verbose)
+            except:
+                traceback_info = ''.join(
+                traceback.format_exception(
+                    *sys.exc_info()))
+                raise ValueError(f'Error in {item}: {traceback_info}')
+
+    def _define_operators(self):
+        assert self.pipe 
+        packages = self.packages()
+        self._define_operators_by_import(self.pipe, packages)
+        self.define_functions(self.pipe)
+
+    def _define_operators_by_import(self, pipe, packages):
+        if type(pipe.func_source) == list:
+            pipe.func_source = list(set(pipe.func_source) | set(packages))
+        elif pipe.func_source==None:
+            pipe.func_source = packages
+    
+    def _build_collector(self, _vars, mode, verbose=True):
+        assert mode == 'input' or mode == 'output' 
+        assert type(_vars) == list 
+        TMP_DIR = self.PARENT_TMP_DIR + f'/{mode}s'
+        FUNC_NAME = f'collect_{mode}s_for_{self.name}'
+
+        @self.pipe._func_
+        def gather(*args, **kargs):
+            return list(args) + [kargs[k] for k in kargs.keys()] 
+        
+        exec(f'self.pipe._{FUNC_NAME} = self.pipe._gather')
+
+        def generate_arg_str(var):
+            if var in self.config_vars:
+                return f'{var}={var}'
+            else:
+                return var 
+        code_str = f'{",".join(_vars)} = {FUNC_NAME}({",".join([generate_arg_str(v) for v in _vars])})'
+        if verbose:
+            print('[Connect]', code_str) 
+        self.pipe.setup_connection(
+            code_str 
+            # result_dir = [f'{TMP_DIR}/{var}' for var in _vars]
+        )
+
+
 class PipeConfigBuilder:
     def __init__(self):
         self.pyflow_GB = GraphBuilder()
@@ -60,11 +307,11 @@ class PipeConfigBuilder:
 class PipelineBuilder():
     # - [ ] load the function only if the function does not exist 
     # - [ ] load the function in the beginning if source_func is provided 
-    def __init__(self, pipe=None, func_source=None):
+    def __init__(self, pipe=None, func_source=None, load_tmp = True, save=True):
         '''
         Input: 
             - pipe: the pre-request pipe or a config object from PipeConfigBuilder. 
-            - func_source: the name of the module/package holding the functions used in this pipeline or 
+            - func_source: the name of the module/package holding the functions used in this pipeline, a list of such names, or 
                 the globals() dictionary if the functions is defined in main function. 
         '''
         self.current_process = None 
@@ -79,7 +326,8 @@ class PipelineBuilder():
         self.graph_dict = dict()
         self.data_info_holder = _DataInfoHolder()
         self._current_mode = 'arg_only'
-
+        self._load_tmp = load_tmp
+        self.save = save
         
     def add(self, process, method_alias=None, output_alias=None, result_dir=None, 
             n_out=1, rank=None, color='lightblue', shape=None, fontsize=None):
@@ -93,7 +341,10 @@ class PipelineBuilder():
                 assert out == path.split("/")[-1].split(".")[0]
         if result_dir:
             color = 'pink'
-        self.result_dir = result_dir
+        if self._load_tmp:
+            self.result_dir = result_dir
+        else:
+            self.result_dir = None
         
         self.pyflow_GB.add(process, 
                            method_alias = method_alias, 
@@ -115,10 +366,16 @@ class PipelineBuilder():
 
         pf_output = self.pyflow_GB(*pf_input, **pf_kwargs)
         
+        if self.result_dir != None and self.save == True:
+            save = True
+        else:
+            save = False
+
         process_module = DataNode(
             self.current_process_name,
             list(args),
             result_dir = self.result_dir,
+            save = save,
             **kwargs 
         )
         
@@ -133,7 +390,9 @@ class PipelineBuilder():
                 out = SelectResult(
                 self.current_process_name + f'[{i}]',
                 [process_module],
-                selected_indices=[i])
+                selected_indices=[i],
+                save=self.save
+                )
                 out.set_pf_output_node(pf_output_node)
                 self.graph_dict[pf_output_node.get_node_uid()] = out
                 outs.append(out)
@@ -309,7 +568,25 @@ class PipelineBuilder():
                     else:
                         exec(f'from {self.func_source} import {func_str}')
                         exec(f"{private_func_str} = {func_str}")
-        
+                if type(self.func_source) == list:
+                    if '.' in func_str:
+                        print(func_str)
+                        fn = func_str.split(".")[0]
+                        for s in self.func_source:
+                            try:
+                                exec(f'from {s} import {fn}')
+                            except:
+                                pass 
+                        exec(f"{private_func_str} = {func_str}")
+                    else:
+                        for s in self.func_source:
+                            try:
+                                exec(f'from {s} import {func_str}')
+                            except:
+                                pass
+                        exec(f"{private_func_str} = {func_str}")
+                    
+                        
         func_added_pipe = self.add(
             eval(private_func_str), 
             method_alias = func_str,
@@ -337,7 +614,7 @@ class PipelineBuilder():
                     return Str2CodeAdaptor.get_var(env.pipe, value_str)
         kargs = dict([(var, force_eval(value_str)) for var, value_str in kwargs_str_dict.items()])
         # print("In setup connection, args, kargs:",args, kargs)
-        out_nodes = func_added_pipe(*args, **kargs)# eval(f'func_added_pipe{input_str}')
+        out_nodes = func_added_pipe(*args, **kargs)
 
         if len(out_vars) > 1:
             for out_name, node in zip(out_vars, out_nodes):
@@ -399,7 +676,7 @@ class ETLBase:
         self.pre_request_etls = pre_request_etls
         self.save = save
 
-    def run(self, verbose=False):
+    def run(self, verbose=False, load_tmp = True):
         '''
         Check if the pre-request results are completed.
         If completed, load the result. Otherwise, run the pre-request ETL process.
@@ -409,21 +686,21 @@ class ETLBase:
             if pre_etl.is_complete():
                 if verbose:
                     print(f'[LOAD] result of "{pre_etl.process_name}"')
-                inputs.extend(pre_etl.load_result())
+                inputs.extend(pre_etl.load_result(verbose=verbose, load_tmp=load_tmp))
             else:
-                if verbose:
-                    print(f'[RUN] process of "{pre_etl.process_name}"')
-                inputs.extend(pre_etl.run())
+                #if verbose:
+                    #print(f'[IN] process of "{pre_etl.process_name}"')
+                inputs.extend(pre_etl.run(verbose=verbose, load_tmp=load_tmp))
+        if verbose:
+            print(f'[RUN] process of "{self.process_name}"')
         results = self.process(inputs)
         if verbose:
             print(f'[COMPLETE] {self.process_name}')
         del inputs
         gc.collect()
                             
-        if self.save:
-            if verbose:
-                print(f'[SAVE] result of "{self.process_name}"')
-            self.save_result(results)
+        
+        self.save_result(results, verbose=verbose, save = self.save)
         return results
 
     def is_complete(self):
@@ -433,7 +710,7 @@ class ETLBase:
         '''
         return False
 
-    def load_result(self, verbose=False):
+    def load_result(self, verbose=False, load_tmp = True):
         '''
         This function load the temporary result file saved by "save_result" function.
         Should be override if save_result is override.
@@ -451,7 +728,7 @@ class ETLBase:
         outputs = inputs
         return outputs
 
-    def save_result(self, results, verbose=False):
+    def save_result(self, results, verbose=False, save=True):
         '''
         Save result for the next ETL Process.
         Sould be considered overrided if re-use of processed data is considered
@@ -460,7 +737,7 @@ class ETLBase:
 
 
 class ETLwithDifferentResults(ETLBase):
-    def __init__(self, process_name, pre_request_etls, result_dir, save=True):
+    def __init__(self, process_name, pre_request_etls, result_dir, save=True, in_memory=True):
         super(ETLwithDifferentResults, self).__init__(
             process_name,
             pre_request_etls=pre_request_etls,
@@ -470,8 +747,11 @@ class ETLwithDifferentResults(ETLBase):
             self.result_dirs = result_dir
         else:
             self.result_dirs = [result_dir]
-        self._create_data_folder(self.result_dirs)
-    def _create_data_folder(self, result_dirs, verbose=True):
+        # self._create_data_folder()
+        self._in_memory = in_memory
+        self._in_memory_results = None
+    def _create_data_folder(self, verbose=True):
+        result_dirs = self.result_dirs
         # create folders on initialization
         for result_path in result_dirs:
             if ".." in result_path:
@@ -485,43 +765,65 @@ class ETLwithDifferentResults(ETLBase):
                         print(f"You have created directory: {folder_path}")
 
     def is_complete(self):
-        for file_dir in self.result_dirs:
-            if not os.path.exists(file_dir):
-                return False
-        return True
+        ans = False
+        if self._in_memory:
+            if isinstance(self._in_memory_results, list):
+                ans = True
+        if ans:
+            return True
+        else:
+            ans = all([os.path.exists(file_dir) for file_dir in self.result_dirs])
+            return ans
 
-    def load_result(self, verbose=False):
-        results = []
-        for file_dir in self.result_dirs:
-            if '.h5' in file_dir:
-                results.append(pd.read_hdf(file_dir, key=file_dir.split('.h5')[0].split('/')[-1], mode='r'))
-            elif '.feather' in file_dir:
-                import feather
-                results.append(feather.read_dataframe(file_dir))
-            elif '.npy' in file_dir:
-                # np.save(file_dir.split('.npy')[0], feature_mapper)
-                np_result = np.load(file_dir, allow_pickle=True)
-                try:
-                    np_result = np_result.item()
-                except:
-                    pass
-                results.append(np_result)
+    def save_result(self, results, verbose=False, save = True):
+        self._create_data_folder(verbose=verbose)
+        if save:
             if verbose:
-                print(f' from {file_dir}')
-        return results
+                print(f'[SAVE] result of "{self.process_name}"')
+            for i, file_dir in enumerate(self.result_dirs):
+                # feather.write_dataframe(results[0], self.result_dir)
+                if '.h5' in file_dir:
+                    results[i].to_hdf(file_dir, key=file_dir.split('.')[0].split('/')[-1], mode='w')
+                elif '.feather' in file_dir:
+                    import feather
+                    feather.write_dataframe(results[i].reset_index(), file_dir)
+                elif '.npy' in file_dir:
+                    np.save(file_dir.split('.npy')[0], results[i])
+                if verbose:
+                    print(f' as {file_dir}')
+        if self._in_memory:
+            self._in_memory_results = results 
+            if verbose:
+                print(f'[SAVE] result of "{self.process_name}"')
+                print('in memory')
 
-    def save_result(self, results, verbose=False):
-        for i, file_dir in enumerate(self.result_dirs):
-            # feather.write_dataframe(results[0], self.result_dir)
-            if '.h5' in file_dir:
-                results[i].to_hdf(file_dir, key=file_dir.split('.')[0].split('/')[-1], mode='w')
-            elif '.feather' in file_dir:
-                import feather
-                feather.write_dataframe(results[i], file_dir)
-            elif '.npy' in file_dir:
-                np.save(file_dir.split('.npy')[0], results[i])
+    def load_result(self, verbose=False, load_tmp = True):
+        if self._in_memory and self._in_memory_results is not None:
             if verbose:
-                print(f' as {file_dir}')
+                print(f' from memory')
+            return self._in_memory_results
+        if load_tmp:
+            results = []
+            for file_dir in self.result_dirs:
+                if '.h5' in file_dir:
+                    results.append(pd.read_hdf(file_dir, key=file_dir.split('.h5')[0].split('/')[-1], mode='r'))
+                elif '.feather' in file_dir:
+                    import feather
+                    reverse_reset_index = lambda table: table.set_index(table.columns[0])
+                    results.append(reverse_reset_index(feather.read_dataframe(file_dir))) 
+                elif '.npy' in file_dir:
+                    # np.save(file_dir.split('.npy')[0], feature_mapper)
+                    np_result = np.load(file_dir, allow_pickle=True)
+                    try:
+                        np_result = np_result.item()
+                    except:
+                        pass
+                    results.append(np_result)
+                if verbose:
+                    print(f' from {file_dir}')
+            return results
+
+
 
 
 class ETLPro:
@@ -533,11 +835,11 @@ class ETLPro:
         cls = type(cls.__name__ + '+' + super_class.__name__, (cls, super_class), {})
         return super(ETLPro, cls).__new__(cls)
 
-    def __init__(self, process_name, pre_request_etls, result_dir=None, **kwargs):
+    def __init__(self, process_name, pre_request_etls, result_dir=None, save=True, **kwargs):
         if result_dir:
-            super(ETLPro, self).__init__(process_name, pre_request_etls, result_dir, save=True)
+            super(ETLPro, self).__init__(process_name, pre_request_etls, result_dir, save=save)
         else:
-            super(ETLPro, self).__init__(process_name, pre_request_etls=pre_request_etls, save=False)
+            super(ETLPro, self).__init__(process_name, pre_request_etls=pre_request_etls, save=save)
     def set_pf_output_node(self, pf_output_node):
         self.pf_output_node = pf_output_node
 
@@ -548,21 +850,21 @@ class SelectResult(ETLPro):
     By default, it extract the first result.
     '''
 
-    def __init__(self, process_name, pre_request_etls, selected_indices=[0], result_dir=None):
-        super(SelectResult, self).__init__(process_name, pre_request_etls, result_dir=result_dir)
+    def __init__(self, process_name, pre_request_etls, selected_indices=[0], result_dir=None, save=True):
+        super(SelectResult, self).__init__(process_name, pre_request_etls, result_dir=result_dir, save=save)
         self.selected_indices = selected_indices
 
     def process(self, inputs):
         assert len(self.selected_indices) < len(inputs)
         return [inputs[i] for i in self.selected_indices]
-    def get(self, verbose=False):
+    def get(self, verbose=False, load_tmp=True):
         assert len(self.selected_indices) == 1
-        return self.run(verbose=verbose)[0]
+        return self.run(verbose=verbose, load_tmp=load_tmp)[0]
     
     
 class DataNode(ETLPro):
-    def __init__(self, process_name, pre_request_etls, result_dir=None, **kwargs):
-        super(DataNode, self).__init__(process_name, pre_request_etls, result_dir=result_dir)
+    def __init__(self, process_name, pre_request_etls, result_dir=None, save=True, **kwargs):
+        super(DataNode, self).__init__(process_name, pre_request_etls, result_dir=result_dir, save=save)
         self.kwargs = dict([(key, self._get_real_var(arg)) for key, arg in kwargs.items()])
         self.n_out = 1
         
@@ -591,9 +893,9 @@ class DataNode(ETLPro):
         else:
             return result
     
-    def get(self, verbose=False):
+    def get(self, verbose=False, load_tmp=True):
         assert self.n_out == 1
-        return self.run(verbose=verbose)[0]
+        return self.run(verbose=verbose, load_tmp=load_tmp)[0]
         
 # TODO:
 # - [V] change temp object name to obj rather than the function name

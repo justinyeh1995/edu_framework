@@ -372,13 +372,14 @@ class ProcessY:
          - target tensors: objmean, tscnt, label_0
         '''
         print('Convert Numeric Y values to np.float64 for Regression')
-        index = y_columns.tolist().index('objam_sum')
+        y_columns = list(y_columns)
+        index = y_columns.index('objam_sum')
         objsum = Y[:, [index]].astype(np.float64)
 
-        index = y_columns.tolist().index('objam_mean')
+        index = y_columns.index('objam_mean')
         objmean = Y[:, [index]].astype(np.float64)
 
-        index = y_columns.tolist().index('trans_count')
+        index = y_columns.index('trans_count')
         tscnt = Y[:, [index]].astype(np.float64)
         gc.collect()
         print('Apply Log(1+x) Transformation')

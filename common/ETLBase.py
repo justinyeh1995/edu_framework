@@ -54,9 +54,12 @@ class ProcessBase():
     4. .config  
     5. get_result
     '''
-    def __init__(self, required_process=None, save_tmp=False, **kargs):
-        self.name = self.module_name() 
-        self.PARENT_TMP_DIR = f'tmp/{self.name}'
+    def __init__(self, required_process=None, save_tmp=False, experiment_name='', **kargs):
+        self.name = self.module_name()
+        if experiment_name == '':
+            self.PARENT_TMP_DIR = f'data/{self.name}'
+        else:
+            self.PARENT_TMP_DIR = f'data/{experiment_name}/{self.name}'
         self._save_tmp = save_tmp
         self.options = kargs
         if required_process:

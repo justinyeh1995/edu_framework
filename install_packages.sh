@@ -16,5 +16,5 @@ pip install pytorch-lightning==1.3.2
 pip install lightning-bolts==0.3.3
 
 pip install tensorboard==2.4.0
-pip install autopep8
+pip install autopep8==1.5.7
 pip install pyflow-viz==0.41

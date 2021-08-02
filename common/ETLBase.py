@@ -674,11 +674,12 @@ class _DataInfoHolder:
         gc.collect()
         
 class ETLBase:
-    def __init__(self, process_name, pre_request_etls=[], save=False):
+    def __init__(self, process_name, pre_request_etls=[], save=False, in_memory = True):
         self.process_name = process_name
         self.pre_request_etls = pre_request_etls
         self.save = save
-
+        self._in_memory = in_memory
+        self._in_memory_results = None
     def run(self, verbose=False, load_tmp = True):
         '''
         Check if the pre-request results are completed.
@@ -711,14 +712,24 @@ class ETLBase:
         This function check if the temporary result file is already saved, to notify
         whether the process should be triggered before the next ETL is processed.
         '''
-        return False
+        if self._in_memory:
+            if self._in_memory_results == None:
+                return False
+            else:
+                return True
+        else:
+            return False 
 
     def load_result(self, verbose=False, load_tmp = True):
         '''
         This function load the temporary result file saved by "save_result" function.
         Should be override if save_result is override.
         '''
-        pass
+        if self._in_memory:
+            print('from memory')
+            return self._in_memory_results 
+        else:
+            pass 
 
     def process(self, inputs):
         '''
@@ -736,7 +747,10 @@ class ETLBase:
         Save result for the next ETL Process.
         Sould be considered overrided if re-use of processed data is considered
         '''
-        pass
+        if self._in_memory:
+            self._in_memory_results = results 
+        else:
+            pass 
 
 
 class ETLwithDifferentResults(ETLBase):

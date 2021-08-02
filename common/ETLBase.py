@@ -677,10 +677,29 @@ class ETLBase:
     def __init__(self, process_name, pre_request_etls=[], save=False, in_memory = True):
         self.process_name = process_name
         self.pre_request_etls = pre_request_etls
+        for etl_obj in self.pre_request_etls:
+            etl_obj.add_child(self)
         self.save = save
         self._in_memory = in_memory
         self._in_memory_results = None
-    def run(self, verbose=False, load_tmp = True):
+        self._children = [] 
+        self._processed = False
+        
+    def is_processed(self):
+        return self._processed 
+    
+    def add_child(self, child):
+        self._children.append(child)
+        
+    def all_children_processed(self):
+        return all([child.is_processed() for child in self._children])
+    
+    def remove_in_memory_results(self, verbose=False):  
+        self._in_memory_results = None 
+        gc.collect()
+        print(f'[REMOVE] result of "{self.process_name}"')
+    
+    def run(self, verbose=False, load_tmp = True, handle_wastes = True):
         '''
         Check if the pre-request results are completed.
         If completed, load the result. Otherwise, run the pre-request ETL process.
@@ -690,16 +709,27 @@ class ETLBase:
             if pre_etl.is_complete():
                 if verbose:
                     print(f'[LOAD] result of "{pre_etl.process_name}"')
-                inputs.extend(pre_etl.load_result(verbose=verbose, load_tmp=load_tmp))
+                inputs.extend(pre_etl.load_result(
+                    verbose=verbose, 
+                    load_tmp=load_tmp))
             else:
                 #if verbose:
                     #print(f'[IN] process of "{pre_etl.process_name}"')
-                inputs.extend(pre_etl.run(verbose=verbose, load_tmp=load_tmp))
+                inputs.extend(pre_etl.run(
+                    verbose=verbose, 
+                    load_tmp=load_tmp,
+                    handle_wastes=handle_wastes
+                ))
         if verbose:
             print(f'[RUN] process of "{self.process_name}"')
         results = self.process(inputs)
+        self._processed = True
         if verbose:
             print(f'[COMPLETE] {self.process_name}')
+        if handle_wastes:
+            for pre_etl in self.pre_request_etls:
+                if pre_etl.all_children_processed():
+                    pre_etl.remove_in_memory_results(verbose=verbose) 
         del inputs
         gc.collect()
                             
@@ -726,7 +756,6 @@ class ETLBase:
         Should be override if save_result is override.
         '''
         if self._in_memory:
-            print('from memory')
             return self._in_memory_results 
         else:
             pass 
@@ -874,9 +903,12 @@ class SelectResult(ETLPro):
     def process(self, inputs):
         assert len(self.selected_indices) < len(inputs)
         return [inputs[i] for i in self.selected_indices]
-    def get(self, verbose=False, load_tmp=True):
+    def get(self, verbose=False, load_tmp=True, handle_wastes=True):
         assert len(self.selected_indices) == 1
-        return self.run(verbose=verbose, load_tmp=load_tmp)[0]
+        return self.run(
+            verbose=verbose, 
+            load_tmp=load_tmp, 
+            handle_wastes=handle_wastes)[0]
     
     
 class DataNode(ETLPro):
@@ -910,9 +942,12 @@ class DataNode(ETLPro):
         else:
             return result
     
-    def get(self, verbose=False, load_tmp=True):
+    def get(self, verbose=False, load_tmp=True, handle_wastes=True):
         assert self.n_out == 1
-        return self.run(verbose=verbose, load_tmp=load_tmp)[0]
+        return self.run(
+            verbose=verbose, 
+            load_tmp=load_tmp, 
+            handle_wastes=handle_wastes)[0]
         
 # TODO:
 # - [V] change temp object name to obj rather than the function name

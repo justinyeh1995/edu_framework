@@ -15,31 +15,31 @@
 
 ## 目錄: 
 
-- [簡介](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E7%B0%A1%E4%BB%8B)
-- [資料夾架構](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B)
-- [實驗執行方法](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95)
-    - [Step 1: 安裝dependencies](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#step-1-%E5%AE%89%E8%A3%9Ddependencies)
-    - [Step 2: 下載原始資料](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)
-    - [Step 3: 測試實驗是否可執行](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#step-3-%E6%B8%AC%E8%A9%A6%E5%AF%A6%E9%A9%97%E6%98%AF%E5%90%A6%E5%8F%AF%E5%9F%B7%E8%A1%8C)
-    - [Step 4: 建構新實驗](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)
-        - [1) 實驗模組](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#1-%E5%AF%A6%E9%A9%97%E6%A8%A1%E7%B5%84-experiment_modulepy)
-        - [2) 模型](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#2-%E6%A8%A1%E5%9E%8B-modelpy)
-        - [3) 前處理](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#3-%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86-dataset_builderpypreprocesspy)
-    - [Step 5: 執行新實驗](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)
-        -  [1) 實驗Debug](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#1-%E5%AF%A6%E9%A9%97debug)
-        -  [2) 模型訓練與測試](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#2-%E6%A8%A1%E5%9E%8B%E8%A8%93%E7%B7%B4%E8%88%87%E6%B8%AC%E8%A9%A6)
-        -  [3) TensorBoard-訓練成效監控](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)
-        -  [4) CPU/GPU加速]()
-- [範例檔說明](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
-- [小工具](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7)
-    - 1) [資料前處理工具: ETLBase](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86%E5%B7%A5%E5%85%B7-etlbase)
-        - 1.1) [參數設定 (PipeConfigBuilder)](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#1-%E5%8F%83%E6%95%B8%E8%A8%AD%E5%AE%9A-pipeconfigbuilder)
-        - 1.2) [前處理串接方式 (PipelineBuilder)](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#2-%E5%89%8D%E8%99%95%E7%90%86%E4%B8%B2%E6%8E%A5%E6%96%B9%E5%BC%8F-pipelinebuilder)
-        - 1.3) [於.py定義前處理模組](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#3-%E6%96%BCpy%E5%AE%9A%E7%BE%A9%E5%89%8D%E8%99%95%E7%90%86%E6%A8%A1%E7%B5%84)
-        - 1.4) [執行前處理並取得運算結果](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#4-%E5%9F%B7%E8%A1%8C%E5%89%8D%E8%99%95%E7%90%86%E4%B8%A6%E5%8F%96%E5%BE%97%E9%81%8B%E7%AE%97%E7%B5%90%E6%9E%9C)
-        - 1.5) [中繼檔暫存功能](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#5-%E4%B8%AD%E7%B9%BC%E6%AA%94%E6%9A%AB%E5%AD%98%E5%8A%9F%E8%83%BD)
-        - 1.6) [Dependency視覺化介紹](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#6-dependency%E8%A6%96%E8%A6%BA%E5%8C%96%E4%BB%8B%E7%B4%B9)
-    - 2) [blockPrinting](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#utilsblockprint)
+- [簡介](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E7%B0%A1%E4%BB%8B)
+- [資料夾架構](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B)
+- [實驗執行方法](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95)
+    - [Step 1: 安裝dependencies](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-1-%E5%AE%89%E8%A3%9Ddependencies)
+    - [Step 2: 下載原始資料](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)
+    - [Step 3: 測試實驗是否可執行](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-3-%E6%B8%AC%E8%A9%A6%E5%AF%A6%E9%A9%97%E6%98%AF%E5%90%A6%E5%8F%AF%E5%9F%B7%E8%A1%8C)
+    - [Step 4: 建構新實驗](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)
+        - [1) 實驗模組](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%AF%A6%E9%A9%97%E6%A8%A1%E7%B5%84-experiment_modulepy)
+        - [2) 模型](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#2-%E6%A8%A1%E5%9E%8B-modelpy)
+        - [3) 前處理](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#3-%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86-preprocess_operatorspyconnect_pipelinepyconfig_pipelinepy)
+    - [Step 5: 執行新實驗](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)
+        -  [1) 實驗Debug](hhttps://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%AF%A6%E9%A9%97debug)
+        -  [2) 模型訓練與測試](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#2-%E6%A8%A1%E5%9E%8B%E8%A8%93%E7%B7%B4%E8%88%87%E6%B8%AC%E8%A9%A6)
+        -  [3) TensorBoard-訓練成效監控](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)
+        -  [4) CPU/GPU加速](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#4-gpucpu%E5%8A%A0%E9%80%9F)
+- [範例檔說明](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
+- [小工具](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%B0%8F%E5%B7%A5%E5%85%B7)
+    - 1) [資料前處理工具: ETLBase](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86%E5%B7%A5%E5%85%B7-etlbase)
+        - 1.1) [參數設定 (PipeConfigBuilder)](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%8F%83%E6%95%B8%E8%A8%AD%E5%AE%9A-pipeconfigbuilder)
+        - 1.2) [前處理串接方式 (PipelineBuilder)](hhttps://github.com/udothemath/edu_framework/tree/fit_aicloud4#2-%E5%89%8D%E8%99%95%E7%90%86%E4%B8%B2%E6%8E%A5%E6%96%B9%E5%BC%8F-pipelinebuilder)
+        - 1.3) [於.py定義前處理模組](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#3-%E6%96%BCpy%E5%AE%9A%E7%BE%A9%E5%89%8D%E8%99%95%E7%90%86%E6%A8%A1%E7%B5%84)
+        - 1.4) [執行前處理並取得運算結果](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#4-%E5%9F%B7%E8%A1%8C%E5%89%8D%E8%99%95%E7%90%86%E4%B8%A6%E5%8F%96%E5%BE%97%E9%81%8B%E7%AE%97%E7%B5%90%E6%9E%9C)
+        - 1.5) [中繼檔暫存功能](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#5-%E4%B8%AD%E7%B9%BC%E6%AA%94%E6%9A%AB%E5%AD%98%E5%8A%9F%E8%83%BD)
+        - 1.6) [Dependency視覺化介紹](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#6-dependency%E8%A6%96%E8%A6%BA%E5%8C%96%E4%BB%8B%E7%B4%B9)
+    - 2) [blockPrinting](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#utilsblockprint)
 
 
 
@@ -502,7 +502,7 @@ pipe.view_dependency('split_data', summary=False)
 
 
 ## utils.blockPrint
-用來把函數中會print出來的資訊都影藏起來。
+用來把函數中會print出來的資訊都隱藏起來。
 
 使用方法: 
 
@@ -530,6 +530,6 @@ def function_to_block():
 
 # ISSUES:
 - [ ] 行內相容性問題   
-      - [ ] cpu 環境   
-      - [ ] gpu 環境   
+    - [ ] cpu 環境   
+    - [ ] gpu 環境   
 - [ ] colab相容性問題  

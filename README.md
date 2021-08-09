@@ -44,7 +44,6 @@
 
 
 # 資料夾架構 
-test
 以下為資料夾架構，標上 * 的檔案為實驗執行後，才會生成的檔案或資料夾；標上 V 的為特定實驗專屬之實驗檔或檔案夾；
 
 標上🟠為須由實驗者[自行建置](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)之實驗檔或資料夾；標上🟢為須執行之檔案，包含[檔案下載](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)與[實驗運行](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)；標上🔵為須[自行下載](https://github.com/udothemath/ncku_customer_embedding/blob/enhance_preprocess_module/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)之檔案。

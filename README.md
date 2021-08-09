@@ -6,7 +6,7 @@
 
 於每次實驗，根據我們所制定的規範創立一個全新的實驗設定資料夾，在其中定義模型、模型參數、各任務衡量指標、資料前處理方法，即可與我們的實驗共用模組進行串接整合，讓每一次的實驗都可以被簡易地複製、衡量、調整。
 
-以下將進一步介紹此框架的 1. [資料夾架構](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B) 2. [實驗執行方法](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95
+以下將進一步介紹此框架的 1. [資料夾架構](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B) 2. [實驗執行方法](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95
 ) 3. [範例檔說明](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E
 ) 4. [資料前處理小工具](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7) 
 

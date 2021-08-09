@@ -6,9 +6,9 @@
 
 於每次實驗，根據我們所制定的規範創立一個全新的實驗設定資料夾，在其中定義模型、模型參數、各任務衡量指標、資料前處理方法，即可與我們的實驗共用模組進行串接整合，讓每一次的實驗都可以被簡易地複製、衡量、調整。
 
-以下將進一步介紹此框架的 1. [資料夾架構](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B) 2. [實驗執行方法](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95
-) 3. [範例檔說明](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E
-) 4. [資料前處理小工具](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E5%B0%8F%E5%B7%A5%E5%85%B7) 
+以下將進一步介紹此框架的 1. [資料夾架構](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B) 2. [實驗執行方法](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95
+) 3. [範例檔說明](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E
+) 4. [資料前處理小工具](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86%E5%B7%A5%E5%85%B7-etlbase) 
 
 此程式為beta版，若於使用中有疑問或建議，可以於[意見回饋](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)提供給我們，我們將會對此框架進行調整。
 另外，在把實驗納入此框架的過程中，麻煩也幫我們填寫[實驗紀錄表](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)，已方便我們追蹤進度。
@@ -523,36 +523,13 @@ def function_to_block():
 
 # 意見回饋 
 
-- [1] GNN模型輸入資料的方式與先前ETRNN的使用dataloader的方式不同 (static graph可不使用data loader、dynamic graph以每月的snapshots作為不同的graph)
-- [2] Multitask如果是作為訓練任務來實現的話，每個任務會有不同的loss(Recall、AUC)，不確定紀錄訓練過程是否可以同時記錄多任務的loss
+- [1] abc
+- [2] xyz
 
 # MODIFICATION: 
 
-## New Preprocessing Model 
-- [X] 設計新preprocess module (based on [pyflow-viz](https://pypi.org/project/pyflow-viz/)) 幫助data pipeline的視覺化。
-      - [X] 視覺化完整 pipeline 
-      - [X] 視覺化dependency 
-- [X] 把此新preprocess module打包進ex3 作為使用範例
-      - [X] 建立 ex3
-      - [X] 把preprocessing functions 放進去
-- [X] refine DataNode and SelectResult:
-      - [X] implement get method on DataNode and SelectResult  
-      - [X] allow passing of verbose variable. 
-- [X] allow visualization of configuration variable. 
-- [X] let DataNode takes kargs with ETLPro class argument 
-- [X] build preprocess configuration object. 
-    - [X] Using pprint to make config values better visualized in the DAG graph (given a max-line-length) 
-- [X] 任何etl程式都可以被以圖形化的方式呈現。(只要function定義好、接好、config也定義好即可) 
-- [X] 用 exec() 讓pipeline的撰寫和config的assignment可以更自然。 HARD!! 
-    - [X] Allow all functions to be inserted into the PipelineBuilder in one go by 1. globals() 2. from package_name import * 
-    - [ ] Allow object function to be inserted too. 
-- [X] Use the setup_connection on the current ex1 pipeline. 
-- [X] 放置data pipeline視覺化範例
-- [ ] 讓此工具完整取代 experiment_module.py 中的 preprocessing. 
-- [ ] Scan over the code and switch public func/vars to private ones. 
-
 # ISSUES:
-- [ ] 行內相容性問題 
-      - [ ] cpu 環境 
-      - [ ] gpu 環境 
-- [ ] colab相容性問題 
+- [ ] 行內相容性問題   
+      - [ ] cpu 環境   
+      - [ ] gpu 環境   
+- [ ] colab相容性問題  

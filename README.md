@@ -78,14 +78,15 @@
 |    └── __init__.py 
 |    
 ├── experiments                                          # V 實驗模組 
-|    ├──V🟠[experiment_name]                              # V 特定實驗之實驗模組 
+|    ├──V🟠[experiment_name]                              # V 特定實驗之實驗模組
+|    |      ├──V🟠__init__.py          
 |    |      ├──V🟠experiment_module.py                    # V 實驗設定模組                                
 |    |      ├──V🟠model.py                                # V 模型模組 
-|    |      ├──V🟠preprocess_operators.py                 # V 資料前處理模組 (see ex3)
-|    |      ├──V🟠config_pipeline.py                      # V 資料前處理模組 (see ex3)
-|    |      ├──V🟠connect_pipeline.py                     # V 資料前處理模組 (see ex3)
-|    |      └──V🟠__init__.py                        
-|    └──V🟠[experiment_name]
+|    |      └──V🟠preprocess                              # V 客製化的前處理模組資料夾
+|    |             ├──V🟠config.py                        # V 資料前處理參數與串接設定 (see ex4)
+|    |             ├──V🟠ops.py                           # V 資料前處理函數          (see ex4)
+|    |             └──V🟠connect.py                       # V 資料前處理串接方式定義   (see ex4)
+|    ├──V🟠[experiment_name]
 |    └── ...
 |
 ├── *checkpoint                                          # 儲存模型暫存檔 
@@ -142,16 +143,16 @@
 ## Step 3: 測試實驗是否可執行 
 
 執行FastDebug: 
-`python run_project.py -m fastdebug -e ex1` 
+`python run_project.py -m fastdebug -e ex4` 
 
 
-此程式會對experiments/ex1資料夾所定義之實驗進行debug。過程中會對原始資料進行前處理，並將結果與佔存檔儲存於`data/sample`、`data/rnn/tmp`、`data/rnn/result`、`data/ex1/tmp`、`data/ex1/result`，接著，資料處理完後，就會進行1個step的training和validation，以快速驗證模型、程式的運作正常。
+此程式會對experiments/ex4資料夾所定義之實驗進行debug。過程中會對原始資料進行前處理，並將結果與佔存檔儲存於`data/sample`、`data/rnn/tmp`、`data/rnn/result`、`data/ex4/tmp`、`data/ex4/result`，接著，資料處理完後，就會進行1個step的training和validation，以快速驗證模型、程式的運作正常。
 
 ## Step 4: 建構新實驗: 
 
-可以複製[ex3](https://github.com/udothemath/edu_framework/tree/enhance_preprocess_module/experiments/ex3)資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex4)，並修改其中的`experiment_module.py`/`model.py`/`config_pipeline.py`/`connect_pipeline.py`/`preprocess_operators.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`config_pipeline.py`/`connect_pipeline.py`/`preprocess_operators.py`為前處理程式。
+可以複製[ex4](https://github.com/udothemath/edu_framework/tree/enhance_preprocess_module/experiments/ex4)資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex4)，並修改其中的`experiment_module.py`/`model.py`/`preprocess/config.py`/`preprocess/connect.py`/`preprocess/ops.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`preprocess`內檔案為前處理程式。
 
-以下將以ex1為範例，分別說明此三類程式的建構方式: 
+以下將以ex4為範例，分別說明此三類程式的建構方式: 
 
 ### 1) 實驗模組 (`experiment_module.py`)
 
@@ -231,8 +232,6 @@ class ExperimentalMultiTaskModule(BaseMultiTaskModule):
     def config_loss_funcs(self): 
         return [F.mse_loss, F.mse_loss, F.binary_cross_entropy]  # 此處定義各任務之目標函數 
     
-    
-
     def config_task_metrics(self):                               # 此處定義個任務之衡量指標名稱 
         return {
             'objmean': ['mse', 'mae'], 
@@ -311,9 +310,9 @@ class MultiTaskModel(torch.nn.Module):
 
 ```
 
-### 3) 資料前處理 (`preprocess_operators.py`/`connect_pipeline.py`/`config_pipeline.py`)
+### 3) 資料前處理 (`preprocess/ops.py`/`preprocess/connect.py`/`preprocess/config.py`)
 
-此三個程式定義了產生TensorDataset物件之資料前處理data pipeline，其使用了我們的`common/ETLBase.py`的`PipeConfigBuilder`物件進行處理模組的參數定義並用`PipeBuilder`進行串接的定義。
+此三個程式定義了產生TensorDataset物件之資料前處理data pipeline，其使用了我們的`common/ETLBase.py`的`ProcessBase`物件進行處理模組的參數與函數定義。
 
 詳細使用方式於**小工具**介紹。
 

@@ -382,118 +382,167 @@ python run_project.py -m [fit1batch/train] -e [實驗資料夾名稱] -g [GPU數
 
 為了能讓資料轉換為能夠輸入模型的形式，實驗建置過程中，往往會需要耗費許多的心力來進行資料的前處理，而對於不同的模型版本，又有可能會有相應的不一樣的前處理方式，隨著實驗的增加，前處理的程式也相應得變得越來越難以維護。另外，建立前處理程式的過程中，往往涉及到大量冗長的資料轉換，因此在開發過程中也容易因資料轉換而耽誤了開發時程。
 
-因此，我們希望透過提供簡易好用的前處理工具，不只讓前處理程式更易於理解，也可以開發更快速。此前處理工具可以透過視覺化的方式，將前處理過程中的模塊、模塊的輸入、輸出，以及模塊之間的串連方式，以[有向圖(DAG)](https://zh.wikipedia.org/wiki/File:Tred-G.svg)的方式呈現，讓前處理的步驟與邏輯可以一目了然。另外，此工具也加入了資料中繼檔暫存功能，讓前處理過程中的中間產物，可以被以檔案的方式儲存起來，讓後續使用此中間產物的處理模塊可以快速仔入，進行後續模塊的調整。
+因此，我們希望透過提供簡易好用的前處理工具，不只讓前處理程式更易於理解，也可以開發更快速。此前處理工具可以透過視覺化的方式，將前處理過程中的模塊、模塊的輸入、輸出，以及模塊之間的串連方式，以[有向圖(DAG)](https://zh.wikipedia.org/wiki/File:Tred-G.svg)的方式呈現，讓前處理的步驟與邏輯可以一目了然。另外，此工具也加入了資料中繼檔暫存功能，讓前處理過程中的中間產物，可以被以檔案的方式儲存起來，讓後續使用此中間產物的處理模塊可以快速載入，進行後續模塊的調整。
 
-此工具主要分為參數設定模組 PipeConfigBuilder 和 串接模組PipelineBuilder 這兩塊，前者用來設定前處理會用到的參數，例如window size、類別或數值型因子的欄位名稱等等，後者則是用來串接前處理模塊，以下我們將對此工具的使用方式進行簡單說明，詳細使用方式請參考[Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)。
+此工具使用方式為繼承我們的common/ETLBase中的ProcessBase類別，並覆蓋其中的函數。以下我們將對此工具的使用方式進行簡單說明，詳細使用方式請參考[Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)。
 
-### 1) 參數設定 (PipeConfigBuilder)
+### 1) 串接方式設定: 
 
-
-假設前處理涉及兩個參數a,b，分別設定為1,2，可以用以下方是設定: 
-```python
-from common.ETLBase import PipeConfigBuilder
-config = PipeConfigBuilder()
-config.setups(a=1,b=2)
+假設前處理涉及兩個參數a,b，我們想要讓c = a + b, d = a + c, e = d + d, f = b + d，最後輸出e,f，我們可以以下面方式進行串接: 
+```python 
+class PreProcess(ProcessBase):
+    def module_name(self):
+        return "preprocess"
+    
+    def define_functions(self, pipe):
+        @pipe._func_
+        def plus_a_b(a=0,b=0):
+            return a+b 
+    def inputs(self):
+        return [
+            'a', 
+            'b'
+        ]
+    def outputs(self):
+        return ['e','f'] 
+    
+    def connections(self, **kargs):
+        conns = [
+            'c = plus_a_b(a=a,b=b)', 
+            'd = plus_a_b(a,c)', 
+            'e = plus_a_b(d,d)', 
+            'f = plus_a_b(b,d)'
+        ]
+        return conns
 ```
-設定完成後，即可用view來呈現設定狀態: 
 
-```python
-config.view(summary=False)
+其中我們要設定模組名稱於module_name，設定輸入與輸出參數於inputs和outputs，並於connections中以python code字串的方式定義串接方式。 
+
+#### 2) 前處理參數設定: 
+
+若要設定前處理的參數，要使用以下指令: 
+```python 
+preprocess = PreProcess() 
+preprocess.setup_vars(
+    a = 1, 
+    b = 2
+)
 ```
-![alt text](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/image/config.svg)
+#### 3) 前處理串接: 
+
+執行前處理前，要用以下指令先對前處理進行串接: 
 
 
-### 2) 前處理串接方式 (PipelineBuilder)
-
-接著可以開始來定義前處理方式。
-
-* 首先我們先透過以下方是建立好 PipelineBuilder: 
-```python
-from common.ETLBase import PipelineBuilder
-pipe = PipelineBuilder(config)
-```
-PipelineBuilder帶入config，代表config中所建立的那些參數(a,b)，及可以在前處理程式串接過程中被取用。 
-
-* 接著我們可以去定義資料處理模塊，舉例來說我們希望有一個可以把a,b進行相加的模塊: 
-```python
-@pipe._func_
-def plus_a_b(a=1,b=2):
-    return a+b
+```python 
+preprocess.config() 
 ``` 
-如此我們即可以把PipelineBuilder任別出此模塊。
 
-* 最後進行模塊串接，假設我們想要讓c = a + b, d = a + c, e = d + d, f = b + d，我們可以以下面的方式進行串接: 
+#### 4) 執行前處理: 
 
-```python 
-pipe.setup_connection('c = plus_a_b(a=a,b=b)')
-pipe.setup_connection('d = plus_a_b(a=a,c)')
-pipe.setup_connection('e = plus_a_b(d,d)')
-pipe.setup_connection('f = plus_a_b(b,d)')
-```
-
-注意: 帶入setup_connection的python字串請勿加入換行字符\n，或使用expression來定義參數，如: `c=plus_a_b(a=(1*2), b=(6*9))`，PipeConfigBuilder的setup中定義或是出現於先前定義之setup_connection的output。
-
-接著使用view即可呈現整張串接的結果: 
+建置完成後，就可以透過一下方式，對前處理過程中的每一個參數進行計算，獲得結果 
 
 ```python 
-pipe.view(summary=False)
+preprocess.pipe.c.get()
+>>>3
 ```
-![alt text](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/image/pipe.svg)
+```python 
+preprocess.pipe.e.get()
+>>>8
+```
 
 ### 3) 於.py定義前處理模組: 
 
-前處理模塊可統一定義於一個.py中，並以以下方是載入PipelineBuilder中: 
+前處理模塊可統一定義於一個.py中，並以以下方式載入ProcessBase中，如此就不用自行把函式放到define_functions中進行一個一個的定義: 
 
 ```python 
-from experiments.ex3.config_pipeline import config
-pipe = PipelineBuilder(config, func_source='experiments.ex3.preprocess_operators')
-``` 
-如以上範例所式，此方式可以載入experiments/ex3/preprocess_operators.py中的所有函式作為串接的模塊使用。
-
-一樣使用view即可檢視串接樣貌: 
 ```python 
-pipe.view(summary=False)
+class PreProcess(ProcessBase):
+    def module_name(self):
+        return "preprocess"
+    def packages(self): # 在此引入前處理函式 
+        return [
+            'experiments.ex4.preprocess.ops'
+        ]
+    def define_functions(self, pipe):
+        pass 
+    
+    def inputs(self):
+        return [
+            'a', 
+            'b'
+        ]
+    def outputs(self):
+        return ['e','f'] 
+    
+    def connections(self, **kargs):
+        conns = [
+            'c = plus_a_b(a=a,b=b)', 
+            'd = plus_a_b(a,c)', 
+            'e = plus_a_b(d,d)', 
+            'f = plus_a_b(b,d)'
+        ]
+        return conns
 ```
-![alt text](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/image/whole.svg)
+如以上範例所式，此方式可以載入experiments/ex4/preprocess/ops.py中的所有函式作為串接的模塊使用。
 
-### 4) 執行前處理並取得運算結果: 
 
-我們所設計的工具，在定義資料串接方式時，前處理只會進行串接，並不會執行計算。
-**但是**在開發前處理的過程中，常常會需要檢視前處理過程中的中繼產物，透過以下方法即可將前處理進行計算並取得某一模塊的輸出結果: 
+串接方式亦可以透過.py來定義: 
 
+```python 
+from common.ETLBase import ProcessBase, Setup 
+from common.process_compiler import block_str_generator
+# TODO: add fix variables 
+class PreProcess(ProcessBase):
+
+    def module_name(self):
+        return "preprocess"
+    def packages(self): # 在此引入前處理函式 
+        return [
+            'experiments.ex4.preprocess.ops'
+        ]
+    def define_functions(self, pipe):
+        pass 
+    
+    def inputs(self):
+        return [
+            'a', 
+            'b'
+        ]
+    def outputs(self):
+        return ['e','f'] 
+    '''
+    def connections(self, **kargs):
+        conns = [
+            'c = plus_a_b(a=a,b=b)', 
+            'd = plus_a_b(a,c)', 
+            'e = plus_a_b(d,d)', 
+            'f = plus_a_b(b,d)'
+        ]
+        return conns
+    '''
+    def connections(self, **kargs):
+        '''
+        return a list of paired tuples, in each of which  
+            the first element being the connection python code and 
+            the second element a list of strings the names of the temporary files of the outputs. 
+            The second element can also be None, if saving temporary file is unneccesary for the outputs,
+                or a string if there is only one output in the connection python code. 
+        '''
+        conns = block_str_generator('experiments/ex4/preprocess/connect.py')
+        return conns
 ```
-pipe.f.get(verbose=True)
->> 6
-```
-例如我們想要取得上面pipe中所得之f的值，即可用get來取得，此時所有f所依賴的前處理模塊皆會進行執行。
+以上範例會自動載入connect.py中的串接python code。
+
 
 
 ### 5) 中繼檔暫存功能: 
-
-若要使前處理重複使用的中繼產物可以更快被取得，我們提供暫存功能: 
-
-```
-pipe.setup_connection(
-    'df_input, feature_map = extract_feature_cols_and_encode_categoricals(df_cdtx, numeric_cols=numeric_cols, category_cols=category_cols)',
-    result_dir=[
-                'df_input.feather',
-                'feature_map.npy'
-            ]
-)
-```
-
-舉例來說，上面的extract_feature_cols_and_encode_categoricals函數會輸出兩個暫存檔，且此兩個檔案都會在後續資料處理被大量使用。為了減少開發時間，可以在result_dir給其各自的儲存檔名進行暫存，當程式執行到此函數時，其結果即會被自動儲存，下次執行時，即會直接載入所暫存的結果進行後續計算。
-
-目前支援的格式有.feather/.h5/.npy三種格式，.feather和.h5為儲存pandas.DataFrame用的格式、.npy則是用來儲存numpy.array用的格式。
-
-注意: 若要重從新執行此模塊的計算，須把暫存檔刪除才會重新執行，並產製結果，否則預設為直接使用暫存的結果。
 
 
 ### 6) Dependency視覺化介紹: 
 
 我們亦提供了Hightlight Dependency的功能，舉例來說，透過以下方式即可把圖中，split_data所依賴的模組與資料產物都標住處來。
 ```
-pipe.view_dependency('split_data', summary=False)
+preprocess.pipe.view_dependency('c', summary=False)
 ```
 ![alt text](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/image/dependency.svg)
 詳細視覺化的進階操作請參考: [Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)

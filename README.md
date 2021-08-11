@@ -1,16 +1,35 @@
+# 文件TODO: 
 
+* [ ] 前處理根據新PrecessBase的建置方式來調整。並確認保留以下環節：
+	* [ ] 前處理建制方式
+	* [ ] 前處理參數設定 
+	* [ ] 前處理中繼產物暫存功能 
+	* [ ] Import 於 .py 定義的前處理模塊
+	* [ ] Import 於 .py 定義的前處理串接方式
+	* [ ] 於.py定義前處理的串接
+	* [ ] 前處理視覺化介紹 
+* [ ] 前處理介紹移至Step 4.3 前處理的部分 
+* [ ] 實驗記錄表放到最前面。
+* [ ] 之前成大的意見回饋可以移除 
+* [ ] 資料的下載方式不是用google了，而是用SQL。
+* [ ] 『下載原始資料』調整為『原始資料撈取』，然後請TL負責這一塊的撰寫。
+* [ ] Sync fit_aicloud4 & main 
+* [ ] 圖片顯示修復
+* [ ] 連結到main
+
+--- 
 
 # 簡介: 
 
 此程式框架的用途是幫助多任務實驗的協作與開發，提供了實驗的訓練、測試、Debug、前處理用的共用模組，並且支援Checkpoint，讓每次實驗產生的最佳模型可以被儲存以供測試使用，也提供logging的機制，以讓訓練過程中的模型的成效可以用Tensorboard來隨時檢視。
 
-於每次實驗，根據我們所制定的規範創立一個全新的實驗設定資料夾，在其中定義模型、模型參數、各任務衡量指標、資料前處理方法，即可與我們的實驗共用模組進行串接整合，讓每一次的實驗都可以被簡易地複製、衡量、調整。
+於每次實驗，根據我們所制定的規範建立一個全新的實驗設定資料夾，在其中定義模型、模型參數、各任務衡量指標、資料前處理方法，即可與我們的實驗共用模組進行串接整合，讓每一次的實驗都可以被簡易地複製、衡量、調整。
 
 以下將進一步介紹此框架的 1. [資料夾架構](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B) 2. [實驗執行方法](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95
 ) 3. [範例檔說明](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E
 ) 4. [資料前處理小工具](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86%E5%B7%A5%E5%85%B7-etlbase) 
 
-此程式為beta版，若於使用中有疑問或建議，可以於[意見回饋](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)提供給我們，我們將會對此框架進行調整。
+此程式為beta版，若於使用中有疑問或建議，可以於[意見回饋](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)(或 Slack)提供給我們，我們將會對此框架進行調整。
 另外，在把實驗納入此框架的過程中，麻煩也幫我們填寫[實驗紀錄表](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)，已方便我們追蹤進度。
 
 ## 目錄: 

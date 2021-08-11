@@ -8,7 +8,7 @@
 
 以下將進一步介紹此框架的 1. [資料夾架構](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B) 2. [實驗執行方法](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95
 ) 3. [範例檔說明](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E
-) 4. [資料前處理小工具](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86%E5%B7%A5%E5%85%B7-etlbase) 
+) 4. [資料前處理工具](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86%E5%B7%A5%E5%85%B7-etlbase) 
 
 此程式為beta版，若於使用中有疑問或建議，可以於[意見回饋](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)提供給我們，我們將會對此框架進行調整。
 另外，在把實驗納入此框架的過程中，麻煩也幫我們填寫[實驗紀錄表](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)，已方便我們追蹤進度。
@@ -33,12 +33,8 @@
 - [範例檔說明](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
 - [小工具](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%B0%8F%E5%B7%A5%E5%85%B7)
     - 1) [資料前處理工具: ETLBase](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86%E5%B7%A5%E5%85%B7-etlbase)
-        - 1.1) [參數設定 (PipeConfigBuilder)](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%8F%83%E6%95%B8%E8%A8%AD%E5%AE%9A-pipeconfigbuilder)
-        - 1.2) [前處理串接方式 (PipelineBuilder)](hhttps://github.com/udothemath/edu_framework/tree/fit_aicloud4#2-%E5%89%8D%E8%99%95%E7%90%86%E4%B8%B2%E6%8E%A5%E6%96%B9%E5%BC%8F-pipelinebuilder)
-        - 1.3) [於.py定義前處理模組](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#3-%E6%96%BCpy%E5%AE%9A%E7%BE%A9%E5%89%8D%E8%99%95%E7%90%86%E6%A8%A1%E7%B5%84)
-        - 1.4) [執行前處理並取得運算結果](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#4-%E5%9F%B7%E8%A1%8C%E5%89%8D%E8%99%95%E7%90%86%E4%B8%A6%E5%8F%96%E5%BE%97%E9%81%8B%E7%AE%97%E7%B5%90%E6%9E%9C)
-        - 1.5) [中繼檔暫存功能](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#5-%E4%B8%AD%E7%B9%BC%E6%AA%94%E6%9A%AB%E5%AD%98%E5%8A%9F%E8%83%BD)
-        - 1.6) [Dependency視覺化介紹](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#6-dependency%E8%A6%96%E8%A6%BA%E5%8C%96%E4%BB%8B%E7%B4%B9)
+        - 1.1) [中繼檔暫存功能](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#5-%E4%B8%AD%E7%B9%BC%E6%AA%94%E6%9A%AB%E5%AD%98%E5%8A%9F%E8%83%BD)
+        - 1.2) [Dependency視覺化介紹](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#6-dependency%E8%A6%96%E8%A6%BA%E5%8C%96%E4%BB%8B%E7%B4%B9)
     - 2) [blockPrinting](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#utilsblockprint)
 
 

@@ -135,7 +135,7 @@ TODO:
 
 ## Step 4: 建構新實驗: 
 
-可以複製[ex4](https://github.com/udothemath/edu_framework/tree/enhance_preprocess_module/experiments/ex4)資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex4)，並修改其中的`experiment_module.py`/`model.py`/`preprocess/config.py`/`preprocess/connect.py`/`preprocess/ops.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`preprocess`內檔案為前處理程式。
+可以複製[ex4](https://github.com/udothemath/edu_framework/tree/fit_aicloud4/experiments/ex4)資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex4)，並修改其中的`experiment_module.py`/`model.py`/`preprocess/config.py`/`preprocess/connect.py`/`preprocess/ops.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`preprocess`內檔案為前處理程式。
 
 以下將以ex4為範例，分別說明此三類程式的建構方式: 
 
@@ -564,10 +564,6 @@ preprocess.pipe.e_array.get(verbose=False)
 ```
 python run_project.py -m [fit1batch/train] -e [實驗資料夾名稱] -g [GPU數量] -c [使用的cpu worker數量]
 ```
-
-# 範例檔說明
-
-
 # 小工具 
 
 
@@ -583,7 +579,6 @@ from common.utils import blockPrinting
 def function_to_block():
       print('message to be blocked')
 ```
-
 
 
 # 實驗記錄表

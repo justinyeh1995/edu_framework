@@ -5,8 +5,8 @@ import torch.nn.functional as F
 from common.utils import blockPrinting 
 from common.pl_module import BaseMultiTaskModule, BaseMultiTaskDataModule
 
-from experiments.ex3.preprocess.connect_pipeline import pipe, USE_CHID
-from experiments.ex3.model import MultiTaskModel
+from experiments.ex4.preprocess.connect_pipeline import pipe, USE_CHID
+from experiments.ex4.model import MultiTaskModel
 
 experiment_name = __file__.split("/")[-2] # same as the name of current folder 
 experiment_group_name = 'rnn' # folder saving the data of all rnn experiments 

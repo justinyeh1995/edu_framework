@@ -1,5 +1,3 @@
-
-
 # 簡介: 
 
 此程式框架的用途是幫助多任務實驗的協作與開發，提供了實驗的訓練、測試、Debug、前處理用的共用模組，並且支援Checkpoint，讓每次實驗產生的最佳模型可以被儲存以供測試使用，也提供logging的機制，以讓訓練過程中的模型的成效可以用Tensorboard來隨時檢視。
@@ -32,10 +30,7 @@
         -  [4) CPU/GPU加速](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#4-gpucpu%E5%8A%A0%E9%80%9F)
 - [範例檔說明](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
 - [小工具](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%B0%8F%E5%B7%A5%E5%85%B7)
-    - 1) [資料前處理工具: ETLBase](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86%E5%B7%A5%E5%85%B7-etlbase)
-        - 1.1) [中繼檔暫存功能](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#5-%E4%B8%AD%E7%B9%BC%E6%AA%94%E6%9A%AB%E5%AD%98%E5%8A%9F%E8%83%BD)
-        - 1.2) [Dependency視覺化介紹](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#6-dependency%E8%A6%96%E8%A6%BA%E5%8C%96%E4%BB%8B%E7%B4%B9)
-    - 2) [blockPrinting](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#utilsblockprint)
+    - [blockPrinting](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#utilsblockprint)
 
 
 
@@ -114,27 +109,21 @@
 首先將相關套件進行安裝。
 
 執行: 
-`sh install_packages.sh`
+
+```bash
+sh install_packages.sh
+(sudo) apt install graphviz 
+pip install graphviz
+```
+
 
 若要使用Nvidia GPU，須安裝GPU版本pytorch，詳情請見：https://pytorch.org。
 
 
 ## Step 2: 下載原始資料 
 
-* 方法一: 至data/source執行**download_data_from_google_drive.ipynb**進行以下原始資料的下載
-```
-🔵sample_chid.txt                            # 原始資料
-🔵sample_idx_map.npy                         # 原始資料
-🔵sample_zip_if_cca_cdtx0001_hist.csv        # ...
-🔵sample_zip_if_cca_cust_f.csv               # ...
-🔵sample_zip_if_cca_y.csv                    # 原始資料 
-```
-
-
-
-* 方法二: 自行下載以上資料至data/source。
-
-若採用方法一，須至google developer platform下載🔵google_drive.json，串接google_drive用的api-keys，下載方式參考 download_data_from_google_drive.ipynb。
+TODO: 
+[ ] 資料表將放置於data/source中。
 
 ## Step 3: 測試實驗是否可執行 
 
@@ -306,11 +295,215 @@ class MultiTaskModel(torch.nn.Module):
 
 ```
 
-### 3) 資料前處理 (`preprocess/ops.py`/`preprocess/connect.py`/`preprocess/config.py`)
+### 3) 資料前處理 
 
-此三個程式定義了產生TensorDataset物件之資料前處理data pipeline，其使用了我們的`common/ETLBase.py`的`ProcessBase`物件進行處理模組的參數與函數定義。
+使用我們的`common/ETLBase.py`的`ProcessBase`物件進行處理模組的參數與函數定義。
 
-詳細使用方式於**小工具**介紹。
+
+#### 3.1) 資料前處理工具: ETLBase 簡介
+
+為了能讓資料轉換為能夠輸入模型的形式，實驗建置過程中，往往會需要耗費許多的心力來進行資料的前處理，而對於不同的模型版本，又有可能會有相應的不一樣的前處理方式，隨著實驗的增加，前處理的程式也相應得變得越來越難以維護。另外，建立前處理程式的過程中，往往涉及到大量冗長的資料轉換，因此在開發過程中也容易因資料轉換而耽誤了開發時程。
+
+因此，我們提供前處理工具（`ETLBase`)，希望不只讓前處理程式更易於理解，也可以開發更快速。此前處理工具可以透過視覺化的方式，將前處理過程中的模塊、模塊的輸入、輸出，以及模塊之間的串連方式，以[有向圖(DAG)](https://zh.wikipedia.org/wiki/File:Tred-G.svg)的方式呈現，讓前處理的步驟與邏輯可以一目了然。另外，此工具也加入了資料中繼檔暫存功能，讓前處理過程中的中間產物，可以被以檔案的方式儲存起來，讓後續使用此中間產物的處理模塊可以快速載入，進行後續模塊的調整。
+
+此工具使用方式為繼承我們的`common/ETLBase`中的`ProcessBase`類別，並覆蓋其中的函數，達到規格化地定義前處理模塊、模塊串接方式、前處理輸入輸入參數的功能。以下我們將對此工具的使用方式進行簡單說明，詳細操作方式請參考[Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)。
+
+#### 3.2) 前處理定義方式
+
+假設前處理涉及兩個參數a,b，我們想要讓c = a + b, d = a + c, e = d + d，最後輸出三行的pandas.DataFrame，每一行的內容為e，我們可以以下面方式進行串接:
+
+```python 
+from common.ETLBase import ProcessBase
+class PreProcess(ProcessBase):
+    # Step 1: 模塊名稱定義
+    def module_name(self):
+        return "preprocess"
+    # Step 2.1: 輸入參數定義    
+    def inputs(self):
+        return [
+            'a', 
+            'b'
+        ]
+    # Step 2.2: 輸出參數定義 
+    def outputs(self):
+        return ['e','f'] 
+    
+    # Step 3: 模塊定義 
+    def define_functions(self, pipe):
+        import numpy as np
+        import pandas as pd 
+        @pipe._func_
+        def plus_a_b(a=0,b=0):
+            return a+b
+             
+        @pipe._func_
+        def repeat(a,b=3):
+            return np.repeat(a,b)
+        
+        @pipe._func_
+        def to_dataframe(seq):
+            return pd.DataFrame(seq)
+        
+    # Step 4: 串接方式定義
+    def connections(self, **kargs):
+        conns = [
+            'c = plus_a_b(a,b)', 
+            'd = plus_a_b(a,c)', 
+            'e = plus_a_b(d,d)',
+            'e_array = repeat(e)',
+            'table = to_dataframe(e_array)'
+        ]
+        return conns
+```
+以下為步驟說明：
+
+* 模塊名稱定義
+*	
+```python
+    def module_name(self):
+        return "preprocess"
+```
+
+* 輸入輸出參數定義
+*	
+```python
+    def inputs(self):
+        return [
+            'a', 
+            'b'
+        ]
+        
+    def outputs(self):
+        return ['table'] 
+```
+
+* 模塊定義 
+*	
+```python
+    def define_functions(self, pipe):
+        import numpy as np
+        import pandas as pd 
+        @pipe._func_
+        def plus_a_b(a=0,b=0):
+            return a+b
+             
+        @pipe._func_
+        def repeat(a,b=3):
+            	return np.repeat(a,b)
+            	
+        @pipe._func_
+        def to_dataframe(seq):
+        	return pd.DataFrame(seq)
+```
+
+* 串接方式定義
+*	
+```python
+    def connections(self, **kargs):
+        conns = [
+            'c = plus_a_b(a,b)', 
+            'd = plus_a_b(a,c)', 
+            'e = plus_a_b(d,d)',
+            'e_array = repeat(e)',
+            'table = to_dataframe(e_array)'
+        ]
+        return conns
+```
+
+#### 3.2) 使用.py定義前處理模組與串接方式：
+
+1. 將`define_functions`中函式定義於一獨立.py檔中(參見：`tutorial/ops`)
+2. 將`connections`中python字串撰寫於一獨立.py中(參見：`tutorial/connect.py`)
+3. 覆寫`ProcessBase`的`packages`以載入ops.py，並使用`common.process_compiler.block_str_generator`載入connect.py: 
+
+```python
+from common.ETLBase import ProcessBase
+from common.process_compiler import block_str_generator
+
+class PreProcess(ProcessBase):
+    def module_name(self):
+        return "preprocess"
+    def inputs(self):
+        return [
+            'a', 
+            'b'
+        ]
+    def outputs(self):
+        return ['e','f']
+    def packages(self):
+        return ['tutorial.ops']
+        
+    def connections(self, **kargs):
+        conns = block_str_generator('tutorial/connect.py')
+        return conns
+```
+
+#### 3.3) 中繼檔暫存功能使用方式：
+	若想要將前處理過程產物進行暫存，可以於`connection`定義中繼檔名稱，指定方式如下：
+
+```python
+    def connections(self, **kargs):
+        conns = [
+            'c = plus_a_b(a=a,b=b)', 
+            'd = plus_a_b(a,c)', 
+            'e = plus_a_b(d,d)',
+        	('e_array = repeat(e)','e_array.npy')
+            ('table = to_dataframe(e_array)','table.feather')
+        ]
+        return conns
+```
+
+	目前支援`pandas.DataFrame`和`numpy`的暫存。(`pandas.DataFrame`儲存格式為`.feather`，		`numpy.array`儲存格式為`.npy`)
+
+
+#### 3.4) 前處理輸入參數設定方式
+
+假設我們希望我們的前處理輸入值a=1,b=2，可以透過以下方式進行設定 
+
+```python
+preprocess = PreProcess() 
+preprocess.config(a=1, b=2, verbose=True) 
+``` 
+
+#### 3.5) 前處理視覺化介紹  
+
+在開發過程中可以透過以下方式對前處理進行視覺化，幫助理解與呈現前處理的步驟與流程：
+
+```python
+preprocess.pipe.view(summary=False)  
+```
+![]()
+ 
+我們也提供Dependency Hightlight的功能，幫助辨識各前處理模塊的前繼模塊。
+ 
+ ```python
+ preprocess.pipe.view_dependency('c', summary=False)
+``` 
+
+![]()
+
+#### 3.6) 前處理執行方式
+
+前處理在串接時不會直接執行，只有要實際獲取結果時，才會進行執行。
+
+獲取方式如下：
+
+```
+preprocess.pipe.table.get(verbose=False)
+>>> 
+	0
+0	8
+1	8
+2	8
+
+``` 
+
+並且除了最終輸出結果可以進行獲取之外，前處理過程中定義的中間參數都可以獲取:
+
+```
+preprocess.pipe.e_array.get(verbose=False)
+>>> array([8, 8, 8])
+```
 
 
 ## Step 5: 執行新實驗: 
@@ -373,176 +566,6 @@ python run_project.py -m [fit1batch/train] -e [實驗資料夾名稱] -g [GPU數
 
 
 # 小工具 
-
-## 資料前處理工具: ETLBase 
-
-為了能讓資料轉換為能夠輸入模型的形式，實驗建置過程中，往往會需要耗費許多的心力來進行資料的前處理，而對於不同的模型版本，又有可能會有相應的不一樣的前處理方式，隨著實驗的增加，前處理的程式也相應得變得越來越難以維護。另外，建立前處理程式的過程中，往往涉及到大量冗長的資料轉換，因此在開發過程中也容易因資料轉換而耽誤了開發時程。
-
-因此，我們希望透過提供簡易好用的前處理工具，不只讓前處理程式更易於理解，也可以開發更快速。此前處理工具可以透過視覺化的方式，將前處理過程中的模塊、模塊的輸入、輸出，以及模塊之間的串連方式，以[有向圖(DAG)](https://zh.wikipedia.org/wiki/File:Tred-G.svg)的方式呈現，讓前處理的步驟與邏輯可以一目了然。另外，此工具也加入了資料中繼檔暫存功能，讓前處理過程中的中間產物，可以被以檔案的方式儲存起來，讓後續使用此中間產物的處理模塊可以快速載入，進行後續模塊的調整。
-
-此工具使用方式為繼承我們的common/ETLBase中的ProcessBase類別，並覆蓋其中的函數。以下我們將對此工具的使用方式進行簡單說明，詳細使用方式請參考[Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)。
-
-### 1) 串接方式設定: 
-
-假設前處理涉及兩個參數a,b，我們想要讓c = a + b, d = a + c, e = d + d, f = b + d，最後輸出e,f，我們可以以下面方式進行串接: 
-```python 
-class PreProcess(ProcessBase):
-    def module_name(self):
-        return "preprocess"
-    
-    def define_functions(self, pipe):
-        @pipe._func_
-        def plus_a_b(a=0,b=0):
-            return a+b 
-    def inputs(self):
-        return [
-            'a', 
-            'b'
-        ]
-    def outputs(self):
-        return ['e','f'] 
-    
-    def connections(self, **kargs):
-        conns = [
-            'c = plus_a_b(a=a,b=b)', 
-            'd = plus_a_b(a,c)', 
-            'e = plus_a_b(d,d)', 
-            'f = plus_a_b(b,d)'
-        ]
-        return conns
-```
-
-其中我們要設定模組名稱於module_name，設定輸入與輸出參數於inputs和outputs，並於connections中以python code字串的方式定義串接方式。 
-
-#### 2) 前處理參數設定: 
-
-若要設定前處理的參數，要使用以下指令: 
-```python 
-preprocess = PreProcess() 
-preprocess.setup_vars(
-    a = 1, 
-    b = 2
-)
-```
-#### 3) 前處理串接: 
-
-執行前處理前，要用以下指令先對前處理進行串接: 
-
-
-```python 
-preprocess.config() 
-``` 
-
-#### 4) 執行前處理: 
-
-建置完成後，就可以透過一下方式，對前處理過程中的每一個參數進行計算，獲得結果 
-
-```python 
-preprocess.pipe.c.get()
->>>3
-```
-```python 
-preprocess.pipe.e.get()
->>>8
-```
-
-### 3) 於.py定義前處理模組: 
-
-前處理模塊可統一定義於一個.py中，並以以下方式載入ProcessBase中，如此就不用自行把函式放到define_functions中進行一個一個的定義: 
-
-```python 
-```python 
-class PreProcess(ProcessBase):
-    def module_name(self):
-        return "preprocess"
-    def packages(self): # 在此引入前處理函式 
-        return [
-            'experiments.ex4.preprocess.ops'
-        ]
-    def define_functions(self, pipe):
-        pass 
-    
-    def inputs(self):
-        return [
-            'a', 
-            'b'
-        ]
-    def outputs(self):
-        return ['e','f'] 
-    
-    def connections(self, **kargs):
-        conns = [
-            'c = plus_a_b(a=a,b=b)', 
-            'd = plus_a_b(a,c)', 
-            'e = plus_a_b(d,d)', 
-            'f = plus_a_b(b,d)'
-        ]
-        return conns
-```
-如以上範例所式，此方式可以載入experiments/ex4/preprocess/ops.py中的所有函式作為串接的模塊使用。
-
-
-串接方式亦可以透過.py來定義: 
-
-```python 
-from common.ETLBase import ProcessBase, Setup 
-from common.process_compiler import block_str_generator
-# TODO: add fix variables 
-class PreProcess(ProcessBase):
-
-    def module_name(self):
-        return "preprocess"
-    def packages(self): # 在此引入前處理函式 
-        return [
-            'experiments.ex4.preprocess.ops'
-        ]
-    def define_functions(self, pipe):
-        pass 
-    
-    def inputs(self):
-        return [
-            'a', 
-            'b'
-        ]
-    def outputs(self):
-        return ['e','f'] 
-    '''
-    def connections(self, **kargs):
-        conns = [
-            'c = plus_a_b(a=a,b=b)', 
-            'd = plus_a_b(a,c)', 
-            'e = plus_a_b(d,d)', 
-            'f = plus_a_b(b,d)'
-        ]
-        return conns
-    '''
-    def connections(self, **kargs):
-        '''
-        return a list of paired tuples, in each of which  
-            the first element being the connection python code and 
-            the second element a list of strings the names of the temporary files of the outputs. 
-            The second element can also be None, if saving temporary file is unneccesary for the outputs,
-                or a string if there is only one output in the connection python code. 
-        '''
-        conns = block_str_generator('experiments/ex4/preprocess/connect.py')
-        return conns
-```
-以上範例會自動載入connect.py中的串接python code。
-
-
-
-### 5) 中繼檔暫存功能: 
-
-
-### 6) Dependency視覺化介紹: 
-
-我們亦提供了Hightlight Dependency的功能，舉例來說，透過以下方式即可把圖中，split_data所依賴的模組與資料產物都標住處來。
-```
-preprocess.pipe.view_dependency('c', summary=False)
-```
-![alt text](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/image/dependency.svg)
-詳細視覺化的進階操作請參考: [Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)
-
 
 
 ## utils.blockPrint

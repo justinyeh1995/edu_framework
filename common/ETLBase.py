@@ -165,9 +165,9 @@ class ProcessBase():
         self.pipe_config.setups(**self.config_vars)
         self.var_set = True 
 
-    def config(self, verbose=True):
+    def config(self, verbose=True, **kargs):
         if not self.var_set:
-            self.setup_vars()
+            self.setup_vars(**kargs)
         
         # if self.fix_vars().kargs:
         #     inputs.extend(self.fix_vars().kargs.keys())

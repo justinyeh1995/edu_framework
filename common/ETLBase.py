@@ -140,7 +140,7 @@ class ProcessBase():
             ('w106 = get_w106(etl)', ['w106.feather']),
             ('w107 = get_w107(etl)', ['w107.feather']) 
         ]
-        ''' 
+        '''
         pass 
     
     @abc.abstractmethod
@@ -169,12 +169,9 @@ class ProcessBase():
         if not self.var_set:
             self.setup_vars(**kargs)
         
-        # if self.fix_vars().kargs:
-        #     inputs.extend(self.fix_vars().kargs.keys())
         if self.build_input_collector:
             self._build_collector(self.inputs(), mode = 'input', verbose=verbose) 
         self._connect(self.pipe, verbose=verbose, **self.options) 
-        # self._build_collector(self.outputs(), mode = 'output', verbose=verbose)
         self.config_done = True
 
     def get_result(self, verbose=False, load_tmp = False):

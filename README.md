@@ -1,3 +1,5 @@
+
+
 # 簡介: 
 
 此程式框架的用途是幫助多任務實驗的協作與開發，提供了實驗的訓練、測試、Debug、前處理用的共用模組，並且支援Checkpoint，讓每次實驗產生的最佳模型可以被儲存以供測試使用，也提供logging的機制，以讓訓練過程中的模型的成效可以用Tensorboard來隨時檢視。
@@ -14,17 +16,18 @@
 ## 目錄: 
 
 - [簡介](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E7%B0%A1%E4%BB%8B)
+- [實驗記錄表]()
 - [資料夾架構](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B)
 - [實驗執行方法](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95)
     - [Step 1: 安裝dependencies](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-1-%E5%AE%89%E8%A3%9Ddependencies)
     - [Step 2: 下載原始資料](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)
     - [Step 3: 測試實驗是否可執行](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-3-%E6%B8%AC%E8%A9%A6%E5%AF%A6%E9%A9%97%E6%98%AF%E5%90%A6%E5%8F%AF%E5%9F%B7%E8%A1%8C)
-    - [Step 4: 建構新實驗](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)
+    - [Step 4: 建置新實驗](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)
         - [1) 實驗模組](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%AF%A6%E9%A9%97%E6%A8%A1%E7%B5%84-experiment_modulepy)
         - [2) 模型](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#2-%E6%A8%A1%E5%9E%8B-modelpy)
         - [3) 前處理](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#3-%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86-preprocess_operatorspyconnect_pipelinepyconfig_pipelinepy)
     - [Step 5: 執行新實驗](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)
-        -  [1) 實驗Debug](hhttps://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%AF%A6%E9%A9%97debug)
+        -  [1) 新實驗測試與模型Debug](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%AF%A6%E9%A9%97debug)
         -  [2) 模型訓練與測試](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#2-%E6%A8%A1%E5%9E%8B%E8%A8%93%E7%B7%B4%E8%88%87%E6%B8%AC%E8%A9%A6)
         -  [3) TensorBoard-訓練成效監控](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)
         -  [4) CPU/GPU加速](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#4-gpucpu%E5%8A%A0%E9%80%9F)
@@ -32,7 +35,10 @@
 - [小工具](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%B0%8F%E5%B7%A5%E5%85%B7)
     - [blockPrinting](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#utilsblockprint)
 
-
+# 實驗記錄表
+|負責團隊(玉山/中研)|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|
+|--|--|:--:|--|--|--|--|--|--|--|--|
+|玉山|ex4|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V|V| | | |
 
 # 資料夾架構 
 以下為資料夾架構，標上 * 的檔案為實驗執行後，才會生成的檔案或資料夾；標上 V 的為特定實驗專屬之實驗檔或檔案夾；
@@ -133,7 +139,7 @@ TODO:
 
 此程式會對experiments/ex4資料夾所定義之實驗進行debug。過程中會對原始資料進行前處理，並將結果與佔存檔儲存於`data/sample`、`data/rnn/tmp`、`data/rnn/result`、`data/ex4/tmp`、`data/ex4/result`，接著，資料處理完後，就會進行1個step的training和validation，以快速驗證模型、程式的運作正常。
 
-## Step 4: 建構新實驗: 
+## Step 4: 建置新實驗: 
 
 可以複製[ex4](https://github.com/udothemath/edu_framework/tree/fit_aicloud4/experiments/ex4)資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex4)，並修改其中的`experiment_module.py`/`model.py`/`preprocess/config.py`/`preprocess/connect.py`/`preprocess/ops.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`preprocess`內檔案為前處理程式。
 
@@ -317,7 +323,7 @@ from common.ETLBase import ProcessBase
 class PreProcess(ProcessBase):
     # Step 1: 模塊名稱定義
     def module_name(self):
-        return "preprocess"
+        return "tutorial_preprocess"
     # Step 2.1: 輸入參數定義    
     def inputs(self):
         return [
@@ -326,7 +332,7 @@ class PreProcess(ProcessBase):
         ]
     # Step 2.2: 輸出參數定義 
     def outputs(self):
-        return ['e','f'] 
+        return ['table'] 
     
     # Step 3: 模塊定義 
     def define_functions(self, pipe):
@@ -362,7 +368,7 @@ class PreProcess(ProcessBase):
 	
 ```python
     def module_name(self):
-        return "preprocess"
+        return "tutorial_preprocess"
 ```
 
 * 輸入輸出參數定義
@@ -411,11 +417,7 @@ class PreProcess(ProcessBase):
         return conns
 ```
 
-#### 3.2) 使用.py定義前處理模組與串接方式：
-
-1. 將`define_functions`中函式定義於一獨立.py檔中(參見：`tutorial/ops`)
-2. 將`connections`中python字串撰寫於一獨立.py中(參見：`tutorial/connect.py`)
-3. 覆寫`ProcessBase`的`packages`以載入ops.py，並使用`common.process_compiler.block_str_generator`載入connect.py: 
+#### 3.2) 使用.py定義前處理模組與串接方式 (測試中功能)：
 
 ```python
 from common.ETLBase import ProcessBase
@@ -423,14 +425,14 @@ from common.process_compiler import block_str_generator
 
 class PreProcess(ProcessBase):
     def module_name(self):
-        return "preprocess"
+        return "tutorial_preprocess"
     def inputs(self):
         return [
             'a', 
             'b'
         ]
     def outputs(self):
-        return ['e','f']
+        return ['table']
     def packages(self):
         return ['tutorial.ops']
         
@@ -439,26 +441,15 @@ class PreProcess(ProcessBase):
         return conns
 ```
 
-#### 3.3) 中繼檔暫存功能使用方式：
-
-若想要將前處理過程產物進行暫存，可以於`connection`定義中繼檔名稱，指定方式如下：
-
-```python
-    def connections(self, **kargs):
-        conns = [
-            'c = plus_a_b(a=a,b=b)', 
-            'd = plus_a_b(a,c)', 
-            'e = plus_a_b(d,d)',
-        	('e_array = repeat(e)','e_array.npy')
-            ('table = to_dataframe(e_array)','table.feather')
-        ]
-        return conns
-```
-
-目前支援`pandas.DataFrame`和`numpy`的暫存。(`pandas.DataFrame`儲存格式為`.feather`，`numpy.array`儲存格式為`.npy`)
+1. 將`define_functions`中函式定義於一獨立.py檔中(參見：`tutorial/ops`)
+2. 覆寫`ProcessBase`的`packages`以載入ops.py
+3. 將`connections`中python字串撰寫於一獨立.py中(參見：`tutorial/connect.py`) (測試中功能，撰寫時請勿加入任何的command) 
+4. 使用`common.process_compiler.block_str_generator`載入connect.py
 
 
-#### 3.4) 前處理輸入參數設定方式
+
+
+#### 3.3) 前處理輸入參數設定方式
 
 假設我們希望我們的前處理輸入值a=1,b=2，可以透過以下方式進行設定 
 
@@ -466,26 +457,7 @@ class PreProcess(ProcessBase):
 preprocess = PreProcess() 
 preprocess.config(a=1, b=2, verbose=True) 
 ``` 
-
-#### 3.5) 前處理視覺化介紹  
-
-在開發過程中可以透過以下方式對前處理進行視覺化，幫助理解與呈現前處理的步驟與流程：
-
-```python
-preprocess.pipe.view(summary=False)  
-```
-
-![image](https://github.com/udothemath/edu_framework/blob/fit_aicloud4/tutorial/image/tutorial.svg)
- 
-我們也提供Dependency Hightlight的功能，幫助辨識各前處理模塊的前繼模塊。
- 
- ```python
- preprocess.pipe.view_dependency('c', summary=False)
-``` 
-
-![image](https://github.com/udothemath/edu_framework/blob/fit_aicloud4/tutorial/image/dependency.svg)
-
-#### 3.6) 前處理執行方式
+#### 3.4) 前處理執行方式
 
 前處理在串接時不會直接執行，只有要實際獲取結果時，才會進行執行。
 
@@ -508,16 +480,71 @@ preprocess.pipe.e_array.get(verbose=False)
 >>> array([8, 8, 8])
 ```
 
+#### 3.5) 前處理視覺化介紹  
+
+在開發過程中可以透過以下方式對前處理進行視覺化，幫助理解與呈現前處理的步驟與流程：
+
+```python
+preprocess.pipe.view(summary=False)  
+```
+
+![image](https://github.com/udothemath/edu_framework/blob/fit_aicloud4/tutorial/image/tutorial.svg)
+ 
+我們也提供Dependency Hightlight的功能，幫助辨識各前處理模塊的前繼模塊。
+ 
+ ```python
+ preprocess.pipe.view_dependency('c', summary=False)
+``` 
+
+![image](https://github.com/udothemath/edu_framework/blob/fit_aicloud4/tutorial/image/dependency.svg)
+
+
+#### 3.6) 中繼檔暫存功能使用方式：
+
+若想要將前處理過程產物進行暫存，操作步驟如下：
+
+1. 在定義前處理模組（i.e., 建立ProcessBase物件時)，於`connection`中定義中繼檔名稱，指定方式如下：
+
+```python
+    def connections(self, **kargs):
+        conns = [
+            'c = plus_a_b(a=a,b=b)', 
+            'd = plus_a_b(a,c)', 
+            'e = plus_a_b(d,d)',
+            ('e_array = repeat(e)','e_array.npy'),
+            ('table = to_dataframe(e_array)','table.feather')
+        ]
+        return conns
+```
+
+目前支援`pandas.DataFrame`和`numpy`的暫存。(`pandas.DataFrame`儲存格式為`.feather`，`numpy.array`儲存格式為`.npy`)
+
+中繼檔(`e_array.npy`、`table.feather`)預設會被存在`data/[前處理模塊名稱]/tmp`資料夾中(這裏[前處理模塊名稱=`tutorial_preprocess`])，建議不同處理模塊需有不同名稱避免暫存檔存取衝突。
+
+
+2. 初始化ProcessBase物件時，指定`save_tmp=True`
+
+```python
+preprocess = PreProcess(save_tmp=True) 
+preprocess.config(a=1, b=2, verbose=True) 
+``` 
+
+3. 執行前處理運算時，指定`load_tmp=True` 
+
+```
+preprocess.pipe.table.get(verbose=True, load_tmp=True)
+```
+
 
 ## Step 5: 執行新實驗: 
 
 當新的實驗建構完成，建議依以下順序進行debug與訓練: 
 
-### 1) 實驗Debug:
+### 1) 新實驗測試與模型Debug:
 
 **fastdebug**
 
-首先，執行fastdebug，確保即使模型與實驗設定修改後，訓練與驗證皆能順利執行: 
+首先，執行fastdebug，確保即使模型與實驗設定修改後，訓練與驗證皆能順利執行，執行時會進行一個epoch的測試: 
 
 `python run_project.py -m fastdebug -e [實驗資料夾名稱]` 
 
@@ -580,11 +607,6 @@ def function_to_block():
       print('message to be blocked')
 ```
 
-
-# 實驗記錄表
-|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|
-|--|:--:|--|--|--|--|--|--|--|--|
-|ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V| | | | |
 
 # 意見回饋 
 

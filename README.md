@@ -1,3 +1,5 @@
+
+
 # 簡介: 
 
 此程式框架的用途是幫助多任務實驗的協作與開發，提供了實驗的訓練、測試、Debug、前處理用的共用模組，並且支援Checkpoint，讓每次實驗產生的最佳模型可以被儲存以供測試使用，也提供logging的機制，以讓訓練過程中的模型的成效可以用Tensorboard來隨時檢視。
@@ -14,17 +16,18 @@
 ## 目錄: 
 
 - [簡介](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E7%B0%A1%E4%BB%8B)
+- [實驗記錄表]()
 - [資料夾架構](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B)
 - [實驗執行方法](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95)
     - [Step 1: 安裝dependencies](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-1-%E5%AE%89%E8%A3%9Ddependencies)
     - [Step 2: 下載原始資料](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)
     - [Step 3: 測試實驗是否可執行](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-3-%E6%B8%AC%E8%A9%A6%E5%AF%A6%E9%A9%97%E6%98%AF%E5%90%A6%E5%8F%AF%E5%9F%B7%E8%A1%8C)
-    - [Step 4: 建構新實驗](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)
+    - [Step 4: 建置新實驗](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)
         - [1) 實驗模組](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%AF%A6%E9%A9%97%E6%A8%A1%E7%B5%84-experiment_modulepy)
         - [2) 模型](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#2-%E6%A8%A1%E5%9E%8B-modelpy)
         - [3) 前處理](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#3-%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86-preprocess_operatorspyconnect_pipelinepyconfig_pipelinepy)
     - [Step 5: 執行新實驗](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)
-        -  [1) 實驗Debug](hhttps://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%AF%A6%E9%A9%97debug)
+        -  [1) 新實驗測試與模型Debug](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%AF%A6%E9%A9%97debug)
         -  [2) 模型訓練與測試](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#2-%E6%A8%A1%E5%9E%8B%E8%A8%93%E7%B7%B4%E8%88%87%E6%B8%AC%E8%A9%A6)
         -  [3) TensorBoard-訓練成效監控](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)
         -  [4) CPU/GPU加速](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#4-gpucpu%E5%8A%A0%E9%80%9F)
@@ -32,7 +35,10 @@
 - [小工具](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%B0%8F%E5%B7%A5%E5%85%B7)
     - [blockPrinting](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#utilsblockprint)
 
-
+# 實驗記錄表
+|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|
+|--|:--:|--|--|--|--|--|--|--|--|
+|ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V| | | | |
 
 # 資料夾架構 
 以下為資料夾架構，標上 * 的檔案為實驗執行後，才會生成的檔案或資料夾；標上 V 的為特定實驗專屬之實驗檔或檔案夾；
@@ -133,7 +139,7 @@ TODO:
 
 此程式會對experiments/ex4資料夾所定義之實驗進行debug。過程中會對原始資料進行前處理，並將結果與佔存檔儲存於`data/sample`、`data/rnn/tmp`、`data/rnn/result`、`data/ex4/tmp`、`data/ex4/result`，接著，資料處理完後，就會進行1個step的training和validation，以快速驗證模型、程式的運作正常。
 
-## Step 4: 建構新實驗: 
+## Step 4: 建置新實驗: 
 
 可以複製[ex4](https://github.com/udothemath/edu_framework/tree/fit_aicloud4/experiments/ex4)資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex4)，並修改其中的`experiment_module.py`/`model.py`/`preprocess/config.py`/`preprocess/connect.py`/`preprocess/ops.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`preprocess`內檔案為前處理程式。
 
@@ -513,11 +519,11 @@ preprocess.pipe.e_array.get(verbose=False)
 
 當新的實驗建構完成，建議依以下順序進行debug與訓練: 
 
-### 1) 實驗Debug:
+### 1) 新實驗測試與模型Debug:
 
 **fastdebug**
 
-首先，執行fastdebug，確保即使模型與實驗設定修改後，訓練與驗證皆能順利執行: 
+首先，執行fastdebug，確保即使模型與實驗設定修改後，訓練與驗證皆能順利執行，執行時會進行一個epoch的測試: 
 
 `python run_project.py -m fastdebug -e [實驗資料夾名稱]` 
 
@@ -580,11 +586,6 @@ def function_to_block():
       print('message to be blocked')
 ```
 
-
-# 實驗記錄表
-|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|
-|--|:--:|--|--|--|--|--|--|--|--|
-|ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V| | | | |
 
 # 意見回饋 
 

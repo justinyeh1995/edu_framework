@@ -332,7 +332,7 @@ class PreProcess(ProcessBase):
         ]
     # Step 2.2: 輸出參數定義 
     def outputs(self):
-        return ['e','f'] 
+        return ['table'] 
     
     # Step 3: 模塊定義 
     def define_functions(self, pipe):
@@ -436,7 +436,7 @@ class PreProcess(ProcessBase):
             'b'
         ]
     def outputs(self):
-        return ['e','f']
+        return ['table']
     def packages(self):
         return ['tutorial.ops']
         

@@ -455,7 +455,7 @@ class PreProcess(ProcessBase):
             'c = plus_a_b(a=a,b=b)', 
             'd = plus_a_b(a,c)', 
             'e = plus_a_b(d,d)',
-        	('e_array = repeat(e)','e_array.npy')
+            ('e_array = repeat(e)','e_array.npy'),
             ('table = to_dataframe(e_array)','table.feather')
         ]
         return conns

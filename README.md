@@ -323,7 +323,7 @@ from common.ETLBase import ProcessBase
 class PreProcess(ProcessBase):
     # Step 1: 模塊名稱定義
     def module_name(self):
-        return "preprocess"
+        return "tutorial_preprocess"
     # Step 2.1: 輸入參數定義    
     def inputs(self):
         return [
@@ -368,7 +368,7 @@ class PreProcess(ProcessBase):
 	
 ```python
     def module_name(self):
-        return "preprocess"
+        return "tutorial_preprocess"
 ```
 
 * 輸入輸出參數定義
@@ -429,7 +429,7 @@ from common.process_compiler import block_str_generator
 
 class PreProcess(ProcessBase):
     def module_name(self):
-        return "preprocess"
+        return "tutorial_preprocess"
     def inputs(self):
         return [
             'a', 

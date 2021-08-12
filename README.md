@@ -463,6 +463,7 @@ class PreProcess(ProcessBase):
 
 目前支援`pandas.DataFrame`和`numpy`的暫存。(`pandas.DataFrame`儲存格式為`.feather`，`numpy.array`儲存格式為`.npy`)
 
+中繼檔(`e_array.npy`、`table.feather`)預設會被存在`data/[前處理模塊名稱]/tmp`資料夾中(這裏[前處理模塊名稱=`tutorial_preprocess`])，建議不同處理模塊需有不同名稱避免暫存檔存取衝突。
 
 #### 3.4) 前處理輸入參數設定方式
 

@@ -36,9 +36,9 @@
     - [blockPrinting](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#utilsblockprint)
 
 # 實驗記錄表
-|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|
-|--|:--:|--|--|--|--|--|--|--|--|
-|ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V| | | | |
+|負責團隊(玉山/中研)|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|
+|--|--|:--:|--|--|--|--|--|--|--|--|
+|玉山|ex4|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V|V| | | |
 
 # 資料夾架構 
 以下為資料夾架構，標上 * 的檔案為實驗執行後，才會生成的檔案或資料夾；標上 V 的為特定實驗專屬之實驗檔或檔案夾；

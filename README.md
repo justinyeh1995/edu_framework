@@ -355,17 +355,18 @@ class PreProcess(ProcessBase):
         ]
         return conns
 ```
+
 以下為步驟說明：
 
 * 模塊名稱定義
-*	
+	
 ```python
     def module_name(self):
         return "preprocess"
 ```
 
 * 輸入輸出參數定義
-*	
+	
 ```python
     def inputs(self):
         return [
@@ -378,7 +379,7 @@ class PreProcess(ProcessBase):
 ```
 
 * 模塊定義 
-*	
+	
 ```python
     def define_functions(self, pipe):
         import numpy as np
@@ -397,7 +398,7 @@ class PreProcess(ProcessBase):
 ```
 
 * 串接方式定義
-*	
+	
 ```python
     def connections(self, **kargs):
         conns = [
@@ -439,7 +440,8 @@ class PreProcess(ProcessBase):
 ```
 
 #### 3.3) 中繼檔暫存功能使用方式：
-	若想要將前處理過程產物進行暫存，可以於`connection`定義中繼檔名稱，指定方式如下：
+
+若想要將前處理過程產物進行暫存，可以於`connection`定義中繼檔名稱，指定方式如下：
 
 ```python
     def connections(self, **kargs):
@@ -453,7 +455,7 @@ class PreProcess(ProcessBase):
         return conns
 ```
 
-	目前支援`pandas.DataFrame`和`numpy`的暫存。(`pandas.DataFrame`儲存格式為`.feather`，		`numpy.array`儲存格式為`.npy`)
+目前支援`pandas.DataFrame`和`numpy`的暫存。(`pandas.DataFrame`儲存格式為`.feather`，`numpy.array`儲存格式為`.npy`)
 
 
 #### 3.4) 前處理輸入參數設定方式
@@ -472,7 +474,8 @@ preprocess.config(a=1, b=2, verbose=True)
 ```python
 preprocess.pipe.view(summary=False)  
 ```
-![]()
+
+![image](https://github.com/udothemath/edu_framework/blob/fit_aicloud4/tutorial/image/tutorial.svg)
  
 我們也提供Dependency Hightlight的功能，幫助辨識各前處理模塊的前繼模塊。
  
@@ -480,7 +483,7 @@ preprocess.pipe.view(summary=False)
  preprocess.pipe.view_dependency('c', summary=False)
 ``` 
 
-![]()
+![image](https://github.com/udothemath/edu_framework/blob/fit_aicloud4/tutorial/image/dependency.svg)
 
 #### 3.6) 前處理執行方式
 

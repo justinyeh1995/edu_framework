@@ -417,11 +417,7 @@ class PreProcess(ProcessBase):
         return conns
 ```
 
-#### 3.2) 使用.py定義前處理模組與串接方式：
-
-1. 將`define_functions`中函式定義於一獨立.py檔中(參見：`tutorial/ops`)
-2. 將`connections`中python字串撰寫於一獨立.py中(參見：`tutorial/connect.py`)
-3. 覆寫`ProcessBase`的`packages`以載入ops.py，並使用`common.process_compiler.block_str_generator`載入connect.py: 
+#### 3.2) 使用.py定義前處理模組與串接方式 (測試中功能)：
 
 ```python
 from common.ETLBase import ProcessBase
@@ -444,6 +440,13 @@ class PreProcess(ProcessBase):
         conns = block_str_generator('tutorial/connect.py')
         return conns
 ```
+
+1. 將`define_functions`中函式定義於一獨立.py檔中(參見：`tutorial/ops`)
+2. 覆寫`ProcessBase`的`packages`以載入ops.py
+3. 將`connections`中python字串撰寫於一獨立.py中(參見：`tutorial/connect.py`) (測試中功能，撰寫時請勿加入任何的command) 
+4. 使用`common.process_compiler.block_str_generator`載入connect.py
+
+
 
 
 #### 3.3) 前處理輸入參數設定方式

@@ -445,27 +445,8 @@ class PreProcess(ProcessBase):
         return conns
 ```
 
-#### 3.3) 中繼檔暫存功能使用方式：
 
-若想要將前處理過程產物進行暫存，可以於`connection`定義中繼檔名稱，指定方式如下：
-
-```python
-    def connections(self, **kargs):
-        conns = [
-            'c = plus_a_b(a=a,b=b)', 
-            'd = plus_a_b(a,c)', 
-            'e = plus_a_b(d,d)',
-            ('e_array = repeat(e)','e_array.npy'),
-            ('table = to_dataframe(e_array)','table.feather')
-        ]
-        return conns
-```
-
-目前支援`pandas.DataFrame`和`numpy`的暫存。(`pandas.DataFrame`儲存格式為`.feather`，`numpy.array`儲存格式為`.npy`)
-
-中繼檔(`e_array.npy`、`table.feather`)預設會被存在`data/[前處理模塊名稱]/tmp`資料夾中(這裏[前處理模塊名稱=`tutorial_preprocess`])，建議不同處理模塊需有不同名稱避免暫存檔存取衝突。
-
-#### 3.4) 前處理輸入參數設定方式
+#### 3.3) 前處理輸入參數設定方式
 
 假設我們希望我們的前處理輸入值a=1,b=2，可以透過以下方式進行設定 
 
@@ -473,26 +454,7 @@ class PreProcess(ProcessBase):
 preprocess = PreProcess() 
 preprocess.config(a=1, b=2, verbose=True) 
 ``` 
-
-#### 3.5) 前處理視覺化介紹  
-
-在開發過程中可以透過以下方式對前處理進行視覺化，幫助理解與呈現前處理的步驟與流程：
-
-```python
-preprocess.pipe.view(summary=False)  
-```
-
-![image](https://github.com/udothemath/edu_framework/blob/fit_aicloud4/tutorial/image/tutorial.svg)
- 
-我們也提供Dependency Hightlight的功能，幫助辨識各前處理模塊的前繼模塊。
- 
- ```python
- preprocess.pipe.view_dependency('c', summary=False)
-``` 
-
-![image](https://github.com/udothemath/edu_framework/blob/fit_aicloud4/tutorial/image/dependency.svg)
-
-#### 3.6) 前處理執行方式
+#### 3.4) 前處理執行方式
 
 前處理在串接時不會直接執行，只有要實際獲取結果時，才會進行執行。
 
@@ -513,6 +475,61 @@ preprocess.pipe.table.get(verbose=False)
 ```
 preprocess.pipe.e_array.get(verbose=False)
 >>> array([8, 8, 8])
+```
+
+#### 3.5) 前處理視覺化介紹  
+
+在開發過程中可以透過以下方式對前處理進行視覺化，幫助理解與呈現前處理的步驟與流程：
+
+```python
+preprocess.pipe.view(summary=False)  
+```
+
+![image](https://github.com/udothemath/edu_framework/blob/fit_aicloud4/tutorial/image/tutorial.svg)
+ 
+我們也提供Dependency Hightlight的功能，幫助辨識各前處理模塊的前繼模塊。
+ 
+ ```python
+ preprocess.pipe.view_dependency('c', summary=False)
+``` 
+
+![image](https://github.com/udothemath/edu_framework/blob/fit_aicloud4/tutorial/image/dependency.svg)
+
+
+#### 3.6) 中繼檔暫存功能使用方式：
+
+若想要將前處理過程產物進行暫存，操作步驟如下：
+
+1. 在定義前處理模組（i.e., 建立ProcessBase物件時)，於`connection`中定義中繼檔名稱，指定方式如下：
+
+```python
+    def connections(self, **kargs):
+        conns = [
+            'c = plus_a_b(a=a,b=b)', 
+            'd = plus_a_b(a,c)', 
+            'e = plus_a_b(d,d)',
+            ('e_array = repeat(e)','e_array.npy'),
+            ('table = to_dataframe(e_array)','table.feather')
+        ]
+        return conns
+```
+
+目前支援`pandas.DataFrame`和`numpy`的暫存。(`pandas.DataFrame`儲存格式為`.feather`，`numpy.array`儲存格式為`.npy`)
+
+中繼檔(`e_array.npy`、`table.feather`)預設會被存在`data/[前處理模塊名稱]/tmp`資料夾中(這裏[前處理模塊名稱=`tutorial_preprocess`])，建議不同處理模塊需有不同名稱避免暫存檔存取衝突。
+
+
+2. 初始化ProcessBase物件時，指定`save_tmp=True`
+
+```python
+preprocess = PreProcess(save_tmp=True) 
+preprocess.config(a=1, b=2, verbose=True) 
+``` 
+
+3. 執行前處理運算時，指定`load_tmp=True` 
+
+```
+preprocess.pipe.table.get(verbose=True, load_tmp=True)
 ```
 
 

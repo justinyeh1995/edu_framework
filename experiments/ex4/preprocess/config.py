@@ -4,7 +4,7 @@ from common.process_compiler import block_str_generator
 class PreProcess(ProcessBase):
 
     def module_name(self):
-        return "preprocess"
+        return "ex4_preprocess"
 
     def packages(self):
         return [

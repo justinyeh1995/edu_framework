@@ -5,30 +5,58 @@ import torch.nn.functional as F
 from common.utils import blockPrinting 
 from common.pl_module import BaseMultiTaskModule, BaseMultiTaskDataModule
 
-from experiments.ex4.preprocess.connect_pipeline import pipe, USE_CHID
+from experiments.ex4.preprocess.config import PreProcess
 from experiments.ex4.model import MultiTaskModel
 
-experiment_name = __file__.split("/")[-2] # same as the name of current folder 
-experiment_group_name = 'rnn' # folder saving the data of all rnn experiments 
+import os
 
+origin_path = 'data/source'
+preprocess = PreProcess(save_tmp=True) 
+experiment_name = __file__.split("/")[-2] # same as the name of current folder 
+
+preprocess.config(
+    chid_file=os.path.join(origin_path, 'sample_chid.txt'), 
+    cdtx_file=os.path.join(origin_path, 'sample_zip_if_cca_cdtx0001_hist.csv'), 
+    cust_f_file=os.path.join(origin_path, 'sample_zip_if_cca_cust_f.csv'),
+    category_cols=['chid', 'bnsfg', 'iterm', 'mcc', 'scity'], 
+    sparse_feat=['chid', 'bnsfg', 'iterm', 'mcc', 'scity'], 
+    numeric_cols=['bnspt', 'timestamp_0', 'timestamp_1', 'objam'],
+    dense_feat=['bnspt', 'timestamp_0', 'timestamp_1', 'objam'],
+    cust_category_cols=['chid', 'masts', 'educd', 'trdtp', 'poscd'], 
+    cust_numeric_cols=['slam', 'first_mob', 'constant_change', 'sum_l2_ind',
+                  'sum_u2_ind', 'constant_l2_ind', 'constant_u4_ind',
+                  'growth_rate', 'monotone_down', 'monotone_up', 'data_dt'],
+    target_cols=['chid', 'data_dt', 'objam_sum', 'objam_mean', 'trans_count', 'objam_mean_M3'], 
+    USE_CHID=True, 
+    time_column_data_dt='data_dt', 
+    time_column_csmdt='csmdt', 
+    result_column_timestamp_1='timestamp_1', 
+    result_column_timestamp_0='timestamp_0', 
+    result_column_timestamp='timestamp', 
+    LEFT='left', 
+    INNER='inner', 
+    n_sample=50, 
+    window_size=120,
+    test_size=2
+)
 
 
 
 @blockPrinting
 def _get_data_dependent_model_parameters(pipe):
     # @DataDependent
-    use_chid = USE_CHID
+    use_chid = pipe.USE_CHID.get()
     
-    dense_dims = pipe.dense_dims.get()
-    sparse_dims = pipe.sparse_dims.get()
+    dense_dims = pipe.dense_dims.get(load_tmp=True)
+    sparse_dims = pipe.sparse_dims.get(load_tmp=True)
     
     num_y_data = 3
 
     ground_truths = [pipe.test_objmean, pipe.test_tscnt, pipe.test_label_0]
     
-    out_dims = [y_data.get().shape[1] for y_data in ground_truths]
+    out_dims = [y_data.get(load_tmp=True).shape[1] for y_data in ground_truths]
 
-    class_outputs = [type(y_data.get()[0].item())!=float for y_data in ground_truths]
+    class_outputs = [type(y_data.get(load_tmp=True)[0].item())!=float for y_data in ground_truths]
 
     return {
         'dense_dims': dense_dims, 
@@ -52,7 +80,7 @@ class ExperimentConfig:
                 'cell': 'LSTM', 
                 'bi': False
             },
-            "data_dependent": _get_data_dependent_model_parameters(pipe)
+            "data_dependent": _get_data_dependent_model_parameters(preprocess.pipe)
         },
         "training_parameters":{
             "dropout": 0.5, 
@@ -77,8 +105,8 @@ class ExperimentalMultiTaskDataModule(BaseMultiTaskDataModule):
     def prepare_data(self):
         # things to do on 1 GPU/TPU not on every GPU/TPU in distributed mode. 
         # e.g., download 
-        self.train_dataset = pipe.train_dataset.get()
-        self.test_dataset = pipe.test_dataset.get()
+        self.train_dataset = preprocess.pipe.train_dataset.get()
+        self.test_dataset = preprocess.pipe.test_dataset.get()
 
 
 class ExperimentalMultiTaskModule(BaseMultiTaskModule):

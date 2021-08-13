@@ -25,34 +25,34 @@
 
 於每次實驗，根據我們所制定的規範建立一個全新的實驗設定資料夾，在其中定義模型、模型參數、各任務衡量指標、資料前處理方法，即可與我們的實驗共用模組進行串接整合，讓每一次的實驗都可以被簡易地複製、衡量、調整。
 
-以下將進一步介紹此框架的 1. [資料夾架構](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B) 2. [實驗執行方法](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95
-) 3. [範例檔說明](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E
-) 4. [資料前處理工具](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86%E5%B7%A5%E5%85%B7-etlbase) 
+以下將進一步介紹此框架的 1. [資料夾架構](https://github.com/udothemath/edu_framework/tree/main#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B) 2. [實驗執行方法](https://github.com/udothemath/edu_framework/tree/main#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95
+) 3. [範例檔說明](https://github.com/udothemath/edu_framework/tree/main#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E
+) 4. [資料前處理工具](https://github.com/udothemath/edu_framework/tree/main#%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86%E5%B7%A5%E5%85%B7-etlbase) 
 
-此程式為beta版，若於使用中有疑問或建議，可以於[意見回饋](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)(或 Slack)提供給我們，我們將會對此框架進行調整。
-另外，在把實驗納入此框架的過程中，麻煩也幫我們填寫[實驗紀錄表](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)，已方便我們追蹤進度。
+此程式為beta版，若於使用中有疑問或建議，可以於[意見回饋](https://github.com/udothemath/edu_framework/blob/main/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)(或 Slack)提供給我們，我們將會對此框架進行調整。
+另外，在把實驗納入此框架的過程中，麻煩也幫我們填寫[實驗紀錄表](https://github.com/udothemath/edu_framework/blob/main/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)，已方便我們追蹤進度。
 
 ## 目錄: 
 
-- [簡介](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E7%B0%A1%E4%BB%8B)
+- [簡介](https://github.com/udothemath/edu_framework/tree/main#%E7%B0%A1%E4%BB%8B)
 - [實驗記錄表]()
-- [資料夾架構](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B)
-- [實驗執行方法](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95)
-    - [Step 1: 安裝dependencies](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-1-%E5%AE%89%E8%A3%9Ddependencies)
-    - [Step 2: 下載原始資料](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)
-    - [Step 3: 測試實驗是否可執行](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-3-%E6%B8%AC%E8%A9%A6%E5%AF%A6%E9%A9%97%E6%98%AF%E5%90%A6%E5%8F%AF%E5%9F%B7%E8%A1%8C)
-    - [Step 4: 建置新實驗](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)
-        - [1) 實驗模組](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%AF%A6%E9%A9%97%E6%A8%A1%E7%B5%84-experiment_modulepy)
-        - [2) 模型](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#2-%E6%A8%A1%E5%9E%8B-modelpy)
-        - [3) 前處理](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#3-%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86-preprocess_operatorspyconnect_pipelinepyconfig_pipelinepy)
-    - [Step 5: 執行新實驗](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)
-        -  [1) 新實驗測試與模型Debug](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%AF%A6%E9%A9%97debug)
-        -  [2) 模型訓練與測試](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#2-%E6%A8%A1%E5%9E%8B%E8%A8%93%E7%B7%B4%E8%88%87%E6%B8%AC%E8%A9%A6)
-        -  [3) TensorBoard-訓練成效監控](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)
-        -  [4) CPU/GPU加速](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#4-gpucpu%E5%8A%A0%E9%80%9F)
-- [範例檔說明](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
-- [小工具](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%B0%8F%E5%B7%A5%E5%85%B7)
-    - [blockPrinting](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#utilsblockprint)
+- [資料夾架構](https://github.com/udothemath/edu_framework/tree/main#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B)
+- [實驗執行方法](https://github.com/udothemath/edu_framework/tree/main#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95)
+    - [Step 1: 安裝dependencies](https://github.com/udothemath/edu_framework/tree/main#step-1-%E5%AE%89%E8%A3%9Ddependencies)
+    - [Step 2: 下載原始資料](https://github.com/udothemath/edu_framework/tree/main#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)
+    - [Step 3: 測試實驗是否可執行](https://github.com/udothemath/edu_framework/tree/main#step-3-%E6%B8%AC%E8%A9%A6%E5%AF%A6%E9%A9%97%E6%98%AF%E5%90%A6%E5%8F%AF%E5%9F%B7%E8%A1%8C)
+    - [Step 4: 建置新實驗](https://github.com/udothemath/edu_framework/tree/main#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)
+        - [1) 實驗模組](https://github.com/udothemath/edu_framework/tree/main#1-%E5%AF%A6%E9%A9%97%E6%A8%A1%E7%B5%84-experiment_modulepy)
+        - [2) 模型](https://github.com/udothemath/edu_framework/tree/main#2-%E6%A8%A1%E5%9E%8B-modelpy)
+        - [3) 前處理](https://github.com/udothemath/edu_framework/tree/main#3-%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86-preprocess_operatorspyconnect_pipelinepyconfig_pipelinepy)
+    - [Step 5: 執行新實驗](https://github.com/udothemath/edu_framework/tree/main#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)
+        -  [1) 新實驗測試與模型Debug](https://github.com/udothemath/edu_framework/tree/main#1-%E5%AF%A6%E9%A9%97debug)
+        -  [2) 模型訓練與測試](https://github.com/udothemath/edu_framework/tree/main#2-%E6%A8%A1%E5%9E%8B%E8%A8%93%E7%B7%B4%E8%88%87%E6%B8%AC%E8%A9%A6)
+        -  [3) TensorBoard-訓練成效監控](https://github.com/udothemath/edu_framework/tree/main#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)
+        -  [4) CPU/GPU加速](https://github.com/udothemath/edu_framework/tree/main#4-gpucpu%E5%8A%A0%E9%80%9F)
+- [範例檔說明](https://github.com/udothemath/edu_framework/tree/main#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
+- [小工具](https://github.com/udothemath/edu_framework/tree/main#%E5%B0%8F%E5%B7%A5%E5%85%B7)
+    - [blockPrinting](https://github.com/udothemath/edu_framework/tree/main#utilsblockprint)
 
 # 實驗記錄表
 |負責團隊(玉山/中研)|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|

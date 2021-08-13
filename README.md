@@ -417,7 +417,7 @@ class PreProcess(ProcessBase):
         return conns
 ```
 
-#### 3.2) 使用.py定義前處理模組與串接方式 (測試中功能)：
+#### 3.2) 使用.py定義前處理模組與串接方式：
 
 ```python
 from common.ETLBase import ProcessBase
@@ -441,11 +441,11 @@ class PreProcess(ProcessBase):
         return conns
 ```
 
+說明：
 1. 將`define_functions`中函式定義於一獨立.py檔中(參見：`tutorial/ops`)
 2. 覆寫`ProcessBase`的`packages`以載入ops.py
-3. 將`connections`中python字串撰寫於一獨立.py中(參見：`tutorial/connect.py`) (測試中功能，撰寫時請勿加入任何的command) 
+3. 將`connections`中python字串撰寫於一獨立.py中(參見：`tutorial/connect.py`)  
 4. 使用`common.process_compiler.block_str_generator`載入connect.py
-
 
 
 
@@ -519,7 +519,7 @@ preprocess.pipe.view(summary=False)
 
 目前支援`pandas.DataFrame`和`numpy`的暫存。(`pandas.DataFrame`儲存格式為`.feather`，`numpy.array`儲存格式為`.npy`)
 
-中繼檔(`e_array.npy`、`table.feather`)預設會被存在`data/[前處理模塊名稱]/tmp`資料夾中(這裏[前處理模塊名稱=`tutorial_preprocess`])，建議不同處理模塊需有不同名稱避免暫存檔存取衝突。另外，暫存檔主檔名須與輸出參數名稱相同。
+
 
 若是以載入.py的方式建置`connections`，可於以下方式於模塊後方指定中繼檔名稱：
 
@@ -541,14 +541,17 @@ table, array = two_output_example(x)
 ```
 
 
-2. 初始化ProcessBase物件時，指定`save_tmp=True`
+2. 初始化ProcessBase物件時，指定`save_tmp=True`，並指定儲存資料夾名稱：
 
 ```python
-preprocess = PreProcess(save_tmp=True) 
+preprocess = PreProcess(save_tmp=True, experiment_name='example') 
 preprocess.config(a=1, b=2, verbose=True) 
 ``` 
+中繼檔(`e_array.npy`、`table.feather`)預設會被存在`data/[experiment_name]/[module_name]/tmp`資料夾中(這裏[`module_name=tutorial_preprocess`])，建議不同處理模塊需有不同名稱避免暫存檔存取衝突。另外，暫存檔主檔名須與輸出參數名稱相同。
 
-3. 執行前處理運算時，指定`load_tmp=True` 
+若未指定`experiment_name`，中繼檔會被儲存在`data/[module_name]/tmp`資料夾中。
+
+3. 執行前處理運算時，指定`load_tmp=True`，若未指定，則前處理會重新執行。 
 
 ```
 preprocess.pipe.table.get(verbose=True, load_tmp=True)

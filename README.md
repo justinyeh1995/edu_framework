@@ -27,7 +27,7 @@
 
 以下將進一步介紹此框架的 1. [資料夾架構](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B) 2. [實驗執行方法](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95
 ) 3. [範例檔說明](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E
-) 4. [資料前處理小工具](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86%E5%B7%A5%E5%85%B7-etlbase) 
+) 4. [資料前處理工具](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86%E5%B7%A5%E5%85%B7-etlbase) 
 
 此程式為beta版，若於使用中有疑問或建議，可以於[意見回饋](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E6%84%8F%E8%A6%8B%E5%9B%9E%E9%A5%8B)(或 Slack)提供給我們，我們將會對此框架進行調整。
 另外，在把實驗納入此框架的過程中，麻煩也幫我們填寫[實驗紀錄表](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#%E5%AF%A6%E9%A9%97%E8%A8%98%E9%8C%84%E8%A1%A8)，已方便我們追蹤進度。
@@ -35,32 +35,29 @@
 ## 目錄: 
 
 - [簡介](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E7%B0%A1%E4%BB%8B)
+- [實驗記錄表]()
 - [資料夾架構](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%A4%BE%E6%9E%B6%E6%A7%8B)
 - [實驗執行方法](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%AF%A6%E9%A9%97%E5%9F%B7%E8%A1%8C%E6%96%B9%E6%B3%95)
     - [Step 1: 安裝dependencies](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-1-%E5%AE%89%E8%A3%9Ddependencies)
     - [Step 2: 下載原始資料](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)
     - [Step 3: 測試實驗是否可執行](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-3-%E6%B8%AC%E8%A9%A6%E5%AF%A6%E9%A9%97%E6%98%AF%E5%90%A6%E5%8F%AF%E5%9F%B7%E8%A1%8C)
-    - [Step 4: 建構新實驗](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)
+    - [Step 4: 建置新實驗](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)
         - [1) 實驗模組](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%AF%A6%E9%A9%97%E6%A8%A1%E7%B5%84-experiment_modulepy)
         - [2) 模型](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#2-%E6%A8%A1%E5%9E%8B-modelpy)
         - [3) 前處理](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#3-%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86-preprocess_operatorspyconnect_pipelinepyconfig_pipelinepy)
     - [Step 5: 執行新實驗](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)
-        -  [1) 實驗Debug](hhttps://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%AF%A6%E9%A9%97debug)
+        -  [1) 新實驗測試與模型Debug](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%AF%A6%E9%A9%97debug)
         -  [2) 模型訓練與測試](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#2-%E6%A8%A1%E5%9E%8B%E8%A8%93%E7%B7%B4%E8%88%87%E6%B8%AC%E8%A9%A6)
         -  [3) TensorBoard-訓練成效監控](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)
         -  [4) CPU/GPU加速](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#4-gpucpu%E5%8A%A0%E9%80%9F)
 - [範例檔說明](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E7%AF%84%E4%BE%8B%E6%AA%94%E8%AA%AA%E6%98%8E)
 - [小工具](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E5%B0%8F%E5%B7%A5%E5%85%B7)
-    - 1) [資料前處理工具: ETLBase](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#%E8%B3%87%E6%96%99%E5%89%8D%E8%99%95%E7%90%86%E5%B7%A5%E5%85%B7-etlbase)
-        - 1.1) [參數設定 (PipeConfigBuilder)](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#1-%E5%8F%83%E6%95%B8%E8%A8%AD%E5%AE%9A-pipeconfigbuilder)
-        - 1.2) [前處理串接方式 (PipelineBuilder)](hhttps://github.com/udothemath/edu_framework/tree/fit_aicloud4#2-%E5%89%8D%E8%99%95%E7%90%86%E4%B8%B2%E6%8E%A5%E6%96%B9%E5%BC%8F-pipelinebuilder)
-        - 1.3) [於.py定義前處理模組](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#3-%E6%96%BCpy%E5%AE%9A%E7%BE%A9%E5%89%8D%E8%99%95%E7%90%86%E6%A8%A1%E7%B5%84)
-        - 1.4) [執行前處理並取得運算結果](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#4-%E5%9F%B7%E8%A1%8C%E5%89%8D%E8%99%95%E7%90%86%E4%B8%A6%E5%8F%96%E5%BE%97%E9%81%8B%E7%AE%97%E7%B5%90%E6%9E%9C)
-        - 1.5) [中繼檔暫存功能](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#5-%E4%B8%AD%E7%B9%BC%E6%AA%94%E6%9A%AB%E5%AD%98%E5%8A%9F%E8%83%BD)
-        - 1.6) [Dependency視覺化介紹](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#6-dependency%E8%A6%96%E8%A6%BA%E5%8C%96%E4%BB%8B%E7%B4%B9)
-    - 2) [blockPrinting](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#utilsblockprint)
+    - [blockPrinting](https://github.com/udothemath/edu_framework/tree/fit_aicloud4#utilsblockprint)
 
-
+# 實驗記錄表
+|負責團隊(玉山/中研)|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|
+|--|--|:--:|--|--|--|--|--|--|--|--|
+|玉山|ex4|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V|V| | | |
 
 # 資料夾架構 
 以下為資料夾架構，標上 * 的檔案為實驗執行後，才會生成的檔案或資料夾；標上 V 的為特定實驗專屬之實驗檔或檔案夾；
@@ -97,14 +94,15 @@
 |    └── __init__.py 
 |    
 ├── experiments                                          # V 實驗模組 
-|    ├──V🟠[experiment_name]                              # V 特定實驗之實驗模組 
+|    ├──V🟠[experiment_name]                              # V 特定實驗之實驗模組
+|    |      ├──V🟠__init__.py          
 |    |      ├──V🟠experiment_module.py                    # V 實驗設定模組                                
 |    |      ├──V🟠model.py                                # V 模型模組 
-|    |      ├──V🟠preprocess_operators.py                 # V 資料前處理模組 (see ex3)
-|    |      ├──V🟠config_pipeline.py                      # V 資料前處理模組 (see ex3)
-|    |      ├──V🟠connect_pipeline.py                     # V 資料前處理模組 (see ex3)
-|    |      └──V🟠__init__.py                        
-|    └──V🟠[experiment_name]
+|    |      └──V🟠preprocess                              # V 客製化的前處理模組資料夾
+|    |             ├──V🟠config.py                        # V 資料前處理參數與串接設定 (see ex4)
+|    |             ├──V🟠ops.py                           # V 資料前處理函數          (see ex4)
+|    |             └──V🟠connect.py                       # V 資料前處理串接方式定義   (see ex4)
+|    ├──V🟠[experiment_name]
 |    └── ...
 |
 ├── *checkpoint                                          # 儲存模型暫存檔 
@@ -136,41 +134,35 @@
 首先將相關套件進行安裝。
 
 執行: 
-`sh install_packages.sh`
+
+```bash
+sh install_packages.sh
+(sudo) apt install graphviz 
+pip install graphviz
+```
+
 
 若要使用Nvidia GPU，須安裝GPU版本pytorch，詳情請見：https://pytorch.org。
 
 
 ## Step 2: 下載原始資料 
 
-* 方法一: 至data/source執行**download_data_from_google_drive.ipynb**進行以下原始資料的下載
-```
-🔵sample_chid.txt                            # 原始資料
-🔵sample_idx_map.npy                         # 原始資料
-🔵sample_zip_if_cca_cdtx0001_hist.csv        # ...
-🔵sample_zip_if_cca_cust_f.csv               # ...
-🔵sample_zip_if_cca_y.csv                    # 原始資料 
-```
-
-
-
-* 方法二: 自行下載以上資料至data/source。
-
-若採用方法一，須至google developer platform下載🔵google_drive.json，串接google_drive用的api-keys，下載方式參考 download_data_from_google_drive.ipynb。
+TODO: 
+[ ] 資料表將放置於data/source中。
 
 ## Step 3: 測試實驗是否可執行 
 
 執行FastDebug: 
-`python run_project.py -m fastdebug -e ex1` 
+`python run_project.py -m fastdebug -e ex4` 
 
 
-此程式會對experiments/ex1資料夾所定義之實驗進行debug。過程中會對原始資料進行前處理，並將結果與佔存檔儲存於`data/sample`、`data/rnn/tmp`、`data/rnn/result`、`data/ex1/tmp`、`data/ex1/result`，接著，資料處理完後，就會進行1個step的training和validation，以快速驗證模型、程式的運作正常。
+此程式會對experiments/ex4資料夾所定義之實驗進行debug。過程中會對原始資料進行前處理，並將結果與佔存檔儲存於`data/sample`、`data/rnn/tmp`、`data/rnn/result`、`data/ex4/tmp`、`data/ex4/result`，接著，資料處理完後，就會進行1個step的training和validation，以快速驗證模型、程式的運作正常。
 
-## Step 4: 建構新實驗: 
+## Step 4: 建置新實驗: 
 
-可以複製[ex3](https://github.com/udothemath/edu_framework/tree/enhance_preprocess_module/experiments/ex3)資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex4)，並修改其中的`experiment_module.py`/`model.py`/`config_pipeline.py`/`connect_pipeline.py`/`preprocess_operators.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`config_pipeline.py`/`connect_pipeline.py`/`preprocess_operators.py`為前處理程式。
+可以複製[ex4](https://github.com/udothemath/edu_framework/tree/fit_aicloud4/experiments/ex4)資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex4)，並修改其中的`experiment_module.py`/`model.py`/`preprocess/config.py`/`preprocess/connect.py`/`preprocess/ops.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`preprocess`內檔案為前處理程式。
 
-以下將以ex1為範例，分別說明此三類程式的建構方式: 
+以下將以ex4為範例，分別說明此三類程式的建構方式: 
 
 ### 1) 實驗模組 (`experiment_module.py`)
 
@@ -250,8 +242,6 @@ class ExperimentalMultiTaskModule(BaseMultiTaskModule):
     def config_loss_funcs(self): 
         return [F.mse_loss, F.mse_loss, F.binary_cross_entropy]  # 此處定義各任務之目標函數 
     
-    
-
     def config_task_metrics(self):                               # 此處定義個任務之衡量指標名稱 
         return {
             'objmean': ['mse', 'mae'], 
@@ -330,22 +320,272 @@ class MultiTaskModel(torch.nn.Module):
 
 ```
 
-### 3) 資料前處理 (`preprocess_operators.py`/`connect_pipeline.py`/`config_pipeline.py`)
+### 3) 資料前處理 
 
-此三個程式定義了產生TensorDataset物件之資料前處理data pipeline，其使用了我們的`common/ETLBase.py`的`PipeConfigBuilder`物件進行處理模組的參數定義並用`PipeBuilder`進行串接的定義。
+使用我們的`common/ETLBase.py`的`ProcessBase`物件進行處理模組的參數與函數定義。
 
-詳細使用方式於**小工具**介紹。
+
+#### 3.1) 資料前處理工具: ETLBase 簡介
+
+為了能讓資料轉換為能夠輸入模型的形式，實驗建置過程中，往往會需要耗費許多的心力來進行資料的前處理，而對於不同的模型版本，又有可能會有相應的不一樣的前處理方式，隨著實驗的增加，前處理的程式也相應得變得越來越難以維護。另外，建立前處理程式的過程中，往往涉及到大量冗長的資料轉換，因此在開發過程中也容易因資料轉換而耽誤了開發時程。
+
+因此，我們提供前處理工具（`ETLBase`)，希望不只讓前處理程式更易於理解，也可以開發更快速。此前處理工具可以透過視覺化的方式，將前處理過程中的模塊、模塊的輸入、輸出，以及模塊之間的串連方式，以[有向圖(DAG)](https://zh.wikipedia.org/wiki/File:Tred-G.svg)的方式呈現，讓前處理的步驟與邏輯可以一目了然。另外，此工具也加入了資料中繼檔暫存功能，讓前處理過程中的中間產物，可以被以檔案的方式儲存起來，讓後續使用此中間產物的處理模塊可以快速載入，進行後續模塊的調整。
+
+此工具使用方式為繼承我們的`common/ETLBase`中的`ProcessBase`類別，並覆蓋其中的函數，達到規格化地定義前處理模塊、模塊串接方式、前處理輸入輸入參數的功能。以下我們將對此工具的使用方式進行簡單說明，詳細操作方式請參考[Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)。
+
+#### 3.2) 前處理定義方式
+
+假設前處理涉及兩個參數a,b，我們想要讓c = a + b, d = a + c, e = d + d，最後輸出三行的pandas.DataFrame，每一行的內容為e，我們可以以下面方式進行串接:
+
+```python 
+from common.ETLBase import ProcessBase
+class PreProcess(ProcessBase):
+    # Step 1: 模塊名稱定義
+    def module_name(self):
+        return "tutorial_preprocess"
+    # Step 2.1: 輸入參數定義    
+    def inputs(self):
+        return [
+            'a', 
+            'b'
+        ]
+    # Step 2.2: 輸出參數定義 
+    def outputs(self):
+        return ['table'] 
+    
+    # Step 3: 模塊定義 
+    def define_functions(self, pipe):
+        import numpy as np
+        import pandas as pd 
+        @pipe._func_
+        def plus_a_b(a=0,b=0):
+            return a+b
+             
+        @pipe._func_
+        def repeat(a,b=3):
+            return np.repeat(a,b)
+        
+        @pipe._func_
+        def to_dataframe(seq):
+            return pd.DataFrame(seq)
+        
+    # Step 4: 串接方式定義
+    def connections(self, **kargs):
+        conns = [
+            'c = plus_a_b(a,b)', 
+            'd = plus_a_b(a,c)', 
+            'e = plus_a_b(d,d)',
+            'e_array = repeat(e)',
+            'table = to_dataframe(e_array)'
+        ]
+        return conns
+```
+
+以下為步驟說明：
+
+* 模塊名稱定義
+	
+```python
+    def module_name(self):
+        return "tutorial_preprocess"
+```
+
+* 輸入輸出參數定義
+	
+```python
+    def inputs(self):
+        return [
+            'a', 
+            'b'
+        ]
+        
+    def outputs(self):
+        return ['table'] 
+```
+
+* 模塊定義 
+	
+```python
+    def define_functions(self, pipe):
+        import numpy as np
+        import pandas as pd 
+        @pipe._func_
+        def plus_a_b(a=0,b=0):
+            return a+b
+             
+        @pipe._func_
+        def repeat(a,b=3):
+            	return np.repeat(a,b)
+            	
+        @pipe._func_
+        def to_dataframe(seq):
+        	return pd.DataFrame(seq)
+```
+
+* 串接方式定義
+	
+```python
+    def connections(self, **kargs):
+        conns = [
+            'c = plus_a_b(a,b)', 
+            'd = plus_a_b(a,c)', 
+            'e = plus_a_b(d,d)',
+            'e_array = repeat(e)',
+            'table = to_dataframe(e_array)'
+        ]
+        return conns
+```
+
+#### 3.2) 使用.py定義前處理模組與串接方式：
+
+```python
+from common.ETLBase import ProcessBase
+from common.process_compiler import block_str_generator
+
+class PreProcess(ProcessBase):
+    def module_name(self):
+        return "tutorial_preprocess"
+    def inputs(self):
+        return [
+            'a', 
+            'b'
+        ]
+    def outputs(self):
+        return ['table']
+    def packages(self):
+        return ['tutorial.ops']
+        
+    def connections(self, **kargs):
+        conns = block_str_generator('tutorial/connect.py')
+        return conns
+```
+
+說明：
+1. 將`define_functions`中函式定義於一獨立.py檔中(參見：`tutorial/ops`)
+2. 覆寫`ProcessBase`的`packages`以載入ops.py
+3. 將`connections`中python字串撰寫於一獨立.py中(參見：`tutorial/connect.py`)  
+4. 使用`common.process_compiler.block_str_generator`載入connect.py
+
+
+
+#### 3.3) 前處理輸入參數設定方式
+
+假設我們希望我們的前處理輸入值a=1,b=2，可以透過以下方式進行設定 
+
+```python
+preprocess = PreProcess() 
+preprocess.config(a=1, b=2, verbose=True) 
+``` 
+#### 3.4) 前處理執行方式
+
+前處理在串接時不會直接執行，只有要實際獲取結果時，才會進行執行。
+
+獲取方式如下：
+
+```
+preprocess.pipe.table.get(verbose=False)
+>>> 
+	0
+0	8
+1	8
+2	8
+
+``` 
+
+並且除了最終輸出結果可以進行獲取之外，前處理過程中定義的中間參數都可以獲取:
+
+```
+preprocess.pipe.e_array.get(verbose=False)
+>>> array([8, 8, 8])
+```
+
+#### 3.5) 前處理視覺化介紹  
+
+在開發過程中可以透過以下方式對前處理進行視覺化，幫助理解與呈現前處理的步驟與流程：
+
+```python
+preprocess.pipe.view(summary=False)  
+```
+
+![image](https://github.com/udothemath/edu_framework/blob/fit_aicloud4/tutorial/image/tutorial.svg)
+ 
+我們也提供Dependency Hightlight的功能，幫助辨識各前處理模塊的前繼模塊。
+ 
+ ```python
+ preprocess.pipe.view_dependency('c', summary=False)
+``` 
+
+![image](https://github.com/udothemath/edu_framework/blob/fit_aicloud4/tutorial/image/dependency.svg)
+
+
+#### 3.6) 中繼檔暫存功能使用方式：
+
+若想要將前處理過程產物進行暫存，操作步驟如下：
+
+1. 在定義前處理模組（i.e., 建立ProcessBase物件時)，於`connection`中定義中繼檔名稱，指定方式如下：
+
+```python
+    def connections(self, **kargs):
+        conns = [
+            'c = plus_a_b(a=a,b=b)', 
+            'd = plus_a_b(a,c)', 
+            'e = plus_a_b(d,d)',
+            ('e_array = repeat(e)','e_array.npy'),
+            ('table = to_dataframe(e_array)','table.feather')
+        ]
+        return conns
+```
+
+目前支援`pandas.DataFrame`和`numpy`的暫存。(`pandas.DataFrame`儲存格式為`.feather`，`numpy.array`儲存格式為`.npy`)
+
+
+
+若是以載入.py的方式建置`connections`，可於以下方式於模塊後方指定中繼檔名稱：
+
+```python
+c = plus_a_b(a,b)
+d = plus_a_b(a,c)
+e = plus_a_b(d,d)
+e_array = repeat(e)
+('e_array.npy')
+table = to_dataframe(e_array)
+('table.feather')
+```
+
+若有多個輸出，請用逗點隔開：
+
+```python
+table, array = two_output_example(x)
+('table.feather', 'array.npy')
+```
+
+
+2. 初始化ProcessBase物件時，指定`save_tmp=True`，並指定儲存資料夾名稱：
+
+```python
+preprocess = PreProcess(save_tmp=True, experiment_name='example') 
+preprocess.config(a=1, b=2, verbose=True) 
+``` 
+中繼檔(`e_array.npy`、`table.feather`)預設會被存在`data/[experiment_name]/[module_name]/tmp`資料夾中(這裏[`module_name=tutorial_preprocess`])，建議不同處理模塊需有不同名稱避免暫存檔存取衝突。另外，暫存檔主檔名須與輸出參數名稱相同。
+
+若未指定`experiment_name`，中繼檔會被儲存在`data/[module_name]/tmp`資料夾中。
+
+3. 執行前處理運算時，指定`load_tmp=True`，若未指定，則前處理會重新執行。 
+
+```
+preprocess.pipe.table.get(verbose=True, load_tmp=True)
+```
 
 
 ## Step 5: 執行新實驗: 
 
 當新的實驗建構完成，建議依以下順序進行debug與訓練: 
 
-### 1) 實驗Debug:
+### 1) 新實驗測試與模型Debug:
 
 **fastdebug**
 
-首先，執行fastdebug，確保即使模型與實驗設定修改後，訓練與驗證皆能順利執行: 
+首先，執行fastdebug，確保即使模型與實驗設定修改後，訓練與驗證皆能順利執行，執行時會進行一個epoch的測試: 
 
 `python run_project.py -m fastdebug -e [實驗資料夾名稱]` 
 
@@ -392,132 +632,7 @@ class MultiTaskModel(torch.nn.Module):
 ```
 python run_project.py -m [fit1batch/train] -e [實驗資料夾名稱] -g [GPU數量] -c [使用的cpu worker數量]
 ```
-
-# 範例檔說明
-
-
 # 小工具 
-
-## 資料前處理工具: ETLBase 
-
-為了能讓資料轉換為能夠輸入模型的形式，實驗建置過程中，往往會需要耗費許多的心力來進行資料的前處理，而對於不同的模型版本，又有可能會有相應的不一樣的前處理方式，隨著實驗的增加，前處理的程式也相應得變得越來越難以維護。另外，建立前處理程式的過程中，往往涉及到大量冗長的資料轉換，因此在開發過程中也容易因資料轉換而耽誤了開發時程。
-
-因此，我們希望透過提供簡易好用的前處理工具，不只讓前處理程式更易於理解，也可以開發更快速。此前處理工具可以透過視覺化的方式，將前處理過程中的模塊、模塊的輸入、輸出，以及模塊之間的串連方式，以[有向圖(DAG)](https://zh.wikipedia.org/wiki/File:Tred-G.svg)的方式呈現，讓前處理的步驟與邏輯可以一目了然。另外，此工具也加入了資料中繼檔暫存功能，讓前處理過程中的中間產物，可以被以檔案的方式儲存起來，讓後續使用此中間產物的處理模塊可以快速仔入，進行後續模塊的調整。
-
-此工具主要分為參數設定模組 PipeConfigBuilder 和 串接模組PipelineBuilder 這兩塊，前者用來設定前處理會用到的參數，例如window size、類別或數值型因子的欄位名稱等等，後者則是用來串接前處理模塊，以下我們將對此工具的使用方式進行簡單說明，詳細使用方式請參考[Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)。
-
-### 1) 參數設定 (PipeConfigBuilder)
-
-
-假設前處理涉及兩個參數a,b，分別設定為1,2，可以用以下方是設定: 
-```python
-from common.ETLBase import PipeConfigBuilder
-config = PipeConfigBuilder()
-config.setups(a=1,b=2)
-```
-設定完成後，即可用view來呈現設定狀態: 
-
-```python
-config.view(summary=False)
-```
-![alt text](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/image/config.svg)
-
-
-### 2) 前處理串接方式 (PipelineBuilder)
-
-接著可以開始來定義前處理方式。
-
-* 首先我們先透過以下方是建立好 PipelineBuilder: 
-```python
-from common.ETLBase import PipelineBuilder
-pipe = PipelineBuilder(config)
-```
-PipelineBuilder帶入config，代表config中所建立的那些參數(a,b)，及可以在前處理程式串接過程中被取用。 
-
-* 接著我們可以去定義資料處理模塊，舉例來說我們希望有一個可以把a,b進行相加的模塊: 
-```python
-@pipe._func_
-def plus_a_b(a=1,b=2):
-    return a+b
-``` 
-如此我們即可以把PipelineBuilder任別出此模塊。
-
-* 最後進行模塊串接，假設我們想要讓c = a + b, d = a + c, e = d + d, f = b + d，我們可以以下面的方式進行串接: 
-
-```python 
-pipe.setup_connection('c = plus_a_b(a=a,b=b)')
-pipe.setup_connection('d = plus_a_b(a=a,c)')
-pipe.setup_connection('e = plus_a_b(d,d)')
-pipe.setup_connection('f = plus_a_b(b,d)')
-```
-
-注意: 帶入setup_connection的python字串請勿加入換行字符\n，或使用expression來定義參數，如: `c=plus_a_b(a=(1*2), b=(6*9))`，PipeConfigBuilder的setup中定義或是出現於先前定義之setup_connection的output。
-
-接著使用view即可呈現整張串接的結果: 
-
-```python 
-pipe.view(summary=False)
-```
-![alt text](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/image/pipe.svg)
-
-### 3) 於.py定義前處理模組: 
-
-前處理模塊可統一定義於一個.py中，並以以下方是載入PipelineBuilder中: 
-
-```python 
-from experiments.ex3.config_pipeline import config
-pipe = PipelineBuilder(config, func_source='experiments.ex3.preprocess_operators')
-``` 
-如以上範例所式，此方式可以載入experiments/ex3/preprocess_operators.py中的所有函式作為串接的模塊使用。
-
-一樣使用view即可檢視串接樣貌: 
-```python 
-pipe.view(summary=False)
-```
-![alt text](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/image/whole.svg)
-
-### 4) 執行前處理並取得運算結果: 
-
-我們所設計的工具，在定義資料串接方式時，前處理只會進行串接，並不會執行計算。
-**但是**在開發前處理的過程中，常常會需要檢視前處理過程中的中繼產物，透過以下方法即可將前處理進行計算並取得某一模塊的輸出結果: 
-
-```
-pipe.f.get(verbose=True)
->> 6
-```
-例如我們想要取得上面pipe中所得之f的值，即可用get來取得，此時所有f所依賴的前處理模塊皆會進行執行。
-
-
-### 5) 中繼檔暫存功能: 
-
-若要使前處理重複使用的中繼產物可以更快被取得，我們提供暫存功能: 
-
-```
-pipe.setup_connection(
-    'df_input, feature_map = extract_feature_cols_and_encode_categoricals(df_cdtx, numeric_cols=numeric_cols, category_cols=category_cols)',
-    result_dir=[
-                'df_input.feather',
-                'feature_map.npy'
-            ]
-)
-```
-
-舉例來說，上面的extract_feature_cols_and_encode_categoricals函數會輸出兩個暫存檔，且此兩個檔案都會在後續資料處理被大量使用。為了減少開發時間，可以在result_dir給其各自的儲存檔名進行暫存，當程式執行到此函數時，其結果即會被自動儲存，下次執行時，即會直接載入所暫存的結果進行後續計算。
-
-目前支援的格式有.feather/.h5/.npy三種格式，.feather和.h5為儲存pandas.DataFrame用的格式、.npy則是用來儲存numpy.array用的格式。
-
-注意: 若要重從新執行此模塊的計算，須把暫存檔刪除才會重新執行，並產製結果，否則預設為直接使用暫存的結果。
-
-
-### 6) Dependency視覺化介紹: 
-
-我們亦提供了Hightlight Dependency的功能，舉例來說，透過以下方式即可把圖中，split_data所依賴的模組與資料產物都標住處來。
-```
-pipe.view_dependency('split_data', summary=False)
-```
-![alt text](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/image/dependency.svg)
-詳細視覺化的進階操作請參考: [Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)
-
 
 
 ## utils.blockPrint
@@ -533,12 +648,6 @@ def function_to_block():
       print('message to be blocked')
 ```
 
-
-
-# 實驗記錄表
-|實驗名稱|模型名稱|任務中英名稱|已建構完成實驗資料夾|fastdebug運作無誤|fit1batch運作無誤|train運作無誤|參數調整完成|最佳模型test無誤|最佳模型.ckpt路徑|
-|--|:--:|--|--|--|--|--|--|--|--|
-|ex1|ETRNN|下月消費總金額(objmean)、下月消費次數(tscnt)、下月是否消費(label_0)|V|V|V| | | | |
 
 # 意見回饋 
 

@@ -519,7 +519,26 @@ preprocess.pipe.view(summary=False)
 
 目前支援`pandas.DataFrame`和`numpy`的暫存。(`pandas.DataFrame`儲存格式為`.feather`，`numpy.array`儲存格式為`.npy`)
 
-中繼檔(`e_array.npy`、`table.feather`)預設會被存在`data/[前處理模塊名稱]/tmp`資料夾中(這裏[前處理模塊名稱=`tutorial_preprocess`])，建議不同處理模塊需有不同名稱避免暫存檔存取衝突。
+中繼檔(`e_array.npy`、`table.feather`)預設會被存在`data/[前處理模塊名稱]/tmp`資料夾中(這裏[前處理模塊名稱=`tutorial_preprocess`])，建議不同處理模塊需有不同名稱避免暫存檔存取衝突。另外，暫存檔主檔名須與輸出參數名稱相同。
+
+若是以載入.py的方式建置`connections`，可於以下方式於模塊後方指定中繼檔名稱：
+
+```python
+c = plus_a_b(a,b)
+d = plus_a_b(a,c)
+e = plus_a_b(d,d)
+e_array = repeat(e)
+('e_array.npy')
+table = to_dataframe(e_array)
+('table.feather')
+```
+
+若有多個輸出，請用逗點隔開：
+
+```python
+table, array = two_output_example(x)
+('table.feather', 'array.npy')
+```
 
 
 2. 初始化ProcessBase物件時，指定`save_tmp=True`

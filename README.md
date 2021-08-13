@@ -62,7 +62,7 @@
 # 資料夾架構 
 以下為資料夾架構，標上 * 的檔案為實驗執行後，才會生成的檔案或資料夾；標上 V 的為特定實驗專屬之實驗檔或檔案夾；
 
-標上🟠為須由實驗者[自行建置](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)之實驗檔或資料夾；標上🟢為須執行之檔案，包含[檔案下載](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)與[實驗運行](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)；標上🔵為須[自行下載](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)之檔案。
+標上🟠為須由實驗者[自行建置](https://github.com/udothemath/edu_framework/blob/main/README.md#step-4-%E5%BB%BA%E6%A7%8B%E6%96%B0%E5%AF%A6%E9%A9%97)之實驗檔或資料夾；標上🟢為須執行之檔案，包含[檔案下載](https://github.com/udothemath/edu_framework/blob/main/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)與[實驗運行](https://github.com/udothemath/edu_framework/blob/main/README.md#step-5-%E5%9F%B7%E8%A1%8C%E6%96%B0%E5%AF%A6%E9%A9%97)；標上🔵為須[自行下載](https://github.com/udothemath/edu_framework/blob/main/README.md#step-2-%E4%B8%8B%E8%BC%89%E5%8E%9F%E5%A7%8B%E8%B3%87%E6%96%99)之檔案。
 
 ```
 .
@@ -160,7 +160,7 @@ TODO:
 
 ## Step 4: 建置新實驗: 
 
-可以複製[ex4](https://github.com/udothemath/edu_framework/tree/fit_aicloud4/experiments/ex4)資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex4)，並修改其中的`experiment_module.py`/`model.py`/`preprocess/config.py`/`preprocess/connect.py`/`preprocess/ops.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`preprocess`內檔案為前處理程式。
+可以複製[ex4](https://github.com/udothemath/edu_framework/tree/main/experiments/ex4)資料夾，必將其改為實驗者欲命名的實驗名稱（e.g., ex4)，並修改其中的`experiment_module.py`/`model.py`/`preprocess/config.py`/`preprocess/connect.py`/`preprocess/ops.py`。其中`experiment_module.py`為實驗模組，`model.py`為模型，`preprocess`內檔案為前處理程式。
 
 以下將以ex4為範例，分別說明此三類程式的建構方式: 
 
@@ -331,7 +331,7 @@ class MultiTaskModel(torch.nn.Module):
 
 因此，我們提供前處理工具（`ETLBase`)，希望不只讓前處理程式更易於理解，也可以開發更快速。此前處理工具可以透過視覺化的方式，將前處理過程中的模塊、模塊的輸入、輸出，以及模塊之間的串連方式，以[有向圖(DAG)](https://zh.wikipedia.org/wiki/File:Tred-G.svg)的方式呈現，讓前處理的步驟與邏輯可以一目了然。另外，此工具也加入了資料中繼檔暫存功能，讓前處理過程中的中間產物，可以被以檔案的方式儲存起來，讓後續使用此中間產物的處理模塊可以快速載入，進行後續模塊的調整。
 
-此工具使用方式為繼承我們的`common/ETLBase`中的`ProcessBase`類別，並覆蓋其中的函數，達到規格化地定義前處理模塊、模塊串接方式、前處理輸入輸入參數的功能。以下我們將對此工具的使用方式進行簡單說明，詳細操作方式請參考[Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/Tutorial%20of%20Pipeline%20Tools.ipynb)。
+此工具使用方式為繼承我們的`common/ETLBase`中的`ProcessBase`類別，並覆蓋其中的函數，達到規格化地定義前處理模塊、模塊串接方式、前處理輸入輸入參數的功能。以下我們將對此工具的使用方式進行簡單說明，詳細操作方式請參考[Jupyter Notebook - Tutorial of Pipeline Tools.ipynb](https://github.com/udothemath/edu_framework/blob/main/Tutorial%20of%20Pipeline%20Tools.ipynb)。
 
 #### 3.2) 前處理定義方式
 
@@ -507,7 +507,7 @@ preprocess.pipe.e_array.get(verbose=False)
 preprocess.pipe.view(summary=False)  
 ```
 
-![image](https://github.com/udothemath/edu_framework/blob/fit_aicloud4/tutorial/image/tutorial.svg)
+![image](https://github.com/udothemath/edu_framework/blob/main/tutorial/image/tutorial.svg)
  
 我們也提供Dependency Hightlight的功能，幫助辨識各前處理模塊的前繼模塊。
  
@@ -515,7 +515,7 @@ preprocess.pipe.view(summary=False)
  preprocess.pipe.view_dependency('c', summary=False)
 ``` 
 
-![image](https://github.com/udothemath/edu_framework/blob/fit_aicloud4/tutorial/image/dependency.svg)
+![image](https://github.com/udothemath/edu_framework/blob/main/tutorial/image/dependency.svg)
 
 
 #### 3.6) 中繼檔暫存功能使用方式：
@@ -591,7 +591,7 @@ preprocess.pipe.table.get(verbose=True, load_tmp=True)
 
 **fit1batch** 
 
-接著，為了確保模型設計是合理的，讓模型overfit一個訓練的batch，正常的狀況，loss要能夠持續下降，loss的監控參考 [TensorBoard-訓練成效監控](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)。
+接著，為了確保模型設計是合理的，讓模型overfit一個訓練的batch，正常的狀況，loss要能夠持續下降，loss的監控參考 [TensorBoard-訓練成效監控](https://github.com/udothemath/edu_framework/blob/main/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)。
 
 `python run_project.py -m fit1batch -e [實驗資料夾名稱] (-l [log_dir])` 
 
@@ -605,7 +605,7 @@ preprocess.pipe.table.get(verbose=True, load_tmp=True)
 
 `python run_project.py -m train -e [實驗資料夾名稱] (-l [log_dir])`  
 
-模型的validation/training performance的監控參考 [TensorBoard-訓練成效監控](https://github.com/udothemath/edu_framework/blob/enhance_preprocess_module/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)。
+模型的validation/training performance的監控參考 [TensorBoard-訓練成效監控](https://github.com/udothemath/edu_framework/blob/main/README.md#3-tensorboard-%E8%A8%93%E7%B7%B4%E6%88%90%E6%95%88%E7%9B%A3%E6%8E%A7)。
 
 訓練過程中，表現最佳的模型以及最後一個epoch的模型暫存檔(.ckpt)會被保存於`./checkpoint/[實驗資料夾名稱]`中，每增加一個epoch，就會被更新一次。
 

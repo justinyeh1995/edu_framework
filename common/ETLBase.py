@@ -212,7 +212,8 @@ class ProcessBase():
                 if isinstance(connection, str):
                     pipe.setup_connection(
                         connection,
-                        result_dir=output_files
+                        result_dir=output_files, 
+                        verbose=verbose
                         )
                 else:
                     # conn = connection(required_process=self, save_tmp = self._save_tmp) # CustItemRecmd
@@ -535,7 +536,54 @@ class PipelineBuilder():
                 assert type(self.graph_dict[output_nodes[0]]).__name__.split('+')[0] == 'DataNode'
                 self.graph_dict[output_nodes[0]].set_process(new_func)
 
-    def setup_connection(self, code_str, env = None, result_dir = None, func = None):
+    def _set_func_str_as_private_functions(self, func_str, func, func_source, verbose=False):
+        '''
+        Inputs: 
+            - func: the func assign during connection.
+            - func_source: the imported function containing the functions.
+            - func_str: the function string extracted from the connection 
+                code string. 
+        '''
+        private_func_str = f"self._{func_str.replace('.','_')}"
+
+        if func:
+            exec(self._print_exec(
+                f"{private_func_str} = func", 
+                verbose=verbose))
+        else: 
+            # If no custom function
+            # insert function from global
+            try:
+                eval(private_func_str) 
+                # if the function cannot be found, 
+                # import packages to load the function. 
+            except:
+                if type(func_source) == str:
+                    # only one package imported 
+                    if '.' in func_str:
+                        func_str = func_str.split(".")[0]
+                    exec(self._print_exec(
+                        f'from {func_source} import {func_str}', 
+                        verbose=verbose))
+                elif type(func_source) == list:
+                    # multiple packages imported 
+                    for s in func_source:
+                        exec(self._print_exec(
+                            f'from {s} import *', 
+                            verbose=verbose))
+                else:
+                    raise ValueError(
+                        f'{str(func_source)} is not string or list of strings')
+                exec(self._print_exec(
+                    f"{private_func_str} = {func_str}", 
+                    verbose=verbose))
+        return private_func_str
+    def _print_exec(self, code_str, verbose=False):
+        if verbose:
+            print('    ', code_str)
+        return code_str
+        
+    def setup_connection(self, code_str, env = None, result_dir = None, func = None, verbose=False):
         '''
         This function allows self.add to be simplify with simple python function call command.
         Input:
@@ -550,46 +598,9 @@ class PipelineBuilder():
             env = self
 
         out_vars, func_str, args_str_list, kwargs_str_dict = Str2CodeAdaptor.breakdown_function_call(code_str)
-
-        private_func_str = f"self._{func_str.replace('.','_')}"
-
-        if func:
-            exec(f"{private_func_str} = func")
-        else: # If no custom function
-            # insert function from global
-            try:
-                eval(private_func_str)
-            except:
-                if type(self.func_source) == dict:
-                    tmp = self.func_source[func_str]
-                    exec(f"{private_func_str} = tmp")
-                if type(self.func_source) == str:
-                    if '.' in func_str:
-                        fn = func_str.split(".")[0]
-                        exec(f'from {self.func_source} import {fn}')
-                        exec(f"{private_func_str} = {func_str}")
-                    else:
-                        exec(f'from {self.func_source} import {func_str}')
-                        exec(f"{private_func_str} = {func_str}")
-                if type(self.func_source) == list:
-                    if '.' in func_str:
-                        print(func_str)
-                        fn = func_str.split(".")[0]
-                        for s in self.func_source:
-                            try:
-                                exec(f'from {s} import {fn}')
-                            except:
-                                pass
-                        exec(f"{private_func_str} = {func_str}")
-                    else:
-                        for s in self.func_source:
-                            try:
-                                exec(f'from {s} import {func_str}')
-                            except:
-                                pass
-                        exec(f"{private_func_str} = {func_str}")
-
-
+        private_func_str = self._set_func_str_as_private_functions(
+            func_str, func, self.func_source, verbose=False)
+        
         func_added_pipe = self.add(
             eval(private_func_str),
             method_alias = func_str,

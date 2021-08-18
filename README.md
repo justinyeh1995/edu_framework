@@ -54,16 +54,6 @@
 .
 ├── data                                                 # 實驗資料
 |    ├── source                                            # 存放原始資料 
-|    |      ├── 🟢download_data_from_google_drive.ipynb      # 從google_dirve下載原始資料用
-|    |      ├── 🔵google_drive.json                          # 串接google_drive用的api-keys，下載方式參考 download_data_from_google_drive.ipynb
-|    |      ├── 🔵sample_chid.txt                            # 原始資料
-|    |      ├── 🔵sample_idx_map.npy                         # 原始資料
-|    |      ├── 🔵sample_zip_if_cca_cdtx0001_hist.csv        # ...
-|    |      ├── 🔵sample_zip_if_cca_cust_f.csv               # ...
-|    |      └── 🔵sample_zip_if_cca_y.csv                    # 原始資料 
-|    | 
-|    ├── * sample                                        # 存放原始資料downsample後的資料
-|    | 
 |    ├── *V [experiment_group_name]                      # 存放特定類型的實驗(e.g., rnn)所需之資料
 |    |      ├── * tmp                                      # 中繼檔
 |    |      └── * result                                   # 結果檔
@@ -110,7 +100,6 @@
 ├── requirements.txt 
 └── ReadMe.md 
 ```
-
 
 
 # 實驗執行方法 

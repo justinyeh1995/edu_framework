@@ -632,7 +632,6 @@ def function_to_block():
 # MODIFICATION: 
 
 # ISSUES:
-- [ ] 行內相容性問題   
-    - [ ] cpu 環境   
-    - [ ] gpu 環境   
-- [ ] colab相容性問題  
+- [X] 行內相容性問題調整   
+    - [X] cpu 環境
+    - [X] gpu 環境

@@ -7,7 +7,6 @@
 | mlaas_rawdata | cdtx0001_hist                | iterm           | num  | 分期期數                                       | industry | ncku   | if_cca_cdtx0001_hist           | iterm           | 　 | 　     | 　      |
 | mlaas_rawdata | cdtx0001_hist                | mcc             | char | MCC_CODE                                       | industry | ncku   | if_cca_cdtx0001_hist           | mcc             | 　 | 　     | V       |
 | mlaas_rawdata | cdtx0001_hist                | objam           | num  | 交易金額-台幣                                  | industry | ncku   | if_cca_cdtx0001_hist           | objam           | 　 | 　     | V       |
-
 | mlaas_rawdata | cdtx0001_hist                | scity           | char | 消費城市                                       | industry | ncku   | if_cca_cdtx0001_hist           | scity           | 　 | 　     | V       |
 | mlaas_rawdata | cdtx0001_hist                | tcode           | char | 交易碼                                         | industry | ncku   | if_cca_cdtx0001_hist           | tcode           | 　 | 　     | 　      |
 | mlaas_rawdata | cdtx0001_hist                | hcefg           | char | HCE註記                                        | industry | ncku   | if_cca_cdtx0001_hist           | hcefg           | 　 | 　     | 　      |
